@@ -1,5 +1,4 @@
-module libmongoc [system] {
-    header "libbson-1.0/bson.h"
-    header "libmongoc-1.0/mongoc.h"
+module libmongoc {
+	header "mongodb.h"
     export *
 }

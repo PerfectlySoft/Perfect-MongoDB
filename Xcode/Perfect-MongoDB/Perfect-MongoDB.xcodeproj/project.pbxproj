@@ -418,7 +418,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/linked/libmongoc/include/libbson-1.0";
-				INFOPLIST_FILE = MongoDBTests/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Perfect-MongoDBTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ca.perfectlysoft.MongoDBTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -432,7 +432,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/linked/libmongoc/include/libbson-1.0";
-				INFOPLIST_FILE = MongoDBTests/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Perfect-MongoDBTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ca.perfectlysoft.MongoDBTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

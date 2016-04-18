@@ -123,7 +123,7 @@ class MongoDBTests: XCTestCase {
 	}
 	
 	func testClientConnect() {
-		let client = MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: "mongodb://localhost")
 		let status = client.serverStatus()
 		switch status {
 		case .Error(let domain, let code, let message):
@@ -137,22 +137,13 @@ class MongoDBTests: XCTestCase {
 	}
 	
 	func testClientConnectFail() {
-		let client = MongoClient(uri: "mongodb://typo")
-		let status = client.serverStatus()
-		switch status {
-		case .Error(let domain, let code, let message):
-			print("Error: \(domain) \(code) \(message)")
-			XCTAssert(true, "Error: \(domain) \(code) \(message)")
-		case .ReplyDoc(let doc):
-			print("Status doc: \(doc)")
-			XCTAssert(false)
-		default:
-			XCTAssert(false, "Strange reply type \(status)")
+		if let _ = try? MongoClient(uri: "mongoib//typo") {
+			XCTAssert(false, "client should be nil")
 		}
 	}
 	
 	func testClientGetDatabase() {
-		let client = MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: "mongodb://localhost")
 		let db = client.getDatabase("test")
 		XCTAssert(db.name() == "test")
 		db.close()
@@ -160,7 +151,7 @@ class MongoDBTests: XCTestCase {
 	}
 	
 	func testDBCreateCollection() {
-		let client = MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: "mongodb://localhost")
 		let db = client.getDatabase("test")
 		XCTAssert(db.name() == "test")
 		
@@ -180,7 +171,7 @@ class MongoDBTests: XCTestCase {
 	}
 	
 	func testClientGetDatabaseNames() {
-		let client = MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: "mongodb://localhost")
 		let db = client.getDatabase("test")
 		XCTAssert(db.name() == "test")
 		
@@ -219,7 +210,7 @@ class MongoDBTests: XCTestCase {
 	}
 	
 	func testGetCollection() {
-		let client = MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: "mongodb://localhost")
 		let db = client.getDatabase("test")
 		let col = db.getCollection("testcollection")
 		XCTAssert(db.name() == "test")
@@ -229,7 +220,7 @@ class MongoDBTests: XCTestCase {
 	}
 	
 	func testDeleteDoc() {
-		let client = MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: "mongodb://localhost")
 		let db = client.getDatabase("test")
 		XCTAssert(db.name() == "test")
 		
