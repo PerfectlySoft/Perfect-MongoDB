@@ -19,6 +19,40 @@
 
 import libmongoc
 
+#if swift(>=3.0)
+	extension UnsafeMutablePointer {
+		public static func alloc(num: Int) -> UnsafeMutablePointer<Pointee> {
+			return UnsafeMutablePointer<Pointee>.alloc(num)
+		}
+	}
+#else
+	typealias ErrorProtocol = ErrorType
+	typealias OpaquePointer = COpaquePointer
+	typealias OptionSet = OptionSetType
+	extension String {
+		init?(validatingUTF8: UnsafePointer<Int8>) {
+			if let s = String.fromCString(validatingUTF8) {
+				self.init(s)
+			} else {
+				return nil
+			}
+		}
+	}
+	extension UnsafeMutablePointer {
+		var pointee: Memory {
+			get { return self.memory }
+			set { self.memory = newValue }
+		}
+		func deallocateCapacity(num: Int) {
+			self.dealloc(num)
+		}
+		
+		func deinitialize(count count: Int) {
+			self.destroy(count)
+		}
+	}
+#endif
+
 public class MongoDatabase {
 
 	var ptr: OpaquePointer

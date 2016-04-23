@@ -96,7 +96,7 @@ public enum MongoRemoveFlag: Int {
 }
 
 public class MongoIndexOptionsGeo {
-	var rawOpt = UnsafeMutablePointer<mongoc_index_opt_geo_t>(allocatingCapacity: 1)
+	var rawOpt = UnsafeMutablePointer<mongoc_index_opt_geo_t>.alloc(1)
 
 	public init(twodSphereVersion: UInt8? = nil, twodBitsPrecision: UInt8? = nil, twodLocationMin: Double? = nil, twodLocationMax: Double? = nil, haystackBucketSize: Double? = nil) {
 		mongoc_index_opt_geo_init(self.rawOpt)
@@ -183,7 +183,7 @@ public class MongoIndexOptions {
 			self.rawOpt.geo_options = geoOptions.rawOpt
 		}
 		if let storageOptions = storageOptions {
-			self.storageOptions = UnsafeMutablePointer<mongoc_index_opt_storage_t>(allocatingCapacity: 1)
+			self.storageOptions = UnsafeMutablePointer<mongoc_index_opt_storage_t>.alloc(1)
 			self.storageOptions!.pointee.type = Int32(storageOptions.rawValue)
 		}
 	}
