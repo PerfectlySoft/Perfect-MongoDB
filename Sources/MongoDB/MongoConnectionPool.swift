@@ -22,7 +22,7 @@ import libmongoc
 // Allows connection pooling. This class is thread-safe.
 public class MongoClientPool {
     
-    var ptr: OpaquePointer
+    var ptr = OpaquePointer(bitPattern: 0)
     
     public init(uri: String) {
         
@@ -51,15 +51,24 @@ public class MongoClientPool {
     }
     
     // Pushes back popped client connection.
-    public func pushClient(client: MongoClient) {
+    public func pushClient(_ client: MongoClient) {
         mongoc_client_pool_push(ptr, client.ptr)
         client.ptr = nil
     }
     
     // Automatically pops a client, makes it available within the block and pushes it back.
-    public func executeBlock(@noescape block: (client: MongoClient) -> Void) {
+	#if swift(>=3.0)
+	public func executeBlock(_ block: @noescape(client: MongoClient) -> Void) {
         let client = popClient()
         block(client: client)
         pushClient(client)
     }
+	#else
+	public func executeBlock(@noescape block: (client: MongoClient) -> Void) {
+		let client = popClient()
+		block(client: client)
+		pushClient(client)
+	}
+	#endif
 }
+

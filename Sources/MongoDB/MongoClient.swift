@@ -26,7 +26,7 @@ public enum MongoResult {
 	case ReplyInt(Int)
 	case ReplyCollection(MongoCollection)
 
-	static func fromError(error: bson_error_t) -> MongoResult {
+	static func fromError(_ error: bson_error_t) -> MongoResult {
 		var vError = error
 		let message = withUnsafePointer(&vError.message) {
 			String(validatingUTF8: UnsafePointer($0))!
@@ -41,22 +41,27 @@ public enum MongoClientError: ErrorProtocol {
 
 public class MongoClient {
 
-	var ptr: OpaquePointer
+	var ptr = OpaquePointer(bitPattern: 0)
 
 	public typealias Result = MongoResult
 
 	public init(uri: String) throws {
 		self.ptr = mongoc_client_new(uri)
         
-        if ptr == nil {
+        if nil == ptr {
             throw MongoClientError.InitError("Could not parse URI '\(uri)'")
         }
 	}
-    
-    init(pointer: OpaquePointer) {
+	#if swift(>=3.0)
+    init(pointer: OpaquePointer?) {
         ptr = pointer
     }
-    
+	#else
+	init(pointer: OpaquePointer) {
+		ptr = pointer
+	}
+	#endif
+	
     deinit {
         close()
     }
@@ -72,7 +77,7 @@ public class MongoClient {
 		return MongoCollection(client: self, databaseName: databaseName, collectionName: collectionName)
 	}
 
-	public func getDatabase(databaseName: String) -> MongoDatabase {
+	public func getDatabase(name databaseName: String) -> MongoDatabase {
 		return MongoDatabase(client: self, databaseName: databaseName)
 	}
 
@@ -83,23 +88,38 @@ public class MongoClient {
 			mongoc_read_prefs_destroy(readPrefs)
 		}
 		let bson = BSON()
-		guard mongoc_client_get_server_status(self.ptr, readPrefs, bson.doc, &error) else {
+		guard mongoc_client_get_server_status(self.ptr, readPrefs, bson.doc!, &error) else {
 			return Result.fromError(error)
 		}
 		return .ReplyDoc(bson)
 	}
 
 	public func databaseNames() -> [String] {
-		let names = mongoc_client_get_database_names(self.ptr, nil)
 		var ret = [String]()
-		if names != nil {
-			var curr = names
-			while curr[0] != nil {
-				ret.append(String(validatingUTF8: curr.pointee)!)
-				curr = curr.successor()
-			}
-			bson_strfreev(names)
+	#if swift(>=3.0)
+		guard let names = mongoc_client_get_database_names(self.ptr, nil) else {
+			return ret
 		}
+		
+		var curr = names
+		while let currPtr = curr[0] {
+			ret.append(String(validatingUTF8: currPtr) ?? "")
+			curr = curr.successor()
+		}
+	#else
+		let names = mongoc_client_get_database_names(self.ptr, nil)
+		guard nil != names else {
+			return ret
+		}
+		
+		var curr = names
+		while nil != curr[0] {
+			ret.append(String(validatingUTF8: curr[0]) ?? "")
+			curr = curr.successor()
+		}
+	#endif
+		bson_strfreev(names)
+		
 		return ret
 	}
 
