@@ -301,9 +301,9 @@ public class BSON: CustomStringConvertible {
     /**
      * append(key, string):
      * Parameter key: The key for the field.
-     * Parameter value: A UTF-8 encoded string.
+     * Parameter string: A UTF-8 encoded string.
      *
-     * Appends a new field to self.doc using @key as the key and @value as the UTF-8
+     * Appends a new field to self.doc using @key as the key and @string as the UTF-8
      * encoded value.
      *
      * Returns: true if successful; false if append would overflow max size.
@@ -311,45 +311,148 @@ public class BSON: CustomStringConvertible {
     public func append(key key: String, string: String) -> Bool {
         return bson_append_utf8(self.doc!, key, -1, string, -1)
 	}
-
+    
+    /**
+     * append(key, bytes):
+     * Parameter key: The key for the field.
+     * Parameter bytes: The bytes to append
+     * 
+     * Appends a bytes buffer to the BSON document.
+     *
+     * Returns: true if successful; false if append would overflow max size.
+     */
 	public func append(key key: String, bytes: [UInt8]) -> Bool {
 		return bson_append_binary(self.doc!, key, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
 	}
 
+    /**
+     * append(key, regex, options):
+     * Parameter key: The key of the field.
+     * Parameter regex: The regex to append to the bson.
+     * Parameter options: Options for @regex.
+     *
+     * Appends a new field to self.doc of type BSON_TYPE_REGEX. @regex should
+     * be the regex string. @options should contain the options for the regex.
+     *
+     * Valid options for @options are:
+     *
+     *   'i' for case-insensitive.
+     *   'm' for multiple matching.
+     *   'x' for verbose mode.
+     *   'l' to make \w and \W locale dependent.
+     *   's' for dotall mode ('.' matches everything)
+     *   'u' to make \w and \W match unicode.
+     *
+     * For more information on what comprimises a BSON regex, see bsonspec.org.
+     *
+     * Returns: true if successful; false if append would overflow max size.
+     */
 	public func append(key key: String, regex: String, options: String) -> Bool {
 		return bson_append_regex(self.doc!, key, -1, regex, options)
 	}
 
+    /**
+     * countKeys():
+     *
+     * Counts the number of elements found in self.doc.
+     */
 	public func countKeys() -> Int {
 		return Int(bson_count_keys(self.doc!))
 	}
-
+    
+    /**
+     * hasField(key):
+     * Parameter key: The key to lookup.
+     *
+     * Checks to see if self.doc contains a field named @key.
+     *
+     * This function is case-sensitive.
+     *
+     * Returns: true if @key exists in self.doc; otherwise false.
+     */
 	public func hasField(key key: String) -> Bool {
 		return bson_has_field(self.doc!, key)
 	}
 
+    /**
+     * appendArrayBegin(key, child):
+     * Parameter key: The key for the field.
+     * Parameter child: A location to an uninitialized bson_t.
+     *
+     * Appends a new field named @key to self.doc, the field is, however,
+     * incomplete. @child will be initialized so that you may add fields to the
+     * child array. Child will use a memory buffer owned by self.doc and
+     * therefore grow the parent buffer as additional space is used. This allows
+     * a single malloc'd buffer to be used when building arrays which can help
+     * reduce memory fragmentation.
+     *
+     * The type of @child will be BSON_TYPE_ARRAY and therefore the keys inside
+     * of it MUST be "0", "1", etc.
+     *
+     * Returns: true if successful; false if append would overflow max size.
+     */
 	public func appendArrayBegin(key key: String, child: BSON) -> Bool {
 		return bson_append_array_begin(self.doc!, key, -1, child.doc!)
 	}
 
+    /**
+     * appendArrayEnd(child):
+     * Parameter child: A bson document supplied to appendArrayBegin().
+     *
+     * Finishes the appending of a array to self.doc. @child is considered
+     * disposed after this call and should not be used any further.
+     *
+     * Returns: true if successful; false if append would overflow max size.
+     */
 	public func appendArrayEnd(child: BSON) -> Bool {
 		return bson_append_array_end(self.doc!, child.doc!)
 	}
 
+    /**
+     * appendArray(key, array):
+     * Parameter key: The key for the field.
+     * Parameter array: A bson document containing the array.
+     *
+     * Appends a BSON array to self.doc. BSON arrays are like documents where the
+     * key is the string version of the index. For example, the first item of the
+     * array would have the key "0". The second item would have the index "1".
+     *
+     * Returns: true if successful; false if append would overflow max size.
+     */
 	public func appendArray(key key: String, array: BSON) -> Bool {
 		return bson_append_array(self.doc!, key, -1, array.doc!)
 	}
 
+    /**
+     * concat(src):
+     * Parameter src: BSON doc to be concatenated.
+     *
+     * Concatenate src with self.doc
+     *
+     * Returns: true if successful; false if append would overflow max size.
+     */
 	public func concat(src: BSON) -> Bool {
 		return bson_concat(self.doc!, src.doc!)
 	}
 }
 
+/**
+ * ==:
+ * compare two BSON documents for equality
+ *
+ * Returns: BOOL.
+ */
 public func ==(lhs: BSON, rhs: BSON) -> Bool {
 	let cmp = bson_compare(lhs.doc!, rhs.doc!)
 	return cmp == 0
 }
 
+/**
+ * <:
+ * compare two BSON documents for sort priority
+ *
+ * Returns: true if lhs sorts below rhs, false otherwise.
+ */
 public func <(lhs: BSON, rhs: BSON) -> Bool {
 	let cmp = bson_compare(lhs.doc!, rhs.doc!)
 	return cmp < 0
