@@ -21,9 +21,9 @@ import libmongoc
 
 public class MongoCursor {
 
-	var ptr: OpaquePointer
+	var ptr: OpaquePointer? = OpaquePointer(bitPattern: 0)
 
-	init(rawPtr: OpaquePointer) {
+	init(rawPtr: OpaquePointer?) {
 		self.ptr = rawPtr
 	}
     
@@ -33,14 +33,14 @@ public class MongoCursor {
 
 	public func close() {
 		if self.ptr != nil {
-			mongoc_cursor_destroy(self.ptr)
+			mongoc_cursor_destroy(self.ptr!)
 			self.ptr = nil
 		}
 	}
 
 	public func next() -> BSON? {
 		var bson = UnsafePointer<bson_t>(nil)
-		if mongoc_cursor_next(self.ptr, &bson) {
+		if mongoc_cursor_next(self.ptr!, &bson) {
 			return NoDestroyBSON(rawBson: UnsafeMutablePointer<bson_t>(bson))
 		}
 		return nil

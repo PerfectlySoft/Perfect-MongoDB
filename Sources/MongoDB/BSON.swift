@@ -27,7 +27,7 @@ public enum BSONError: ErrorProtocol {
 
 /// BSON class 
 public class BSON: CustomStringConvertible {
-	var doc: UnsafeMutablePointer<bson_t>
+	var doc: UnsafeMutablePointer<bson_t>?
 
     /// Return JSON representation of current BSON contents as a String
 	public var description: String {
@@ -89,10 +89,10 @@ public class BSON: CustomStringConvertible {
      * Returns: A newly allocated doc that should be freed with deinit().
      */
 	public init(document: BSON) {
-		self.doc = bson_copy(document.doc)
+		self.doc = bson_copy(document.doc!)
 	}
 
-	init(rawBson: UnsafeMutablePointer<bson_t>) {
+	init(rawBson: UnsafeMutablePointer<bson_t>?) {
 		self.doc = rawBson
 	}
     
@@ -103,7 +103,7 @@ public class BSON: CustomStringConvertible {
     /// close, destroy and release the current BSON document
 	public func close() {
 		if self.doc != nil {
-			bson_destroy(self.doc)
+			bson_destroy(self.doc!)
 			self.doc = nil
 		}
 	}
@@ -119,21 +119,39 @@ public class BSON: CustomStringConvertible {
      */
 	public var asString: String {
 		var length = 0
-		let data = bson_as_json(self.doc, &length)
+	#if swift(>=3.0)
+		guard let data = bson_as_json(self.doc!, &length) else {
+			return ""
+		}
+	#else
+		let data = bson_as_json(self.doc!, &length)
+		guard nil != data else {
+			return ""
+		}
+	#endif
 		defer {
 			bson_free(data)
 		}
-		return String(validatingUTF8: data)!
+		return String(validatingUTF8: data) ?? ""
 	}
     
     /** like asString() but for outermost arrays. */
 	public var asArrayString: String {
 		var length = 0
-		let data = bson_array_as_json(self.doc, &length)
+	#if swift(>=3.0)
+		guard let data = bson_array_as_json(self.doc!, &length) else {
+			return ""
+		}
+	#else
+		let data = bson_array_as_json(self.doc!, &length)
+		guard nil != data else {
+			return ""
+		}
+	#endif
 		defer {
 			bson_free(data)
 		}
-		return String(validatingUTF8: data)!
+		return String(validatingUTF8: data) ?? ""
 	}
 
     /**
@@ -142,9 +160,19 @@ public class BSON: CustomStringConvertible {
      * Returns: A byte array from current BSON document
      */
 	public var asBytes: [UInt8] {
-		let length = Int(self.doc.pointee.len)
-		let data = bson_get_data(self.doc)
 		var ret = [UInt8]()
+	#if swift(>=3.0)
+		guard let doc = self.doc, data = bson_get_data(doc) else {
+			return ret
+		}
+	#else
+		guard let doc = self.doc else {
+			return ret
+		}
+		let data = bson_get_data(doc)
+	#endif
+		let length = Int(doc.pointee.len)
+		
 		for i in 0..<length {
 			ret.append(data[i])
 		}
@@ -189,7 +217,7 @@ public class BSON: CustomStringConvertible {
      */
 	public func append(key: String, oid: bson_oid_t) -> Bool {
 		var cpy = oid
-		return bson_append_oid(self.doc, key, -1, &cpy)
+		return bson_append_oid(self.doc!, key, -1, &cpy)
 	}
 
     /**
@@ -284,46 +312,46 @@ public class BSON: CustomStringConvertible {
 		return bson_append_utf8(self.doc, key, -1, string, -1)
 	}
 
-	public func append(key: String, bytes: [UInt8]) -> Bool {
-		return bson_append_binary(self.doc, key, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
+	public func append(key key: String, bytes: [UInt8]) -> Bool {
+		return bson_append_binary(self.doc!, key, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
 	}
 
-	public func append(key: String, regex: String, options: String) -> Bool {
-		return bson_append_regex(self.doc, key, -1, regex, options)
+	public func append(key key: String, regex: String, options: String) -> Bool {
+		return bson_append_regex(self.doc!, key, -1, regex, options)
 	}
 
 	public func countKeys() -> Int {
-		return Int(bson_count_keys(self.doc))
+		return Int(bson_count_keys(self.doc!))
 	}
 
-	public func hasField(key: String) -> Bool {
-		return bson_has_field(self.doc, key)
+	public func hasField(key key: String) -> Bool {
+		return bson_has_field(self.doc!, key)
 	}
 
-	public func appendArrayBegin(key: String, child: BSON) -> Bool {
-		return bson_append_array_begin(self.doc, key, -1, child.doc)
+	public func appendArrayBegin(key key: String, child: BSON) -> Bool {
+		return bson_append_array_begin(self.doc!, key, -1, child.doc!)
 	}
 
 	public func appendArrayEnd(child: BSON) -> Bool {
-		return bson_append_array_end(self.doc, child.doc)
+		return bson_append_array_end(self.doc!, child.doc!)
 	}
 
-	public func appendArray(key: String, array: BSON) -> Bool {
-		return bson_append_array(self.doc, key, -1, array.doc)
+	public func appendArray(key key: String, array: BSON) -> Bool {
+		return bson_append_array(self.doc!, key, -1, array.doc!)
 	}
 
 	public func concat(src: BSON) -> Bool {
-		return bson_concat(self.doc, src.doc)
+		return bson_concat(self.doc!, src.doc!)
 	}
 }
 
 public func ==(lhs: BSON, rhs: BSON) -> Bool {
-	let cmp = bson_compare(lhs.doc, rhs.doc)
+	let cmp = bson_compare(lhs.doc!, rhs.doc!)
 	return cmp == 0
 }
 
 public func <(lhs: BSON, rhs: BSON) -> Bool {
-	let cmp = bson_compare(lhs.doc, rhs.doc)
+	let cmp = bson_compare(lhs.doc!, rhs.doc!)
 	return cmp < 0
 }
 

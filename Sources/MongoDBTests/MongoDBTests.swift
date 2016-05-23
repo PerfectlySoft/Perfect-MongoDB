@@ -55,17 +55,17 @@ class MongoDBTests: XCTestCase {
 			bson.close()
 		}
 		
-		XCTAssert(bson.append("stringKey", string: "String Value"))
-		XCTAssert(bson.append("intKey", int: 42))
-		XCTAssert(bson.append("nullKey"))
-		XCTAssert(bson.append("int32Key", int32: 42))
-		XCTAssert(bson.append("doubleKey", double: 4.2))
+		XCTAssert(bson.append(key: "stringKey", string: "String Value"))
+		XCTAssert(bson.append(key: "intKey", int: 42))
+		XCTAssert(bson.append(key: "nullKey"))
+		XCTAssert(bson.append(key: "int32Key", int32: 42))
+		XCTAssert(bson.append(key: "doubleKey", double: 4.2))
 		
-		XCTAssert(bson.append("boolKey", bool: true))
+		XCTAssert(bson.append(key: "boolKey", bool: true))
 		
 		let t = Darwin.time(nil)
-		XCTAssert(bson.append("timeKey", time: t))
-		XCTAssert(bson.append("dateTimeKey", dateTime: 4200102))
+		XCTAssert(bson.append(key: "timeKey", time: t))
+		XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
 		
 		let str = bson.asString
 		let expectedJson = "{ \"stringKey\" : \"String Value\", \"intKey\" : 42, \"nullKey\" : null, \"int32Key\" : 42, \"doubleKey\" : 4.2, " +
@@ -80,17 +80,17 @@ class MongoDBTests: XCTestCase {
 			bson.close()
 		}
 		
-		XCTAssert(bson.append("stringKey", string: "String Value"))
-		XCTAssert(bson.append("intKey", int: 42))
-		XCTAssert(bson.append("nullKey"))
-		XCTAssert(bson.append("int32Key", int32: 42))
-		XCTAssert(bson.append("doubleKey", double: 4.2))
+		XCTAssert(bson.append(key: "stringKey", string: "String Value"))
+		XCTAssert(bson.append(key: "intKey", int: 42))
+		XCTAssert(bson.append(key: "nullKey"))
+		XCTAssert(bson.append(key: "int32Key", int32: 42))
+		XCTAssert(bson.append(key: "doubleKey", double: 4.2))
 		
-		XCTAssert(bson.append("boolKey", bool: true))
+		XCTAssert(bson.append(key: "boolKey", bool: true))
 		
 		let t = Darwin.time(nil)
-		XCTAssert(bson.append("timeKey", time: t))
-		XCTAssert(bson.append("dateTimeKey", dateTime: 4200102))
+		XCTAssert(bson.append(key: "timeKey", time: t))
+		XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
 		
 		let str = bson.asString
 		let expectedJson = "{ \"stringKey\" : \"String Value\", \"intKey\" : 42, \"nullKey\" : null, \"int32Key\" : 42, \"doubleKey\" : 4.2, " +
@@ -100,9 +100,9 @@ class MongoDBTests: XCTestCase {
 		
 		XCTAssert(bson.countKeys() == 8)
 		
-		XCTAssert(bson.hasField("nullKey"))
-		XCTAssert(bson.hasField("doubleKey"))
-		XCTAssert(false == bson.hasField("noKey"))
+		XCTAssert(bson.hasField(key: "nullKey"))
+		XCTAssert(bson.hasField(key: "doubleKey"))
+		XCTAssert(false == bson.hasField(key: "noKey"))
 	}
 	
 	func testBSONCompare() {
@@ -111,7 +111,7 @@ class MongoDBTests: XCTestCase {
 			bson.close()
 		}
 		
-		XCTAssert(bson.append("stringKey", string: "String Value"))
+		XCTAssert(bson.append(key: "stringKey", string: "String Value"))
 		
 		let expectedJson = "{ \"stringKey\" : \"String Value\" }"
 		
@@ -144,7 +144,7 @@ class MongoDBTests: XCTestCase {
 	
 	func testClientGetDatabase() {
 		let client = try! MongoClient(uri: "mongodb://localhost")
-		let db = client.getDatabase("test")
+		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		db.close()
 		client.close()
@@ -152,13 +152,13 @@ class MongoDBTests: XCTestCase {
 	
 	func testDBCreateCollection() {
 		let client = try! MongoClient(uri: "mongodb://localhost")
-		let db = client.getDatabase("test")
+		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
-		let oldC = db.getCollection("testcollection")
+		let oldC = db.getCollection(name: "testcollection")
 		oldC.drop()
 		
-		let result = db.createCollection("testcollection", options: BSON())
+		let result = db.createCollection(name: "testcollection", options: BSON())
 		switch result {
 		case .ReplyCollection(let collection):
 			XCTAssert(collection.name() == "testcollection")
@@ -172,10 +172,10 @@ class MongoDBTests: XCTestCase {
 	
 	func testClientGetDatabaseNames() {
 		let client = try! MongoClient(uri: "mongodb://localhost")
-		let db = client.getDatabase("test")
+		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
-		let collection = db.getCollection("testcollection")
+		let collection = db.getCollection(name: "testcollection")
 		XCTAssert(collection.name() == "testcollection")
 			
 		let bson = BSON()
@@ -183,14 +183,14 @@ class MongoDBTests: XCTestCase {
 			bson.close()
 		}
 		
-		XCTAssert(bson.append("stringKey", string: "String Value"))
-		XCTAssert(bson.append("intKey", int: 42))
-		XCTAssert(bson.append("nullKey"))
-		XCTAssert(bson.append("int32Key", int32: 42))
-		XCTAssert(bson.append("doubleKey", double: 4.2))
-		XCTAssert(bson.append("boolKey", bool: true))
+		XCTAssert(bson.append(key: "stringKey", string: "String Value"))
+		XCTAssert(bson.append(key: "intKey", int: 42))
+		XCTAssert(bson.append(key: "nullKey"))
+		XCTAssert(bson.append(key: "int32Key", int32: 42))
+		XCTAssert(bson.append(key: "doubleKey", double: 4.2))
+		XCTAssert(bson.append(key: "boolKey", bool: true))
 		
-		let result2 = collection.save(bson)
+		let result2 = collection.save(document: bson)
 		switch result2 {
 		case .Success:
 			XCTAssert(true)
@@ -211,8 +211,8 @@ class MongoDBTests: XCTestCase {
 	
 	func testGetCollection() {
 		let client = try! MongoClient(uri: "mongodb://localhost")
-		let db = client.getDatabase("test")
-		let col = db.getCollection("testcollection")
+		let db = client.getDatabase(name: "test")
+		let col = db.getCollection(name: "testcollection")
 		XCTAssert(db.name() == "test")
 		XCTAssert(col.name() == "testcollection")
 		db.close()
@@ -221,10 +221,10 @@ class MongoDBTests: XCTestCase {
 	
 	func testDeleteDoc() {
 		let client = try! MongoClient(uri: "mongodb://localhost")
-		let db = client.getDatabase("test")
+		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
-		let collection = db.getCollection("testcollection")
+		let collection = db.getCollection(name: "testcollection")
 		XCTAssert(collection.name() == "testcollection")
 		
 		let bson = BSON()
@@ -232,14 +232,14 @@ class MongoDBTests: XCTestCase {
 			bson.close()
 		}
 		
-		XCTAssert(bson.append("stringKey", string: "String Value"))
-		XCTAssert(bson.append("intKey", int: 42))
-		XCTAssert(bson.append("nullKey"))
-		XCTAssert(bson.append("int32Key", int32: 42))
-		XCTAssert(bson.append("doubleKey", double: 4.2))
-		XCTAssert(bson.append("boolKey", bool: true))
+		XCTAssert(bson.append(key: "stringKey", string: "String Value"))
+		XCTAssert(bson.append(key: "intKey", int: 42))
+		XCTAssert(bson.append(key: "nullKey"))
+		XCTAssert(bson.append(key: "int32Key", int32: 42))
+		XCTAssert(bson.append(key: "doubleKey", double: 4.2))
+		XCTAssert(bson.append(key: "boolKey", bool: true))
 		
-		let result2 = collection.insert(bson)
+		let result2 = collection.insert(document: bson)
 		switch result2 {
 		case .Success:
 			XCTAssert(true)
@@ -247,21 +247,14 @@ class MongoDBTests: XCTestCase {
 			XCTAssert(false, "Bad result \(result2)")
 		}
 		
-		let result3 = collection.remove(bson)
+		let result3 = collection.remove(selector: bson)
 		switch result3 {
 		case .Success:
 			XCTAssert(true)
 		default:
 			XCTAssert(false, "Bad result \(result2)")
 		}
-		
 	}
-	
-	
-	
-	
-	
-	
 }
 
 
