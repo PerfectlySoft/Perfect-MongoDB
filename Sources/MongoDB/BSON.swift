@@ -189,8 +189,8 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String, document: BSON) -> Bool {
-		return bson_append_document(self.doc, key, -1, document.doc)
+    public func append(key key: String, document: BSON) -> Bool {
+        return bson_append_document(self.doc!, key, -1, document.doc!)
 	}
 
     /**
@@ -201,10 +201,10 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String) -> Bool {
-		return bson_append_null(self.doc, key, -1)
+    public func append(key key: String) -> Bool {
+        return bson_append_null(self.doc!, key, -1)
 	}
-    
+
     /**
      * append(key, oid):
      * Parameter key: The key for the field.
@@ -215,7 +215,7 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String, oid: bson_oid_t) -> Bool {
+	public func append(key key: String, oid: bson_oid_t) -> Bool {
 		var cpy = oid
 		return bson_append_oid(self.doc!, key, -1, &cpy)
 	}
@@ -229,8 +229,8 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String, int: Int) -> Bool {
-		return bson_append_int64(self.doc, key, -1, Int64(int))
+    public func append(key key: String, int: Int) -> Bool {
+        return bson_append_int64(self.doc!, key, -1, Int64(int))
 	}
 
     /**
@@ -242,8 +242,8 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String, int32: Int32) -> Bool {
-		return bson_append_int32(self.doc, key, -1, int32)
+    public func append(key key: String, int32: Int32) -> Bool {
+        return bson_append_int32(self.doc!, key, -1, int32)
 	}
 
     /**
@@ -255,8 +255,8 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if sucessful; otherwise false.
      */
-	public func append(key: String, dateTime: Int64) -> Bool {
-		return bson_append_date_time(self.doc, key, -1, dateTime)
+    public func append(key key: String, dateTime: Int64) -> Bool {
+        return bson_append_date_time(self.doc!, key, -1, dateTime)
 	}
 
     /**
@@ -269,8 +269,8 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String, time: time_t) -> Bool {
-		return bson_append_time_t(self.doc, key, -1, time)
+    public func append(key key: String, time: time_t) -> Bool {
+        return bson_append_time_t(self.doc!, key, -1, time)
 	}
 
     /**
@@ -281,8 +281,8 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String, double: Double) -> Bool {
-		return bson_append_double(self.doc, key, -1, double)
+    public func append(key key: String, double: Double) -> Bool {
+        return bson_append_double(self.doc!, key, -1, double)
 	}
 
     /**
@@ -294,8 +294,8 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String, bool: Bool) -> Bool {
-		return bson_append_bool(self.doc, key, -1, bool)
+    public func append(key key: String, bool: Bool) -> Bool {
+        return bson_append_bool(self.doc!, key, -1, bool)
 	}
 
     /**
@@ -308,8 +308,8 @@ public class BSON: CustomStringConvertible {
      *
      * Returns: true if successful; false if append would overflow max size.
      */
-	public func append(key: String, string: String) -> Bool {
-		return bson_append_utf8(self.doc, key, -1, string, -1)
+    public func append(key key: String, string: String) -> Bool {
+        return bson_append_utf8(self.doc!, key, -1, string, -1)
 	}
 
 	public func append(key key: String, bytes: [UInt8]) -> Bool {
