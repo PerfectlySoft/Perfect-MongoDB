@@ -451,7 +451,7 @@ public func ==(lhs: BSON, rhs: BSON) -> Bool {
  * <:
  * compare two BSON documents for sort priority
  *
- * Returns: true if lhs sorts below rhs, false otherwise.
+ * Returns: true if lhs sorts above rhs, false otherwise.
  */
 public func <(lhs: BSON, rhs: BSON) -> Bool {
 	let cmp = bson_compare(lhs.doc!, rhs.doc!)

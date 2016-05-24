@@ -116,6 +116,33 @@
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:C7MongoDB11MongoClient6Result"></a>
+                    <a name="//apple_ref/swift/Alias/Result" class="dashAnchor"></a>
+                    <a class="token" href="#/s:C7MongoDB11MongoClient6Result">Result</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Result Status enum for a MongoDB event</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">Result</span> <span class="o">=</span> <span class="kt">MongoResult</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:FC7MongoDB11MongoClientcFzT3uriSS_S0_"></a>
                     <a name="//apple_ref/swift/Method/init(uri:)" class="dashAnchor"></a>
                     <a class="token" href="#/s:FC7MongoDB11MongoClientcFzT3uriSS_S0_">init(uri:)</a>
@@ -126,8 +153,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Create new Mongo Client connection</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">uri</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -145,8 +180,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>terminate current Mongo Client connection</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">close</span><span class="p">()</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -164,8 +207,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Return the specified MongoCollection from the specified database using current connection</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getCollection</span><span class="p">(</span><span class="nv">databaseName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">collectionName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">MongoCollection</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -173,9 +224,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC7MongoDB11MongoClient11getDatabaseFSSCS_13MongoDatabase"></a>
-                    <a name="//apple_ref/swift/Method/getDatabase(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC7MongoDB11MongoClient11getDatabaseFSSCS_13MongoDatabase">getDatabase(_:)</a>
+                    <a name="/s:FC7MongoDB11MongoClient11getDatabaseFT4nameSS_CS_13MongoDatabase"></a>
+                    <a name="//apple_ref/swift/Method/getDatabase(name:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC7MongoDB11MongoClient11getDatabaseFT4nameSS_CS_13MongoDatabase">getDatabase(name:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -183,8 +234,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Return the named database as a MongoDatabase object</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getDatabase</span><span class="p">(</span><span class="n">name</span> <span class="nv">databaseName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">MongoDatabase</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -202,8 +261,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Get current Mongo server status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">serverStatus</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -221,8 +288,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Build String Array of current database names</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">databaseNames</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -232,8 +307,8 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-04-27)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.6.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-05-24)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.6.2</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

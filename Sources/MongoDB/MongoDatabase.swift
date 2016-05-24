@@ -59,12 +59,20 @@ import libmongoc
 	}
 #endif
 
+///MongoDatabase is an open-source document database that provides high performance, high availability, and automatic scaling.
 public class MongoDatabase {
 
 	var ptr: OpaquePointer? = OpaquePointer(bitPattern: 0)
 
 	public typealias Result = MongoResult
 
+    /** init(client, databaseName): get reference to named database using provided MongoClient instance
+     *
+     *  Parameter client:           a MongoClient
+     *  Parameter databaseName:     A String identifying the requested database
+     *
+     *  Returns a reference to the requested database
+    */
 	public init(client: MongoClient, databaseName: String) {
 		self.ptr = mongoc_client_get_database(client.ptr, databaseName)
 	}
@@ -73,6 +81,9 @@ public class MongoDatabase {
         close()
     }
 
+    /** close():    Close connection to database
+     *
+    */
 	public func close() {
 		if self.ptr != nil {
 			mongoc_database_destroy(self.ptr!)
@@ -80,6 +91,7 @@ public class MongoDatabase {
 		}
 	}
 
+    /// drop(): drops the current database, deleting the associated data files
 	public func drop() -> Result {
 		var error = bson_error_t()
 		if mongoc_database_drop(self.ptr!, &error) {
@@ -88,10 +100,18 @@ public class MongoDatabase {
 		return Result.fromError(error)
 	}
 
+    /// name(): Returns a string, the name of the current database
 	public func name() -> String {
 		return String(validatingUTF8: mongoc_database_get_name(self.ptr!))!
 	}
 
+    /** createCollection(name, options): create new Collection
+     *
+     *  Parameter name:     String, name of collection to be created
+     *  Parameter options:  BSON document listing options for new collection
+     *
+     *  Return MongoCollection
+    */
 	public func createCollection(name collectionName: String, options: BSON) -> Result {
 		var error = bson_error_t()
 	#if swift(>=3.0)
@@ -106,12 +126,14 @@ public class MongoDatabase {
 	#endif
 		return .ReplyCollection(MongoCollection(rawPtr: col))
 	}
-
+    
+    /// getCollection(name): return MongoCollection referenced by name
 	public func getCollection(name collectionName: String) -> MongoCollection {
 		let col = mongoc_database_get_collection(self.ptr!, collectionName)
         return MongoCollection(rawPtr: col)
 	}
-
+    
+    /// collectionNames():  return String Array of current database collections' names
 	public func collectionNames() -> [String] {
 		var ret = [String]()
 	#if swift(>=3.0)

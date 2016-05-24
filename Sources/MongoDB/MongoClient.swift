@@ -19,6 +19,7 @@
 
 import libmongoc
 
+/// Result Status for a MongoDB event
 public enum MongoResult {
 	case Success
 	case Error(UInt32, UInt32, String)
@@ -42,9 +43,11 @@ public enum MongoClientError: ErrorProtocol {
 public class MongoClient {
 
 	var ptr = OpaquePointer(bitPattern: 0)
-
+    
+    /// Result Status enum for a MongoDB event
 	public typealias Result = MongoResult
-
+    
+    /// Create new Mongo Client connection
 	public init(uri: String) throws {
 		self.ptr = mongoc_client_new(uri)
         
@@ -66,6 +69,7 @@ public class MongoClient {
         close()
     }
 
+    /// terminate current Mongo Client connection
 	public func close() {
 		if self.ptr != nil {
 			mongoc_client_destroy(self.ptr)
@@ -73,14 +77,17 @@ public class MongoClient {
 		}
 	}
 
+    /// Return the specified MongoCollection from the specified database using current connection
 	public func getCollection(databaseName: String, collectionName: String) -> MongoCollection {
 		return MongoCollection(client: self, databaseName: databaseName, collectionName: collectionName)
 	}
 
+    /// Return the named database as a MongoDatabase object 
 	public func getDatabase(name databaseName: String) -> MongoDatabase {
 		return MongoDatabase(client: self, databaseName: databaseName)
 	}
 
+    /// Get current Mongo server status
 	public func serverStatus() -> Result {
 		var error = bson_error_t()
 		let readPrefs = mongoc_read_prefs_new(MONGOC_READ_PRIMARY)
@@ -94,6 +101,7 @@ public class MongoClient {
 		return .ReplyDoc(bson)
 	}
 
+    /// Build String Array of current database names
 	public func databaseNames() -> [String] {
 		var ret = [String]()
 	#if swift(>=3.0)

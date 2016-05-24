@@ -107,7 +107,13 @@
         <section>
           <section class="section">
             <h1>MongoDatabase</h1>
-            <p>Undocumented</p>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">MongoDatabase</span></code></pre>
+
+                </div>
+              </div>
+            <p>MongoDatabase is an open-source document database that provides high performance, high availability, and automatic scaling.</p>
 
           </section>
           <section class="section task-group-section">
@@ -126,8 +132,21 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>init(client, databaseName): get reference to named database using provided MongoClient instance
+ *
+ *  Parameter client:           a MongoClient
+ *  Parameter databaseName:     A String identifying the requested database
+ *
+ *  Returns a reference to the requested database</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">client</span><span class="p">:</span> <span class="kt">MongoClient</span><span class="p">,</span> <span class="nv">databaseName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -145,8 +164,17 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>close():    Close connection to database
+ *</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">close</span><span class="p">()</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -164,8 +192,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>drop(): drops the current database, deleting the associated data files</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">drop</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -183,8 +219,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>name(): Returns a string, the name of the current database</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">name</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -192,9 +236,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC7MongoDB13MongoDatabase16createCollectionFTSS7optionsCS_4BSON_OS_11MongoResult"></a>
-                    <a name="//apple_ref/swift/Method/createCollection(_:options:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC7MongoDB13MongoDatabase16createCollectionFTSS7optionsCS_4BSON_OS_11MongoResult">createCollection(_:options:)</a>
+                    <a name="/s:FC7MongoDB13MongoDatabase16createCollectionFT4nameSS7optionsCS_4BSON_OS_11MongoResult"></a>
+                    <a name="//apple_ref/swift/Method/createCollection(name:options:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC7MongoDB13MongoDatabase16createCollectionFT4nameSS7optionsCS_4BSON_OS_11MongoResult">createCollection(name:options:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -202,8 +246,21 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>createCollection(name, options): create new Collection
+ *
+ *  Parameter name:     String, name of collection to be created
+ *  Parameter options:  BSON document listing options for new collection
+ *
+ *  Return MongoCollection</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">createCollection</span><span class="p">(</span><span class="n">name</span> <span class="nv">collectionName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">options</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -211,9 +268,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC7MongoDB13MongoDatabase13getCollectionFSSCS_15MongoCollection"></a>
-                    <a name="//apple_ref/swift/Method/getCollection(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC7MongoDB13MongoDatabase13getCollectionFSSCS_15MongoCollection">getCollection(_:)</a>
+                    <a name="/s:FC7MongoDB13MongoDatabase13getCollectionFT4nameSS_CS_15MongoCollection"></a>
+                    <a name="//apple_ref/swift/Method/getCollection(name:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC7MongoDB13MongoDatabase13getCollectionFT4nameSS_CS_15MongoCollection">getCollection(name:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -221,8 +278,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>getCollection(name): return MongoCollection referenced by name</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getCollection</span><span class="p">(</span><span class="n">name</span> <span class="nv">collectionName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">MongoCollection</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -240,8 +305,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>collectionNames():  return String Array of current database collections&rsquo; names</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">collectionNames</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -251,8 +324,8 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-04-27)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.6.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-05-24)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.6.2</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

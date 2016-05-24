@@ -19,6 +19,7 @@
 
 import libmongoc
 
+/// The Mongo Cursor interface
 public class MongoCursor {
 
 	var ptr: OpaquePointer? = OpaquePointer(bitPattern: 0)
@@ -30,14 +31,16 @@ public class MongoCursor {
     deinit {
         close()
     }
-
+    
+    /// Close and destroy current cursor
 	public func close() {
 		if self.ptr != nil {
 			mongoc_cursor_destroy(self.ptr!)
 			self.ptr = nil
 		}
 	}
-
+    
+    /// return next document if available, else nil
 	public func next() -> BSON? {
 		var bson = UnsafePointer<bson_t>(nil)
 		if mongoc_cursor_next(self.ptr!, &bson) {

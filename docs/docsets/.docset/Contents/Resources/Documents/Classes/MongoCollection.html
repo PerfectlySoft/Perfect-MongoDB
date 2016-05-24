@@ -107,12 +107,45 @@
         <section>
           <section class="section">
             <h1>MongoCollection</h1>
-            <p>Undocumented</p>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">MongoCollection</span></code></pre>
+
+                </div>
+              </div>
+            <p>The MongoCollection class</p>
 
           </section>
           <section class="section task-group-section">
             <div class="task-group">
               <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:C7MongoDB15MongoCollection6Result"></a>
+                    <a name="//apple_ref/swift/Alias/Result" class="dashAnchor"></a>
+                    <a class="token" href="#/s:C7MongoDB15MongoCollection6Result">Result</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Result Status enum for a MongoDB event</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">Result</span> <span class="o">=</span> <span class="kt">MongoResult</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
                 <li class="item">
                   <div>
                     <code>
@@ -126,8 +159,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>obtain access to a specified database and collection using the MongoClient</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">client</span><span class="p">:</span> <span class="kt">MongoClient</span><span class="p">,</span> <span class="nv">databaseName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">collectionName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -145,8 +186,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>close connection to the current collection</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">close</span><span class="p">()</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -154,9 +203,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC7MongoDB15MongoCollection6insertFTCS_4BSON4flagOS_15MongoInsertFlag_OS_11MongoResult"></a>
-                    <a name="//apple_ref/swift/Method/insert(_:flag:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC7MongoDB15MongoCollection6insertFTCS_4BSON4flagOS_15MongoInsertFlag_OS_11MongoResult">insert(_:flag:)</a>
+                    <a name="/s:FC7MongoDB15MongoCollection6insertFT8documentCS_4BSON4flagOS_15MongoInsertFlag_OS_11MongoResult"></a>
+                    <a name="//apple_ref/swift/Method/insert(document:flag:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC7MongoDB15MongoCollection6insertFT8documentCS_4BSON4flagOS_15MongoInsertFlag_OS_11MongoResult">insert(document:flag:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -164,8 +213,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Insert document into the current collection returning a result status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">insert</span><span class="p">(</span><span class="n">document</span> <span class="nv">document</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">flag</span><span class="p">:</span> <span class="kt">MongoInsertFlag</span> <span class="o">=</span> <span class="o">.</span><span class="kt">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -183,8 +240,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Update the document found using @selector with the @update document returning a result status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">(</span><span class="nv">update</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">selector</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">flag</span><span class="p">:</span> <span class="kt">MongoUpdateFlag</span> <span class="o">=</span> <span class="o">.</span><span class="kt">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -192,9 +257,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC7MongoDB15MongoCollection6removeFTCS_4BSON4flagOS_15MongoRemoveFlag_OS_11MongoResult"></a>
-                    <a name="//apple_ref/swift/Method/remove(_:flag:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC7MongoDB15MongoCollection6removeFTCS_4BSON4flagOS_15MongoRemoveFlag_OS_11MongoResult">remove(_:flag:)</a>
+                    <a name="/s:FC7MongoDB15MongoCollection6removeFT8selectorCS_4BSON4flagOS_15MongoRemoveFlag_OS_11MongoResult"></a>
+                    <a name="//apple_ref/swift/Method/remove(selector:flag:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC7MongoDB15MongoCollection6removeFT8selectorCS_4BSON4flagOS_15MongoRemoveFlag_OS_11MongoResult">remove(selector:flag:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -202,8 +267,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Remove the document found using @selector returning a result status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="n">selector</span> <span class="nv">selector</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">flag</span><span class="p">:</span> <span class="kt">MongoRemoveFlag</span> <span class="o">=</span> <span class="o">.</span><span class="kt">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -211,9 +284,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC7MongoDB15MongoCollection4saveFCS_4BSONOS_11MongoResult"></a>
-                    <a name="//apple_ref/swift/Method/save(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC7MongoDB15MongoCollection4saveFCS_4BSONOS_11MongoResult">save(_:)</a>
+                    <a name="/s:FC7MongoDB15MongoCollection4saveFT8documentCS_4BSON_OS_11MongoResult"></a>
+                    <a name="//apple_ref/swift/Method/save(document:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC7MongoDB15MongoCollection4saveFT8documentCS_4BSON_OS_11MongoResult">save(document:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -221,8 +294,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Updates the document returning a result status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">save</span><span class="p">(</span><span class="n">document</span> <span class="nv">document</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -240,8 +321,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>renames the collection using newDbName and newCollectionName, with option to drop existing collection immediately instead of after the move, returning a result status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">rename</span><span class="p">(</span><span class="nv">newDbName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">newCollectionName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">dropExisting</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -259,8 +348,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Return the collection name as a String</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">name</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -278,8 +375,21 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>validate(options):
+ * Parameter options: Optional. Specify true to enable a full validation and to return full statistics. MongoDB disables 
+ * full validation by default because it is a potentially resource-intensive operation.
+ *
+ * Validates a collection. The method scans a collection’s data structures for correctness and returns a single document 
+ * that describes the relationship between the logical collection and the physical representation of the data.</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">validate</span><span class="p">(</span><span class="nv">options</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -297,8 +407,37 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>stats(options):
+ * Parameter options: a BSON document
+ * 
+ * Returns statistics about the collection formatted according to the options document. 
+ * The options document can contain the following fields and values:</p>
 
+<ul>
+<li>scale    number</li>
+<li>Optional. The scale used in the output to display the sizes of items. By default, output displays sizes in bytes. To display kilobytes rather than bytes, specify a scale value of 1024.
+*</li>
+<li>indexDetails boolean</li>
+<li>Optional. If true, db.collection.stats() returns index details in addition to the collection stats.</li>
+<li>Only works for WiredTiger storage engine.</li>
+<li>Defaults to false.</li>
+<li>indexDetailsKey  document</li>
+<li>Optional. If indexDetails is true, you can use indexDetailsKey to filter index details by specifying the index key specification. Only the index that exactly matches indexDetailsKey will be returned.</li>
+<li>If no match is found, indexDetails will display statistics for all indexes.
+*</li>
+<li>indexDetailsName string</li>
+<li>Optional. If indexDetails is true, you can use indexDetailsName to filter index details by specifying the index name. Only the index name that exactly matches indexDetailsName will be returned.</li>
+<li>If no match is found, indexDetails will display statistics for all indexes.</li>
+</ul>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">stats</span><span class="p">(</span><span class="nv">options</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -316,8 +455,25 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>find(query, fields, flags, skip, limit, batchSize): Selects documents in a collection and returns a cursor to the selected documents.
+  *
+  * Parameter query:    Optional. Specifies selection filter using query operators. To return all documents in a collection, omit this parameter or pass an empty document ({}).
+  * Parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
+  * Parameter flags:    Optional. set queryFlags for the current search
+  * Parameter skip:     Optional. Skip the supplied number of records.
+  * Parameter limit:    Optional. return no more than the supplied number of records.
+  * Parameter batchSize:    Optional. Change number of automatically iterated documents.
+  *
+  * Returns:    A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">find</span><span class="p">(</span><span class="nv">query</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">fields</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">flags</span><span class="p">:</span> <span class="kt">MongoQueryFlag</span> <span class="o">=</span> <span class="kt">MongoQueryFlag</span><span class="o">.</span><span class="kt">None</span><span class="p">,</span> <span class="nv">skip</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">limit</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">batchSize</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">MongoCursor</span><span class="p">?</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -335,8 +491,22 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>createIndex(keys, options): Creates indexes on collections.
+  *
+  * Parameter keys:     A document that conains the field and value pairs where the field is the index key and the value describes the type of index for that field. For an ascending index on a field, specify a value of 1; for descending index, specify a value of -1.
+  * Parameter options:  Optional. A document that contains a set of options that controls the creation of the index. see MongoIndexOptions for details.
+  *
+  * Returns a Result status
+  *</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">createIndex</span><span class="p">(</span><span class="nv">keys</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">options</span><span class="p">:</span> <span class="kt">MongoIndexOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -354,8 +524,20 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>dropIndex(name): Drops or removes the specified index from a collection.
+  * 
+  * Parameter index: Specifies the index to drop, either by name or by the index specification document.
+  *
+  * Returns a Result status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">dropIndex</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -373,8 +555,20 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>drop(): 
+  * 
+  * Removes a collection from the database. The method also removes any indexes associated with the dropped collection. 
+  *
+  * Returns a Result status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">drop</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -392,8 +586,26 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>count(query, fields, flags, skip, limit, batchSize):    the count of documents that would match a find() query.
+ *<br>
+ *  Parameter query:    The query selection criteria.
+ *  Parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
+ *  Parameter flags:    Optional. set queryFlags for the current search
+ *  Parameter skip:     Optional. Skip the supplied number of records.
+ *  Parameter limit:    Optional. return no more than the supplied number of records.
+ *  Parameter batchSize:    Optional. Change number of automatically iterated documents.
+ *
+ *  Returns the count of documents that would match a find() query. The count() method does not perform the find() operation but instead counts and returns the number of results that match a query.
+ *</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">count</span><span class="p">(</span><span class="nv">query</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">fields</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">flags</span><span class="p">:</span> <span class="kt">MongoQueryFlag</span> <span class="o">=</span> <span class="kt">MongoQueryFlag</span><span class="o">.</span><span class="kt">None</span><span class="p">,</span> <span class="nv">skip</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">limit</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">batchSize</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -411,8 +623,26 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>findAndModify(query, sort, update, fileds, remove, upsert, new): Modifies and returns a single document.
+ *<br>
+ *  Parameter query:    Optional. The selection criteria for the modification. The query field employs the same query selectors as used in the db.collection.find() method. Although the query may match multiple documents, findAndModify() will only select one document to modify.
+ *  Parameter sort:     Optional. Determines which document the operation modifies if the query selects multiple documents. findAndModify() modifies the first document in the sort order specified by this argument.
+ *  Parameter update:   Must specify either the remove or the update field. Performs an update of the selected document. The update field employs the same update operators or field: value specifications to modify the selected document.
+ *  Parameter fields:   Optional. A subset of fields to return. The fields document specifies an inclusion of a field with 1, as in: fields: { <field1>: 1, <field2>: 1, &hellip; }.
+ *  Parameter remove:   Must specify either the remove or the update field. Removes the document specified in the query field. Set this to true to remove the selected document . The default is false.
+ *  Parameter upsert:   Optional. Used in conjunction with the update field. When true, findAndModify() creates a new document if no document matches the query, or if documents match the query, findAndModify() performs an update. To avoid multiple upserts, ensure that the query fields are uniquely indexed. The default is false.
+ *  Parameter new:      Optional. When true, returns the modified document rather than the original. The findAndModify() method ignores the new option for remove operations. The default is false.
+ *
+ *  Returns: Modifies and returns a single document. By default, the returned document does not include the modifications made on the update. To return the document with the modifications made on the update, use the new option.</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">findAndModify</span><span class="p">(</span><span class="nv">query</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">sort</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">update</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">fields</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">remove</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="nv">upsert</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="nv">new</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -430,8 +660,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Returns a BSON document with description of last transaction status</p>
 
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getLastError</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">BSON</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -441,8 +679,8 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-04-27)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.6.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-05-24)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.6.2</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>
