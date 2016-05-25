@@ -19,11 +19,15 @@
 
 import libmongoc
 
-// Allows connection pooling. This class is thread-safe.
+/// Allows connection pooling. This class is thread-safe.
 public class MongoClientPool {
     
     var ptr = OpaquePointer(bitPattern: 0)
-    
+    /**
+     *  create new ClientPool with provided String uri
+     *
+     *  - parameter uri: String uri to connect client pool
+    */
     public init(uri: String) {
         
         let uriPointer = mongoc_uri_new(uri)
@@ -36,7 +40,11 @@ public class MongoClientPool {
         }
     }
     
-    // Try to pop a client connection from the connection pool. Returns nil if no client connection is currently queued for reuse.
+    /**
+     *  Try to pop a client connection from the connection pool.
+     *
+     *  - returns: nil if no client connection is currently queued for reuse.
+     */
     public func tryPopClient() -> MongoClient? {
         let clientPointer = mongoc_client_pool_try_pop(ptr)
         if clientPointer != nil {
@@ -45,25 +53,44 @@ public class MongoClientPool {
         return nil
     }
     
-    // Pop a client connection from the connection pool.
+    /**
+     *  Pop a client connection from the connection pool.
+     *
+     * - returns: MongoClient from connection pool
+    */
     public func popClient() -> MongoClient {
         return MongoClient(pointer: mongoc_client_pool_pop(ptr))
     }
-    
-    // Pushes back popped client connection.
+
+    /**
+     *  Pushes back popped client connection.
+     *
+     *  - parameter client: MongoClient to be pushed back into pool
+     */
     public func pushClient(_ client: MongoClient) {
         mongoc_client_pool_push(ptr, client.ptr)
         client.ptr = nil
     }
-    
-    // Automatically pops a client, makes it available within the block and pushes it back.
+
 	#if swift(>=3.0)
+    
+    /**
+     *  Automatically pops a client, makes it available within the block and pushes it back.
+     *
+     *  - parameter block: block to be executed with popped client
+     */
 	public func executeBlock(_ block: @noescape(client: MongoClient) -> Void) {
         let client = popClient()
         block(client: client)
         pushClient(client)
     }
 	#else
+    
+    /**
+     *  Automatically pops a client, makes it available within the block and pushes it back.
+     *
+     *  - parameter block: block to be executed with popped client
+     */
 	public func executeBlock(@noescape block: (client: MongoClient) -> Void) {
 		let client = popClient()
 		block(client: client)

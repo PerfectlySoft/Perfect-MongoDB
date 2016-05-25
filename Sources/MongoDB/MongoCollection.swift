@@ -231,7 +231,14 @@ public class MongoCollection {
     /// Result Status enum for a MongoDB event
 	public typealias Result = MongoResult
 
-    /// obtain access to a specified database and collection using the MongoClient
+    /**
+     *  obtain access to a specified database and collection using the MongoClient
+     *
+     *  - parameter client: the MongoClient to be used
+     *  - parameter databaseName: String database name
+     *  - parameter collectionName: String collection name
+     *
+    */
 	public init(client: MongoClient, databaseName: String, collectionName: String) {
 		self.ptr = mongoc_client_get_collection(client.ptr, databaseName, collectionName)
 	}
@@ -251,8 +258,15 @@ public class MongoCollection {
 			self.ptr = nil
 		}
 	}
-    
-    /// Insert document into the current collection returning a result status
+
+    /**
+     *  Insert **document** into the current collection returning a result status
+     *  
+     *  - parameter document: BSON document to be inserted
+     *  - parameter flag: Optional MongoInsertFlag defaults to .None
+     *
+     *  - returns: Result object with status of insert
+    */
 	public func insert(document document: BSON, flag: MongoInsertFlag = .None) -> Result {
 		var error = bson_error_t()
 		let res = mongoc_collection_insert(self.ptr!, flag.mongoFlag, document.doc!, nil, &error)
@@ -262,7 +276,15 @@ public class MongoCollection {
 		return .Success
 	}
 
-    /// Update the document found using @selector with the @update document returning a result status
+    /**
+     *  Update the document found using **selector** with the **update** document returning a result status
+     *  
+     *  - parameter update: BSON document to be used to update
+     *  - parameter selector: BSON document with selection criteria
+     *  - parameter flag: Optional MongoUpdateFlag defaults to .None
+     *
+     *  - returns: Result object with status of update
+    */
 	public func update(update: BSON, selector: BSON, flag: MongoUpdateFlag = .None) -> Result {
 		var error = bson_error_t()
 		let res = mongoc_collection_update(self.ptr!, flag.mongoFlag, selector.doc!, update.doc!, nil, &error)
@@ -272,7 +294,14 @@ public class MongoCollection {
 		return .Success
 	}
 
-    /// Remove the document found using @selector returning a result status
+    /**
+     *  Remove the document found using **selector** returning a result status
+     *
+     *  - parameter selector: BSON document with selection criteria
+     *  - parameter flag: Optional MongoRemoveFlag defaults to .None
+     *
+     *  - returns: Result object with status of removal
+    */
 	public func remove(selector selector: BSON, flag: MongoRemoveFlag = .None) -> Result {
 		var error = bson_error_t()
 		let res = mongoc_collection_remove(self.ptr!, flag.mongoFlag, selector.doc!, nil, &error)
@@ -282,7 +311,13 @@ public class MongoCollection {
 		return .Success
 	}
 
-    /// Updates the document returning a result status
+    /**
+     *  Updates **document** returning a result status
+     *
+     *  - parameter document: BSON document to be saved
+     *
+     *  - returns: Result object with status of save
+    */
 	public func save(document document: BSON) -> Result {
 		var error = bson_error_t()
 		let res = mongoc_collection_save(self.ptr!, document.doc!, nil, &error)
@@ -292,7 +327,15 @@ public class MongoCollection {
 		return .Success
 	}
 
-    /// renames the collection using newDbName and newCollectionName, with option to drop existing collection immediately instead of after the move, returning a result status
+    /**
+     *  Renames the collection using **newDbName** and **newCollectionName**, with option to drop existing collection immediately instead of after the move, returning a result status
+     *
+     *  - parameter newDbName: String name for db after move
+     *  - parameter newCollectionName: String name for collection after move
+     *  - parameter dropExisting: Bool option to drop existing collection immediately instead of after move
+     *
+     *  - returns: Result object with status of renaming
+    */
 	public func rename(newDbName: String, newCollectionName: String, dropExisting: Bool) -> Result {
 		var error = bson_error_t()
 		let res = mongoc_collection_rename(self.ptr!, newDbName, newCollectionName, dropExisting, &error)
@@ -302,17 +345,21 @@ public class MongoCollection {
 		return .Success
 	}
 
-    /// Return the collection name as a String
+    /**
+     *  The collection name as a String
+     *
+     *  - returns: String the name of the current collection
+    */
 	public func name() -> String {
 		return String(validatingUTF8: mongoc_collection_get_name(self.ptr!))!
 	}
-    
-    /** validate(options):
-     * Parameter options: Optional. Specify true to enable a full validation and to return full statistics. MongoDB disables 
-     * full validation by default because it is a potentially resource-intensive operation.
+
+    /**
+     *  Validates a collection. The method scans a collection’s data structures for correctness and returns a single document that describes the relationship between the logical collection and the physical representation of the data.
      *
-     * Validates a collection. The method scans a collection’s data structures for correctness and returns a single document 
-     * that describes the relationship between the logical collection and the physical representation of the data.
+     *  - parameter options: Optional. Specify true to enable a full validation and to return full statistics. MongoDB disables full validation by default because it is a potentially resource-intensive operation.
+     *
+     *  - returns: BSON document describing the relationship between the collection and its physical representation
     */
 	public func validate(options: BSON) -> Result {
 		var error = bson_error_t()
@@ -324,26 +371,18 @@ public class MongoCollection {
 		return .ReplyDoc(reply)
 	}
 
-    /** stats(options):
-     * Parameter options: a BSON document
+    /**
+     *  Returns statistics about the collection formatted according to the options document.
      * 
-     * Returns statistics about the collection formatted according to the options document. 
-     * The options document can contain the following fields and values:
+     *  - parameter options: a BSON document defining the format of return.
+     *  - **The options document can contain the following fields and values**:
 
-     * scale	number
-     *      Optional. The scale used in the output to display the sizes of items. By default, output displays sizes in bytes. To display kilobytes rather than bytes, specify a scale value of 1024.
+     *  - **scale**:	*number*, Optional. The scale used in the output to display the sizes of items. By default, output displays sizes in bytes. To display kilobytes rather than bytes, specify a scale value of 1024.
+     *  - **indexDetails**:	*boolean*, Optional. If true, **stats()** returns index details in addition to the collection stats. Only works for WiredTiger storage engine. Defaults to false.
+     *  - **indexDetailsKey**:	*document*, Optional. If **indexDetails** is true, you can use **indexDetailsKey** to filter index details by specifying the index key specification. Only the index that exactly matches **indexDetailsKey** will be returned. If no match is found, **indexDetails** will display statistics for all indexes.
+     *  - **indexDetailsName**:	*string*, Optional. If **indexDetails** is true, you can use **indexDetailsName** to filter index details by specifying the index name. Only the index name that exactly matches **indexDetailsName** will be returned. If no match is found, **indexDetails** will display statistics for all indexes.
      *
-     * indexDetails	boolean
-     *      Optional. If true, db.collection.stats() returns index details in addition to the collection stats.
-     *      Only works for WiredTiger storage engine.
-     *      Defaults to false.
-     * indexDetailsKey	document
-     *      Optional. If indexDetails is true, you can use indexDetailsKey to filter index details by specifying the index key specification. Only the index that exactly matches indexDetailsKey will be returned.
-     *      If no match is found, indexDetails will display statistics for all indexes.
-     *
-     * indexDetailsName	string
-     *      Optional. If indexDetails is true, you can use indexDetailsName to filter index details by specifying the index name. Only the index name that exactly matches indexDetailsName will be returned.
-     *      If no match is found, indexDetails will display statistics for all indexes.
+     *  - returns: BSON document with formatted statistics or Results error document
     */
 	public func stats(options: BSON) -> Result {
 		var error = bson_error_t()
@@ -355,16 +394,17 @@ public class MongoCollection {
 		return .ReplyDoc(reply)
 	}
 
-    /** find(query, fields, flags, skip, limit, batchSize): Selects documents in a collection and returns a cursor to the selected documents.
-      *
-      * Parameter query:    Optional. Specifies selection filter using query operators. To return all documents in a collection, omit this parameter or pass an empty document ({}).
-      * Parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
-      * Parameter flags:    Optional. set queryFlags for the current search
-      * Parameter skip:     Optional. Skip the supplied number of records.
-      * Parameter limit:    Optional. return no more than the supplied number of records.
-      * Parameter batchSize:    Optional. Change number of automatically iterated documents.
-      *
-      * Returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
+    /**
+     *  Selects documents in a collection and returns a cursor to the selected documents.
+     *
+     *  - parameter query:    Optional. Specifies selection filter using query operators. To return all documents in a collection, omit this- Parameter or pass an empty document ({}).
+     *  - parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
+     *  - parameter flags:    Optional. set queryFlags for the current search
+     *  - parameter skip:     Optional. Skip the supplied number of records.
+     *  - parameter limit:    Optional. return no more than the supplied number of records.
+     *  - parameter batchSize:    Optional. Change number of automatically iterated documents.
+     *
+     *  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
     */
 	public func find(query: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.None, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
 		let cursor = mongoc_collection_find(self.ptr!, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), query.doc!, (fields == nil ? nil : fields!.doc)!, nil)
@@ -373,14 +413,14 @@ public class MongoCollection {
 		}
 		return MongoCursor(rawPtr: cursor)
 	}
-    
-    /** createIndex(keys, options): Creates indexes on collections.
-      *
-      * Parameter keys:     A document that conains the field and value pairs where the field is the index key and the value describes the type of index for that field. For an ascending index on a field, specify a value of 1; for descending index, specify a value of -1.
-      * Parameter options:  Optional. A document that contains a set of options that controls the creation of the index. see MongoIndexOptions for details.
-      *
-      * Returns a Result status
-      *
+
+    /**
+     *  Creates indexes on collections.
+     *  
+     *  - parameter keys:     A document that conains the field and value pairs where the field is the index key and the value describes the type of index for that field. For an ascending index on a field, specify a value of 1; for descending index, specify a value of -1.
+     *  - parameter options:  Optional. A document that contains a set of options that controls the creation of the index. see MongoIndexOptions for details.
+     *
+     *  - returns: a Result status
     */
 	public func createIndex(keys: BSON, options: MongoIndexOptions) -> Result {
 		var error = bson_error_t()
@@ -390,12 +430,13 @@ public class MongoCollection {
 		}
 		return .Success
 	}
-    
-    /** dropIndex(name): Drops or removes the specified index from a collection.
-      * 
-      * Parameter index: Specifies the index to drop, either by name or by the index specification document.
-      *
-      * Returns a Result status
+
+    /**
+     *  Drops or removes the specified index from a collection.
+     *  
+     *  - parameter index: Specifies the index to drop, either by name or by the index specification document.
+     *
+     *  - returns: a Result status
     */
 	public func dropIndex(name: String) -> Result {
 		var error = bson_error_t()
@@ -406,11 +447,10 @@ public class MongoCollection {
 		return .Success
 	}
 
-    /** drop(): 
-      * 
-      * Removes a collection from the database. The method also removes any indexes associated with the dropped collection. 
-      *
-      * Returns a Result status
+    /**
+     *  Removes a collection from the database. The method also removes any indexes associated with the dropped collection.
+     *
+     *  - returns: a Result status
     */
 	public func drop() -> Result {
 		var error = bson_error_t()
@@ -421,18 +461,18 @@ public class MongoCollection {
 		return .Success
 	}
 
-    /** count(query, fields, flags, skip, limit, batchSize):    the count of documents that would match a find() query.
-     *  
-     *  Parameter query:    The query selection criteria.
-     *  Parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
-     *  Parameter flags:    Optional. set queryFlags for the current search
-     *  Parameter skip:     Optional. Skip the supplied number of records.
-     *  Parameter limit:    Optional. return no more than the supplied number of records.
-     *  Parameter batchSize:    Optional. Change number of automatically iterated documents.
+    /**
+     *  The count of documents that would match a find() query.
      *
-     *  Returns the count of documents that would match a find() query. The count() method does not perform the find() operation but instead counts and returns the number of results that match a query.
+     *  - parameter query:    The query selection criteria.
+     *  - parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
+     *  - parameter flags:    Optional. set queryFlags for the current search
+     *  - parameter skip:     Optional. Skip the supplied number of records.
+     *  - parameter limit:    Optional. return no more than the supplied number of records.
+     *  - parameter batchSize:    Optional. Change number of automatically iterated documents.
      *
-    */
+     *  - returns: the count of documents that would match a find() query. The count() method does not perform the find() operation but instead counts and returns the number of results that match a query.
+     */
 	public func count(query: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.None, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> Result {
 		var error = bson_error_t()
 		let ires = mongoc_collection_count(self.ptr!, flags.queryFlags, query.doc!, Int64(skip), Int64(limit), nil, &error)
@@ -441,18 +481,19 @@ public class MongoCollection {
 		}
 		return .ReplyInt(Int(ires))
 	}
-    
-    /** findAndModify(query, sort, update, fileds, remove, upsert, new): Modifies and returns a single document.
+
+    /**
+     *  Modifies and returns a single document.
      *  
-     *  Parameter query:    Optional. The selection criteria for the modification. The query field employs the same query selectors as used in the db.collection.find() method. Although the query may match multiple documents, findAndModify() will only select one document to modify.
-     *  Parameter sort:     Optional. Determines which document the operation modifies if the query selects multiple documents. findAndModify() modifies the first document in the sort order specified by this argument.
-     *  Parameter update:   Must specify either the remove or the update field. Performs an update of the selected document. The update field employs the same update operators or field: value specifications to modify the selected document.
-     *  Parameter fields:   Optional. A subset of fields to return. The fields document specifies an inclusion of a field with 1, as in: fields: { <field1>: 1, <field2>: 1, ... }.
-     *  Parameter remove:   Must specify either the remove or the update field. Removes the document specified in the query field. Set this to true to remove the selected document . The default is false.
-     *  Parameter upsert:   Optional. Used in conjunction with the update field. When true, findAndModify() creates a new document if no document matches the query, or if documents match the query, findAndModify() performs an update. To avoid multiple upserts, ensure that the query fields are uniquely indexed. The default is false.
-     *  Parameter new:      Optional. When true, returns the modified document rather than the original. The findAndModify() method ignores the new option for remove operations. The default is false.
+     *  - parameter query:    Optional. The selection criteria for the modification. The query field employs the same query selectors as used in the db.collection.find() method. Although the query may match multiple documents, findAndModify() will only select one document to modify.
+     *  - parameter sort:     Optional. Determines which document the operation modifies if the query selects multiple documents. findAndModify() modifies the first document in the sort order specified by this argument.
+     *  - parameter update:   Must specify either the remove or the update field. Performs an update of the selected document. The update field employs the same update operators or field: value specifications to modify the selected document.
+     *  - parameter fields:   Optional. A subset of fields to return. The fields document specifies an inclusion of a field with 1, as in: fields: { <field1>: 1, <field2>: 1, ... }.
+     *  - parameter remove:   Must specify either the remove or the update field. Removes the document specified in the query field. Set this to true to remove the selected document . The default is false.
+     *  - parameter upsert:   Optional. Used in conjunction with the update field. When true, findAndModify() creates a new document if no document matches the query, or if documents match the query, findAndModify() performs an update. To avoid multiple upserts, ensure that the query fields are uniquely indexed. The default is false.
+     *  - parameter new:      Optional. When true, returns the modified document rather than the original. The findAndModify() method ignores the new option for remove operations. The default is false.
      *
-     *  Returns: Modifies and returns a single document. By default, the returned document does not include the modifications made on the update. To return the document with the modifications made on the update, use the new option. 
+     *  - returns: Modifies and returns a single document. By default, the returned document does not include the modifications made on the update. To return the document with the modifications made on the update, use the new option.
     */
 	public func findAndModify(query: BSON, sort: BSON, update: BSON, fields: BSON, remove: Bool, upsert: Bool, new: Bool) -> Result {
 		var error = bson_error_t()
@@ -464,7 +505,11 @@ public class MongoCollection {
 		return .ReplyDoc(reply)
 	}
 
-    /// Returns a BSON document with description of last transaction status
+    /**
+     *  A BSON document with description of last transaction status
+     *
+     *  - returns: BSON document with description of last transaction status
+    */
 	public func getLastError() -> BSON {
 		let reply = mongoc_collection_get_last_error(self.ptr!)
 		return NoDestroyBSON(rawBson: UnsafeMutablePointer(reply))

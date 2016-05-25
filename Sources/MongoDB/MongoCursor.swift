@@ -40,7 +40,7 @@ public class MongoCursor {
 		}
 	}
     
-    /// return next document if available, else nil
+    /// - returns: next document if available, else nil
 	public func next() -> BSON? {
 		var bson = UnsafePointer<bson_t>(nil)
 		if mongoc_cursor_next(self.ptr!, &bson) {

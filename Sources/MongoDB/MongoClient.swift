@@ -19,7 +19,9 @@
 
 import libmongoc
 
-/// Result Status for a MongoDB event
+/**
+ *  Result Status for a MongoDB event
+ */
 public enum MongoResult {
 	case Success
 	case Error(UInt32, UInt32, String)
@@ -35,8 +37,13 @@ public enum MongoResult {
 		return .Error(error.domain, error.code, message)
 	}
 }
-
+/**
+ *  ErrorType for MongoClient error reporting
+ */
 public enum MongoClientError: ErrorProtocol {
+    /**
+     *  returns error string
+     */
     case InitError(String)
 }
 
@@ -44,10 +51,17 @@ public class MongoClient {
 
 	var ptr = OpaquePointer(bitPattern: 0)
     
-    /// Result Status enum for a MongoDB event
+    /**
+     *  Result Status enum for a MongoDB event
+    */
 	public typealias Result = MongoResult
     
-    /// Create new Mongo Client connection
+    /**
+     *  Create new Mongo Client connection
+     *
+     * - throws: MongoClientError "Could not parse URI" if nil response
+     *
+    */
 	public init(uri: String) throws {
 		self.ptr = mongoc_client_new(uri)
         
@@ -77,17 +91,33 @@ public class MongoClient {
 		}
 	}
 
-    /// Return the specified MongoCollection from the specified database using current connection
+    /**
+     *  Return the specified MongoCollection from the specified database using current connection
+     *
+     *  - parameter databaseName: String name of database to be used
+     *  - parameter collectionName: String name of collection to be retrieved
+     *
+     *  - returns: MongoCollection from specified database
+    */
 	public func getCollection(databaseName: String, collectionName: String) -> MongoCollection {
 		return MongoCollection(client: self, databaseName: databaseName, collectionName: collectionName)
 	}
 
-    /// Return the named database as a MongoDatabase object 
+    /**
+     *  Return the named database as a MongoDatabase object
+     * 
+     *  - parameter name: String name of database to be retrieved
+     *  - returns: a MongoDatabase object
+    */
 	public func getDatabase(name databaseName: String) -> MongoDatabase {
 		return MongoDatabase(client: self, databaseName: databaseName)
 	}
 
-    /// Get current Mongo server status
+    /** 
+     *  Get current Mongo server status
+     *
+     *  - returns: a Result object representing the server status
+    */
 	public func serverStatus() -> Result {
 		var error = bson_error_t()
 		let readPrefs = mongoc_read_prefs_new(MONGOC_READ_PRIMARY)
@@ -101,7 +131,11 @@ public class MongoClient {
 		return .ReplyDoc(bson)
 	}
 
-    /// Build String Array of current database names
+    /** 
+     *  Build String Array of current database names
+     *
+     * - returns: [String] of current database names
+    */
 	public func databaseNames() -> [String] {
 		var ret = [String]()
 	#if swift(>=3.0)

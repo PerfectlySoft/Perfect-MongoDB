@@ -35,40 +35,25 @@ public class BSON: CustomStringConvertible {
 	}
 
     /**
-     * init():
-     *
-     * Allocates a new doc structure. Call the various append()
-     * functions to add fields to the bson. You can iterate the doc at any
-     * time using a bson_iter_t and bson_iter_init().
-     *
-     * Returns: A newly allocated doc that should be freed with deinit().
-     */
+    *   Allocates a new doc structure. Call the various append() functions to add fields to the bson. You can iterate the doc at any time using a bson_iter_t and bson_iter_init().
+    */
 	public init() {
 		self.doc = bson_new()
 	}
     
-    /**
-     * init(bytes):
-     * parameter bytes: A byte array containing a serialized bson document.
+    /** Creates a new doc structure using the data provided. bytes should contain bytes that can be copied into the new doc structure.
      *
-     * Creates a new doc structure using the data provided. bytes should contain 
-     * bytes that can be copied into the new doc structure.
-     *
-     * Returns: A newly allocated doc that should be freed with deinit().
-     */
+     *- parameter bytes: A byte array containing a serialized bson document.
+    */
 	public init(bytes: [UInt8]) {
 		self.doc = bson_new_from_data(bytes, bytes.count)
 	}
 
     /**
-     * init(json):
-     * parameter json: A string containing a json data.
+     * Creates a new doc structure using the data provided. json should contain bytes that can be copied into the new doc structure.
      *
-     * Creates a new doc structure using the data provided. json should contain
-     * bytes that can be copied into the new doc structure.
-     *
-     * Returns: A newly allocated doc that should be freed with deinit().
-     */
+     * - parameter json: A string containing a json data.
+    */
 	public init(json: String) throws {
 		var error = bson_error_t()
 		self.doc = bson_new_from_json(json, json.utf8.count, &error)
@@ -81,12 +66,10 @@ public class BSON: CustomStringConvertible {
 	}
     
     /**
-     * init(document):
-     * parameter document: An existing bson document.
-     *
      * Creates a new doc by copying the provided bson doc.
      *
-     * Returns: A newly allocated doc that should be freed with deinit().
+     * - parameter document: An existing bson document.
+     *
      */
 	public init(document: BSON) {
 		self.doc = bson_copy(document.doc!)
@@ -109,13 +92,12 @@ public class BSON: CustomStringConvertible {
 	}
 
     /**
-     * asString:
-     * Creates a new string containing current document in extended JSON format. 
+     * Creates a new string containing current document in extended JSON format.
      *
      * See http://docs.mongodb.org/manual/reference/mongodb-extended-json/ for
      * more information on extended JSON.
      *
-     * Returns: String
+     * - returns: String
      */
 	public var asString: String {
 		var length = 0
@@ -157,7 +139,7 @@ public class BSON: CustomStringConvertible {
     /**
      * asBytes:
      *
-     * Returns: A byte array from current BSON document
+     * - returns: A byte array from current BSON document
      */
 	public var asBytes: [UInt8] {
 		var ret = [UInt8]()
@@ -180,40 +162,36 @@ public class BSON: CustomStringConvertible {
 	}
 
     /**
-     * append(key, document):
-     * Parameter key: The key for the field.
-     * Parameter document: Existing BSON document.
+     * Appends a new field to self.doc of the type BSON_TYPE_DOCUMENT. The documents contents will be copied into self.doc.
      *
-     * Appends a new field to self.doc of the type BSON_TYPE_DOCUMENT.
-     * The documents contents will be copied into self.doc.
+     * - parameter key: The key for the field.
+     * - parameter document: Existing BSON document.
+     * - returns: true if successful; false if append would overflow max size.
      *
-     * Returns: true if successful; false if append would overflow max size.
      */
     public func append(key key: String, document: BSON) -> Bool {
         return bson_append_document(self.doc!, key, -1, document.doc!)
 	}
 
     /**
-     * append(key):
-     * Parameter key: The key for the field.
-     *
      * Appends a new field to self.doc with NULL for the value.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
     public func append(key key: String) -> Bool {
         return bson_append_null(self.doc!, key, -1)
 	}
 
     /**
-     * append(key, oid):
-     * Parameter key: The key for the field.
-     * Parameter oid: bson_oid_t.
-     *
      * Appends a new field to the self.doc of type BSON_TYPE_OID using the contents of
      *  oid.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter oid: bson_oid_t.
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
 	public func append(key key: String, oid: bson_oid_t) -> Bool {
 		var cpy = oid
@@ -221,116 +199,108 @@ public class BSON: CustomStringConvertible {
 	}
 
     /**
-     * append(key, int):
-     * Parameter key: The key for the field.
-     * Parameter value: The Int 64-bit integer value.
-     *
      * Appends a new field of type BSON_TYPE_INT64 to self.doc .
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter int: The Int 64-bit integer value.
+     *
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
     public func append(key key: String, int: Int) -> Bool {
         return bson_append_int64(self.doc!, key, -1, Int64(int))
 	}
 
     /**
-     * append(key, int32):
-     * Parameter key: The key for the field.
-     * Parameter value: The Int32 32-bit integer value.
-     *
      * Appends a new field of type BSON_TYPE_INT32 to self.doc .
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter int32: The Int32 32-bit integer value.
+     *
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
     public func append(key key: String, int32: Int32) -> Bool {
         return bson_append_int32(self.doc!, key, -1, int32)
 	}
 
     /**
-     * append(key, dateTime):
-     * Parameter key: The key for the field.
-     * Parameter value: The number of milliseconds elapsed since UNIX epoch.
-     *
      * Appends a new field to self.doc of type BSON_TYPE_DATE_TIME.
      *
-     * Returns: true if sucessful; otherwise false.
+     * - parameter key: The key for the field.
+     * - parameter dateTime: The number of milliseconds elapsed since UNIX epoch.
+     *
+     *
+     * - returns: true if sucessful; otherwise false.
      */
     public func append(key key: String, dateTime: Int64) -> Bool {
         return bson_append_date_time(self.doc!, key, -1, dateTime)
 	}
 
     /**
-     * append(key, time):
-     * Parameter key: The key for the field.
-     * Parameter value: A time_t.
-     *
      * Appends a BSON_TYPE_DATE_TIME field to self.doc using the time_t @value for the
      * number of seconds since UNIX epoch in UTC.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter time: A time_t.
+     *
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
     public func append(key key: String, time: time_t) -> Bool {
         return bson_append_time_t(self.doc!, key, -1, time)
 	}
 
     /**
-     * append(key, double):
-     * Parameter key: The key for the field.
-     *
      * Appends a new field to self.doc of the type BSON_TYPE_DOUBLE.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter double: The double to be appended
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
     public func append(key key: String, double: Double) -> Bool {
         return bson_append_double(self.doc!, key, -1, double)
 	}
 
     /**
-     * append(key, bool):
-     * Parameter key: The key for the field.
-     * Parameter value: The boolean value.
-     *
      * Appends a new field to self.doc of type BSON_TYPE_BOOL.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter bool: The boolean value.
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
     public func append(key key: String, bool: Bool) -> Bool {
         return bson_append_bool(self.doc!, key, -1, bool)
 	}
 
     /**
-     * append(key, string):
-     * Parameter key: The key for the field.
-     * Parameter string: A UTF-8 encoded string.
-     *
      * Appends a new field to self.doc using @key as the key and @string as the UTF-8
      * encoded value.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter string: A UTF-8 encoded string.
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
     public func append(key key: String, string: String) -> Bool {
         return bson_append_utf8(self.doc!, key, -1, string, -1)
 	}
     
     /**
-     * append(key, bytes):
-     * Parameter key: The key for the field.
-     * Parameter bytes: The bytes to append
-     * 
      * Appends a bytes buffer to the BSON document.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter bytes: The bytes to append
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
 	public func append(key key: String, bytes: [UInt8]) -> Bool {
 		return bson_append_binary(self.doc!, key, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
 	}
 
     /**
-     * append(key, regex, options):
-     * Parameter key: The key of the field.
-     * Parameter regex: The regex to append to the bson.
-     * Parameter options: Options for @regex.
-     *
      * Appends a new field to self.doc of type BSON_TYPE_REGEX. @regex should
      * be the regex string. @options should contain the options for the regex.
      *
@@ -345,41 +315,39 @@ public class BSON: CustomStringConvertible {
      *
      * For more information on what comprimises a BSON regex, see bsonspec.org.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key of the field.
+     * - parameter regex: The regex to append to the bson.
+     * - parameter options: Options for @regex.
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
 	public func append(key key: String, regex: String, options: String) -> Bool {
 		return bson_append_regex(self.doc!, key, -1, regex, options)
 	}
 
     /**
-     * countKeys():
-     *
      * Counts the number of elements found in self.doc.
+     * - returns: Int value of keys count
      */
 	public func countKeys() -> Int {
 		return Int(bson_count_keys(self.doc!))
 	}
     
     /**
-     * hasField(key):
-     * Parameter key: The key to lookup.
-     *
      * Checks to see if self.doc contains a field named @key.
      *
      * This function is case-sensitive.
      *
-     * Returns: true if @key exists in self.doc; otherwise false.
+     * - parameter key: The key to lookup.
+     *
+     * - returns: true if @key exists in self.doc; otherwise false.
      */
 	public func hasField(key key: String) -> Bool {
 		return bson_has_field(self.doc!, key)
 	}
 
     /**
-     * appendArrayBegin(key, child):
-     * Parameter key: The key for the field.
-     * Parameter child: A location to an uninitialized bson_t.
-     *
-     * Appends a new field named @key to self.doc, the field is, however,
+     * Appends a new field named key to self.doc, the field is, however,
      * incomplete. @child will be initialized so that you may add fields to the
      * child array. Child will use a memory buffer owned by self.doc and
      * therefore grow the parent buffer as additional space is used. This allows
@@ -389,47 +357,47 @@ public class BSON: CustomStringConvertible {
      * The type of @child will be BSON_TYPE_ARRAY and therefore the keys inside
      * of it MUST be "0", "1", etc.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter child: A location to an uninitialized bson_t.
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
 	public func appendArrayBegin(key key: String, child: BSON) -> Bool {
 		return bson_append_array_begin(self.doc!, key, -1, child.doc!)
 	}
 
     /**
-     * appendArrayEnd(child):
-     * Parameter child: A bson document supplied to appendArrayBegin().
-     *
-     * Finishes the appending of a array to self.doc. @child is considered
+     * Finishes the appending of an array to self.doc. child is considered
      * disposed after this call and should not be used any further.
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter child: A bson document supplied to appendArrayBegin().
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
 	public func appendArrayEnd(child: BSON) -> Bool {
 		return bson_append_array_end(self.doc!, child.doc!)
 	}
 
     /**
-     * appendArray(key, array):
-     * Parameter key: The key for the field.
-     * Parameter array: A bson document containing the array.
-     *
      * Appends a BSON array to self.doc. BSON arrays are like documents where the
      * key is the string version of the index. For example, the first item of the
      * array would have the key "0". The second item would have the index "1".
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter key: The key for the field.
+     * - parameter array: A bson document containing the array.
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
 	public func appendArray(key key: String, array: BSON) -> Bool {
 		return bson_append_array(self.doc!, key, -1, array.doc!)
 	}
 
     /**
-     * concat(src):
-     * Parameter src: BSON doc to be concatenated.
-     *
      * Concatenate src with self.doc
      *
-     * Returns: true if successful; false if append would overflow max size.
+     * - parameter src: BSON doc to be concatenated.
+     *
+     * - returns: true if successful; false if append would overflow max size.
      */
 	public func concat(src: BSON) -> Bool {
 		return bson_concat(self.doc!, src.doc!)
@@ -437,10 +405,9 @@ public class BSON: CustomStringConvertible {
 }
 
 /**
- * ==:
  * compare two BSON documents for equality
  *
- * Returns: BOOL.
+ * - returns: BOOL.
  */
 public func ==(lhs: BSON, rhs: BSON) -> Bool {
 	let cmp = bson_compare(lhs.doc!, rhs.doc!)
@@ -448,10 +415,9 @@ public func ==(lhs: BSON, rhs: BSON) -> Bool {
 }
 
 /**
- * <:
  * compare two BSON documents for sort priority
  *
- * Returns: true if lhs sorts above rhs, false otherwise.
+ * - returns: true if lhs sorts above rhs, false otherwise.
  */
 public func <(lhs: BSON, rhs: BSON) -> Bool {
 	let cmp = bson_compare(lhs.doc!, rhs.doc!)

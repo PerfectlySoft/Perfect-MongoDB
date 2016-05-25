@@ -170,6 +170,52 @@
 
                         </div>
                       </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>client</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>the MongoClient to be used</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>databaseName</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>String database name</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>collectionName</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>String collection name</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
                     </section>
                   </div>
                 </li>
@@ -213,7 +259,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Insert document into the current collection returning a result status</p>
+                        <p>Insert <strong>document</strong> into the current collection returning a result status</p>
 
                       </div>
                       <div class="declaration">
@@ -223,6 +269,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">insert</span><span class="p">(</span><span class="n">document</span> <span class="nv">document</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">flag</span><span class="p">:</span> <span class="kt">MongoInsertFlag</span> <span class="o">=</span> <span class="o">.</span><span class="kt">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>document</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>BSON document to be inserted</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>flag</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional MongoInsertFlag defaults to .None</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Result object with status of insert</p>
+
                       </div>
                     </section>
                   </div>
@@ -240,7 +324,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Update the document found using @selector with the @update document returning a result status</p>
+                        <p>Update the document found using <strong>selector</strong> with the <strong>update</strong> document returning a result status</p>
 
                       </div>
                       <div class="declaration">
@@ -250,6 +334,57 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">(</span><span class="nv">update</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">selector</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">flag</span><span class="p">:</span> <span class="kt">MongoUpdateFlag</span> <span class="o">=</span> <span class="o">.</span><span class="kt">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>update</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>BSON document to be used to update</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>selector</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>BSON document with selection criteria</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>flag</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional MongoUpdateFlag defaults to .None</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Result object with status of update</p>
+
                       </div>
                     </section>
                   </div>
@@ -267,7 +402,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Remove the document found using @selector returning a result status</p>
+                        <p>Remove the document found using <strong>selector</strong> returning a result status</p>
 
                       </div>
                       <div class="declaration">
@@ -277,6 +412,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="n">selector</span> <span class="nv">selector</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">flag</span><span class="p">:</span> <span class="kt">MongoRemoveFlag</span> <span class="o">=</span> <span class="o">.</span><span class="kt">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>selector</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>BSON document with selection criteria</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>flag</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional MongoRemoveFlag defaults to .None</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Result object with status of removal</p>
+
                       </div>
                     </section>
                   </div>
@@ -294,7 +467,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Updates the document returning a result status</p>
+                        <p>Updates <strong>document</strong> returning a result status</p>
 
                       </div>
                       <div class="declaration">
@@ -304,6 +477,31 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">save</span><span class="p">(</span><span class="n">document</span> <span class="nv">document</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>document</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>BSON document to be saved</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Result object with status of save</p>
+
                       </div>
                     </section>
                   </div>
@@ -321,7 +519,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>renames the collection using newDbName and newCollectionName, with option to drop existing collection immediately instead of after the move, returning a result status</p>
+                        <p>Renames the collection using <strong>newDbName</strong> and <strong>newCollectionName</strong>, with option to drop existing collection immediately instead of after the move, returning a result status</p>
 
                       </div>
                       <div class="declaration">
@@ -331,6 +529,57 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">rename</span><span class="p">(</span><span class="nv">newDbName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">newCollectionName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">dropExisting</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>newDbName</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>String name for db after move</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>newCollectionName</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>String name for collection after move</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>dropExisting</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Bool option to drop existing collection immediately instead of after move</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Result object with status of renaming</p>
+
                       </div>
                     </section>
                   </div>
@@ -348,7 +597,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Return the collection name as a String</p>
+                        <p>The collection name as a String</p>
 
                       </div>
                       <div class="declaration">
@@ -358,6 +607,11 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">name</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>String the name of the current collection</p>
+
                       </div>
                     </section>
                   </div>
@@ -375,12 +629,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>validate(options):
- * Parameter options: Optional. Specify true to enable a full validation and to return full statistics. MongoDB disables 
- * full validation by default because it is a potentially resource-intensive operation.
- *
- * Validates a collection. The method scans a collection’s data structures for correctness and returns a single document 
- * that describes the relationship between the logical collection and the physical representation of the data.</p>
+                        <p>Validates a collection. The method scans a collection’s data structures for correctness and returns a single document that describes the relationship between the logical collection and the physical representation of the data.</p>
 
                       </div>
                       <div class="declaration">
@@ -390,6 +639,31 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">validate</span><span class="p">(</span><span class="nv">options</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>options</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Specify true to enable a full validation and to return full statistics. MongoDB disables full validation by default because it is a potentially resource-intensive operation.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>BSON document describing the relationship between the collection and its physical representation</p>
+
                       </div>
                     </section>
                   </div>
@@ -407,27 +681,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>stats(options):
- * Parameter options: a BSON document
- * 
- * Returns statistics about the collection formatted according to the options document. 
- * The options document can contain the following fields and values:</p>
+                        <p>Returns statistics about the collection formatted according to the options document.</p>
 
 <ul>
-<li>scale    number</li>
-<li>Optional. The scale used in the output to display the sizes of items. By default, output displays sizes in bytes. To display kilobytes rather than bytes, specify a scale value of 1024.
-*</li>
-<li>indexDetails boolean</li>
-<li>Optional. If true, db.collection.stats() returns index details in addition to the collection stats.</li>
-<li>Only works for WiredTiger storage engine.</li>
-<li>Defaults to false.</li>
-<li>indexDetailsKey  document</li>
-<li>Optional. If indexDetails is true, you can use indexDetailsKey to filter index details by specifying the index key specification. Only the index that exactly matches indexDetailsKey will be returned.</li>
-<li>If no match is found, indexDetails will display statistics for all indexes.
-*</li>
-<li>indexDetailsName string</li>
-<li>Optional. If indexDetails is true, you can use indexDetailsName to filter index details by specifying the index name. Only the index name that exactly matches indexDetailsName will be returned.</li>
-<li>If no match is found, indexDetails will display statistics for all indexes.</li>
+<li><p><strong>The options document can contain the following fields and values</strong>:</p></li>
+<li><p><strong>scale</strong>:  <em>number</em>, Optional. The scale used in the output to display the sizes of items. By default, output displays sizes in bytes. To display kilobytes rather than bytes, specify a scale value of 1024.</p></li>
+<li><p><strong>indexDetails</strong>:   <em>boolean</em>, Optional. If true, <strong>stats()</strong> returns index details in addition to the collection stats. Only works for WiredTiger storage engine. Defaults to false.</p></li>
+<li><p><strong>indexDetailsKey</strong>:    <em>document</em>, Optional. If <strong>indexDetails</strong> is true, you can use <strong>indexDetailsKey</strong> to filter index details by specifying the index key specification. Only the index that exactly matches <strong>indexDetailsKey</strong> will be returned. If no match is found, <strong>indexDetails</strong> will display statistics for all indexes.</p></li>
+<li><p><strong>indexDetailsName</strong>:   <em>string</em>, Optional. If <strong>indexDetails</strong> is true, you can use <strong>indexDetailsName</strong> to filter index details by specifying the index name. Only the index name that exactly matches <strong>indexDetailsName</strong> will be returned. If no match is found, <strong>indexDetails</strong> will display statistics for all indexes.</p></li>
 </ul>
 
                       </div>
@@ -438,6 +699,31 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">stats</span><span class="p">(</span><span class="nv">options</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>options</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>a BSON document defining the format of return.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>BSON document with formatted statistics or Results error document</p>
+
                       </div>
                     </section>
                   </div>
@@ -455,16 +741,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>find(query, fields, flags, skip, limit, batchSize): Selects documents in a collection and returns a cursor to the selected documents.
-  *
-  * Parameter query:    Optional. Specifies selection filter using query operators. To return all documents in a collection, omit this parameter or pass an empty document ({}).
-  * Parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
-  * Parameter flags:    Optional. set queryFlags for the current search
-  * Parameter skip:     Optional. Skip the supplied number of records.
-  * Parameter limit:    Optional. return no more than the supplied number of records.
-  * Parameter batchSize:    Optional. Change number of automatically iterated documents.
-  *
-  * Returns:    A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.</p>
+                        <p>Selects documents in a collection and returns a cursor to the selected documents.</p>
 
                       </div>
                       <div class="declaration">
@@ -474,6 +751,96 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">find</span><span class="p">(</span><span class="nv">query</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">fields</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">flags</span><span class="p">:</span> <span class="kt">MongoQueryFlag</span> <span class="o">=</span> <span class="kt">MongoQueryFlag</span><span class="o">.</span><span class="kt">None</span><span class="p">,</span> <span class="nv">skip</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">limit</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">batchSize</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">MongoCursor</span><span class="p">?</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>query</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Specifies selection filter using query operators. To return all documents in a collection, omit this- Parameter or pass an empty document ({}).</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>fields</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>flags</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. set queryFlags for the current search</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>skip</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Skip the supplied number of records.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>limit</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. return no more than the supplied number of records.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>batchSize</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Change number of automatically iterated documents.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.</p>
+
                       </div>
                     </section>
                   </div>
@@ -491,13 +858,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>createIndex(keys, options): Creates indexes on collections.
-  *
-  * Parameter keys:     A document that conains the field and value pairs where the field is the index key and the value describes the type of index for that field. For an ascending index on a field, specify a value of 1; for descending index, specify a value of -1.
-  * Parameter options:  Optional. A document that contains a set of options that controls the creation of the index. see MongoIndexOptions for details.
-  *
-  * Returns a Result status
-  *</p>
+                        <p>Creates indexes on collections.</p>
 
                       </div>
                       <div class="declaration">
@@ -507,6 +868,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">createIndex</span><span class="p">(</span><span class="nv">keys</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">options</span><span class="p">:</span> <span class="kt">MongoIndexOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>keys</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A document that conains the field and value pairs where the field is the index key and the value describes the type of index for that field. For an ascending index on a field, specify a value of 1; for descending index, specify a value of -1.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>options</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. A document that contains a set of options that controls the creation of the index. see MongoIndexOptions for details.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>a Result status</p>
+
                       </div>
                     </section>
                   </div>
@@ -524,11 +923,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>dropIndex(name): Drops or removes the specified index from a collection.
-  * 
-  * Parameter index: Specifies the index to drop, either by name or by the index specification document.
-  *
-  * Returns a Result status</p>
+                        <p>Drops or removes the specified index from a collection.</p>
 
                       </div>
                       <div class="declaration">
@@ -538,6 +933,31 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">dropIndex</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>index</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Specifies the index to drop, either by name or by the index specification document.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>a Result status</p>
+
                       </div>
                     </section>
                   </div>
@@ -555,11 +975,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>drop(): 
-  * 
-  * Removes a collection from the database. The method also removes any indexes associated with the dropped collection. 
-  *
-  * Returns a Result status</p>
+                        <p>Removes a collection from the database. The method also removes any indexes associated with the dropped collection.</p>
 
                       </div>
                       <div class="declaration">
@@ -569,6 +985,11 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">drop</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>a Result status</p>
+
                       </div>
                     </section>
                   </div>
@@ -586,17 +1007,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>count(query, fields, flags, skip, limit, batchSize):    the count of documents that would match a find() query.
- *<br>
- *  Parameter query:    The query selection criteria.
- *  Parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
- *  Parameter flags:    Optional. set queryFlags for the current search
- *  Parameter skip:     Optional. Skip the supplied number of records.
- *  Parameter limit:    Optional. return no more than the supplied number of records.
- *  Parameter batchSize:    Optional. Change number of automatically iterated documents.
- *
- *  Returns the count of documents that would match a find() query. The count() method does not perform the find() operation but instead counts and returns the number of results that match a query.
- *</p>
+                        <p>The count of documents that would match a find() query.</p>
 
                       </div>
                       <div class="declaration">
@@ -606,6 +1017,96 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">count</span><span class="p">(</span><span class="nv">query</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">fields</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">flags</span><span class="p">:</span> <span class="kt">MongoQueryFlag</span> <span class="o">=</span> <span class="kt">MongoQueryFlag</span><span class="o">.</span><span class="kt">None</span><span class="p">,</span> <span class="nv">skip</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">limit</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">batchSize</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>query</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The query selection criteria.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>fields</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>flags</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. set queryFlags for the current search</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>skip</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Skip the supplied number of records.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>limit</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. return no more than the supplied number of records.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>batchSize</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Change number of automatically iterated documents.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>the count of documents that would match a find() query. The count() method does not perform the find() operation but instead counts and returns the number of results that match a query.</p>
+
                       </div>
                     </section>
                   </div>
@@ -623,17 +1124,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>findAndModify(query, sort, update, fileds, remove, upsert, new): Modifies and returns a single document.
- *<br>
- *  Parameter query:    Optional. The selection criteria for the modification. The query field employs the same query selectors as used in the db.collection.find() method. Although the query may match multiple documents, findAndModify() will only select one document to modify.
- *  Parameter sort:     Optional. Determines which document the operation modifies if the query selects multiple documents. findAndModify() modifies the first document in the sort order specified by this argument.
- *  Parameter update:   Must specify either the remove or the update field. Performs an update of the selected document. The update field employs the same update operators or field: value specifications to modify the selected document.
- *  Parameter fields:   Optional. A subset of fields to return. The fields document specifies an inclusion of a field with 1, as in: fields: { <field1>: 1, <field2>: 1, &hellip; }.
- *  Parameter remove:   Must specify either the remove or the update field. Removes the document specified in the query field. Set this to true to remove the selected document . The default is false.
- *  Parameter upsert:   Optional. Used in conjunction with the update field. When true, findAndModify() creates a new document if no document matches the query, or if documents match the query, findAndModify() performs an update. To avoid multiple upserts, ensure that the query fields are uniquely indexed. The default is false.
- *  Parameter new:      Optional. When true, returns the modified document rather than the original. The findAndModify() method ignores the new option for remove operations. The default is false.
- *
- *  Returns: Modifies and returns a single document. By default, the returned document does not include the modifications made on the update. To return the document with the modifications made on the update, use the new option.</p>
+                        <p>Modifies and returns a single document.</p>
 
                       </div>
                       <div class="declaration">
@@ -643,6 +1134,109 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">findAndModify</span><span class="p">(</span><span class="nv">query</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">sort</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">update</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">fields</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">,</span> <span class="nv">remove</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="nv">upsert</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="nv">new</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>query</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. The selection criteria for the modification. The query field employs the same query selectors as used in the db.collection.find() method. Although the query may match multiple documents, findAndModify() will only select one document to modify.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sort</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Determines which document the operation modifies if the query selects multiple documents. findAndModify() modifies the first document in the sort order specified by this argument.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>update</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Must specify either the remove or the update field. Performs an update of the selected document. The update field employs the same update operators or field: value specifications to modify the selected document.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>fields</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. A subset of fields to return. The fields document specifies an inclusion of a field with 1, as in: fields: { <field1>: 1, <field2>: 1, &hellip; }.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>remove</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Must specify either the remove or the update field. Removes the document specified in the query field. Set this to true to remove the selected document . The default is false.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>upsert</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. Used in conjunction with the update field. When true, findAndModify() creates a new document if no document matches the query, or if documents match the query, findAndModify() performs an update. To avoid multiple upserts, ensure that the query fields are uniquely indexed. The default is false.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>new</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional. When true, returns the modified document rather than the original. The findAndModify() method ignores the new option for remove operations. The default is false.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Modifies and returns a single document. By default, the returned document does not include the modifications made on the update. To return the document with the modifications made on the update, use the new option.</p>
+
                       </div>
                     </section>
                   </div>
@@ -660,7 +1254,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Returns a BSON document with description of last transaction status</p>
+                        <p>A BSON document with description of last transaction status</p>
 
                       </div>
                       <div class="declaration">
@@ -671,6 +1265,11 @@
 
                         </div>
                       </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>BSON document with description of last transaction status</p>
+
+                      </div>
                     </section>
                   </div>
                 </li>
@@ -679,7 +1278,7 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-05-24)</p>
+          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-05-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.6.2</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

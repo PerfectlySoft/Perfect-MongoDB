@@ -159,13 +159,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>init():</p>
-
-<p>Allocates a new doc structure. Call the various append()
- functions to add fields to the bson. You can iterate the doc at any
- time using a bson_iter_t and bson_iter_init().</p>
-
-<p>Returns: A newly allocated doc that should be freed with deinit().</p>
+                        <p>Allocates a new doc structure. Call the various append() functions to add fields to the bson. You can iterate the doc at any time using a bson_iter_t and bson_iter_init().</p>
 
                       </div>
                       <div class="declaration">
@@ -192,13 +186,9 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>init(bytes):
- parameter bytes: A byte array containing a serialized bson document.</p>
-
-<p>Creates a new doc structure using the data provided. bytes should contain 
- bytes that can be copied into the new doc structure.</p>
-
-<p>Returns: A newly allocated doc that should be freed with deinit().</p>
+                        <p>Creates a new doc structure using the data provided. bytes should contain bytes that can be copied into the new doc structure.
+ *
+ *- parameter bytes: A byte array containing a serialized bson document.</p>
 
                       </div>
                       <div class="declaration">
@@ -225,13 +215,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>init(json):
- parameter json: A string containing a json data.</p>
-
-<p>Creates a new doc structure using the data provided. json should contain
- bytes that can be copied into the new doc structure.</p>
-
-<p>Returns: A newly allocated doc that should be freed with deinit().</p>
+                        <p>Creates a new doc structure using the data provided. json should contain bytes that can be copied into the new doc structure.</p>
 
                       </div>
                       <div class="declaration">
@@ -241,6 +225,26 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">json</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>json</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A string containing a json data.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -258,12 +262,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>init(document):
- parameter document: An existing bson document.</p>
-
-<p>Creates a new doc by copying the provided bson doc.</p>
-
-<p>Returns: A newly allocated doc that should be freed with deinit().</p>
+                        <p>Creates a new doc by copying the provided bson doc.</p>
 
                       </div>
                       <div class="declaration">
@@ -273,6 +272,26 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">document</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>document</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An existing bson document.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -317,13 +336,10 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>asString:
- Creates a new string containing current document in extended JSON format. </p>
+                        <p>Creates a new string containing current document in extended JSON format.</p>
 
 <p>See <a href="http://docs.mongodb.org/manual/reference/mongodb-extended-json/">http://docs.mongodb.org/manual/reference/mongodb-extended-json/</a> for
  more information on extended JSON.</p>
-
-<p>Returns: String</p>
 
                       </div>
                       <div class="declaration">
@@ -333,6 +349,11 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">asString</span><span class="p">:</span> <span class="kt">String</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>String</p>
+
                       </div>
                     </section>
                   </div>
@@ -379,8 +400,6 @@
                       <div class="abstract">
                         <p>asBytes:</p>
 
-<p>Returns: A byte array from current BSON document</p>
-
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
@@ -389,6 +408,11 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">asBytes</span><span class="p">:</span> <span class="p">[</span><span class="kt">UInt8</span><span class="p">]</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A byte array from current BSON document</p>
+
                       </div>
                     </section>
                   </div>
@@ -406,14 +430,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, document):
- Parameter key: The key for the field.
- Parameter document: Existing BSON document.</p>
-
-<p>Appends a new field to self.doc of the type BSON_TYPE_DOCUMENT.
- The documents contents will be copied into self.doc.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
+                        <p>Appends a new field to self.doc of the type BSON_TYPE_DOCUMENT. The documents contents will be copied into self.doc.</p>
 
                       </div>
                       <div class="declaration">
@@ -423,6 +440,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">document</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>document</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Existing BSON document.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -440,12 +495,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key):
- Parameter key: The key for the field.</p>
-
-<p>Appends a new field to self.doc with NULL for the value.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
+                        <p>Appends a new field to self.doc with NULL for the value.</p>
 
                       </div>
                       <div class="declaration">
@@ -455,6 +505,31 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -472,14 +547,8 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, oid):
- Parameter key: The key for the field.
- Parameter oid: bson_oid_t.</p>
-
-<p>Appends a new field to the self.doc of type BSON_TYPE_OID using the contents of
+                        <p>Appends a new field to the self.doc of type BSON_TYPE_OID using the contents of
   oid.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
 
                       </div>
                       <div class="declaration">
@@ -489,6 +558,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">oid</span><span class="p">:</span> <span class="n">bson_oid_t</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>oid</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>bson_oid_t.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -506,13 +613,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, int):
- Parameter key: The key for the field.
- Parameter value: The Int 64-bit integer value.</p>
-
-<p>Appends a new field of type BSON_TYPE_INT64 to self.doc .</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
+                        <p>Appends a new field of type BSON_TYPE_INT64 to self.doc .</p>
 
                       </div>
                       <div class="declaration">
@@ -522,6 +623,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">int</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>int</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The Int 64-bit integer value.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -539,13 +678,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, int32):
- Parameter key: The key for the field.
- Parameter value: The Int32 32-bit integer value.</p>
-
-<p>Appends a new field of type BSON_TYPE_INT32 to self.doc .</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
+                        <p>Appends a new field of type BSON_TYPE_INT32 to self.doc .</p>
 
                       </div>
                       <div class="declaration">
@@ -555,6 +688,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">int32</span><span class="p">:</span> <span class="kt">Int32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>int32</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The Int32 32-bit integer value.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -572,13 +743,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, dateTime):
- Parameter key: The key for the field.
- Parameter value: The number of milliseconds elapsed since UNIX epoch.</p>
-
-<p>Appends a new field to self.doc of type BSON_TYPE_DATE_TIME.</p>
-
-<p>Returns: true if sucessful; otherwise false.</p>
+                        <p>Appends a new field to self.doc of type BSON_TYPE_DATE_TIME.</p>
 
                       </div>
                       <div class="declaration">
@@ -588,6 +753,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">dateTime</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>dateTime</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The number of milliseconds elapsed since UNIX epoch.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if sucessful; otherwise false.</p>
+
                       </div>
                     </section>
                   </div>
@@ -605,14 +808,8 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, time):
- Parameter key: The key for the field.
- Parameter value: A time_t.</p>
-
-<p>Appends a BSON_TYPE_DATE_TIME field to self.doc using the time_t @value for the
+                        <p>Appends a BSON_TYPE_DATE_TIME field to self.doc using the time_t @value for the
  number of seconds since UNIX epoch in UTC.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
 
                       </div>
                       <div class="declaration">
@@ -622,6 +819,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">time</span><span class="p">:</span> <span class="n">time_t</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>time</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A time_t.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -639,12 +874,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, double):
- Parameter key: The key for the field.</p>
-
-<p>Appends a new field to self.doc of the type BSON_TYPE_DOUBLE.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
+                        <p>Appends a new field to self.doc of the type BSON_TYPE_DOUBLE.</p>
 
                       </div>
                       <div class="declaration">
@@ -654,6 +884,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">double</span><span class="p">:</span> <span class="kt">Double</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>double</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The double to be appended</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -671,13 +939,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, bool):
- Parameter key: The key for the field.
- Parameter value: The boolean value.</p>
-
-<p>Appends a new field to self.doc of type BSON_TYPE_BOOL.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
+                        <p>Appends a new field to self.doc of type BSON_TYPE_BOOL.</p>
 
                       </div>
                       <div class="declaration">
@@ -687,6 +949,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">bool</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>bool</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The boolean value.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -704,14 +1004,8 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, string):
- Parameter key: The key for the field.
- Parameter string: A UTF-8 encoded string.</p>
-
-<p>Appends a new field to self.doc using @key as the key and @string as the UTF-8
+                        <p>Appends a new field to self.doc using @key as the key and @string as the UTF-8
  encoded value.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
 
                       </div>
                       <div class="declaration">
@@ -721,6 +1015,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">string</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>string</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A UTF-8 encoded string.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -738,13 +1070,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, bytes):
- Parameter key: The key for the field.
- Parameter bytes: The bytes to append</p>
-
-<p>Appends a bytes buffer to the BSON document.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
+                        <p>Appends a bytes buffer to the BSON document.</p>
 
                       </div>
                       <div class="declaration">
@@ -754,6 +1080,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">bytes</span><span class="p">:</span> <span class="p">[</span><span class="kt">UInt8</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>bytes</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The bytes to append</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -771,12 +1135,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>append(key, regex, options):
- Parameter key: The key of the field.
- Parameter regex: The regex to append to the bson.
- Parameter options: Options for @regex.</p>
-
-<p>Appends a new field to self.doc of type BSON_TYPE_REGEX. @regex should
+                        <p>Appends a new field to self.doc of type BSON_TYPE_REGEX. @regex should
  be the regex string. @options should contain the options for the regex.</p>
 
 <p>Valid options for @options are:</p>
@@ -790,8 +1149,6 @@
 
 <p>For more information on what comprimises a BSON regex, see bsonspec.org.</p>
 
-<p>Returns: true if successful; false if append would overflow max size.</p>
-
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
@@ -800,6 +1157,57 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">regex</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">options</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>regex</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The regex to append to the bson.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>options</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Options for @regex.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -817,9 +1225,8 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>countKeys():</p>
-
-<p>Counts the number of elements found in self.doc.</p>
+                        <p>Counts the number of elements found in self.doc.
+- returns: Int value of keys count</p>
 
                       </div>
                       <div class="declaration">
@@ -829,6 +1236,11 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">countKeys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Int</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Int value of keys count</p>
+
                       </div>
                     </section>
                   </div>
@@ -846,14 +1258,9 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>hasField(key):
- Parameter key: The key to lookup.</p>
-
-<p>Checks to see if self.doc contains a field named @key.</p>
+                        <p>Checks to see if self.doc contains a field named @key.</p>
 
 <p>This function is case-sensitive.</p>
-
-<p>Returns: true if @key exists in self.doc; otherwise false.</p>
 
                       </div>
                       <div class="declaration">
@@ -863,6 +1270,31 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">hasField</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key to lookup.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if @key exists in self.doc; otherwise false.</p>
+
                       </div>
                     </section>
                   </div>
@@ -880,11 +1312,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>appendArrayBegin(key, child):
- Parameter key: The key for the field.
- Parameter child: A location to an uninitialized bson_t.</p>
-
-<p>Appends a new field named @key to self.doc, the field is, however,
+                        <p>Appends a new field named key to self.doc, the field is, however,
  incomplete. @child will be initialized so that you may add fields to the
  child array. Child will use a memory buffer owned by self.doc and
  therefore grow the parent buffer as additional space is used. This allows
@@ -894,8 +1322,6 @@
 <p>The type of @child will be BSON_TYPE_ARRAY and therefore the keys inside
  of it MUST be <q>0</q>, <q>1</q>, etc.</p>
 
-<p>Returns: true if successful; false if append would overflow max size.</p>
-
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
@@ -904,6 +1330,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">appendArrayBegin</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">child</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>child</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A location to an uninitialized bson_t.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -921,13 +1385,8 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>appendArrayEnd(child):
- Parameter child: A bson document supplied to appendArrayBegin().</p>
-
-<p>Finishes the appending of a array to self.doc. @child is considered
+                        <p>Finishes the appending of an array to self.doc. child is considered
  disposed after this call and should not be used any further.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
 
                       </div>
                       <div class="declaration">
@@ -937,6 +1396,31 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">appendArrayEnd</span><span class="p">(</span><span class="nv">child</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>child</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A bson document supplied to appendArrayBegin().</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -954,15 +1438,9 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>appendArray(key, array):
- Parameter key: The key for the field.
- Parameter array: A bson document containing the array.</p>
-
-<p>Appends a BSON array to self.doc. BSON arrays are like documents where the
+                        <p>Appends a BSON array to self.doc. BSON arrays are like documents where the
  key is the string version of the index. For example, the first item of the
  array would have the key <q>0</q>. The second item would have the index <q>1</q>.</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
 
                       </div>
                       <div class="declaration">
@@ -972,6 +1450,44 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">appendArray</span><span class="p">(</span><span class="n">key</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">array</span><span class="p">:</span> <span class="kt">BSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for the field.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>array</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A bson document containing the array.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
                       </div>
                     </section>
                   </div>
@@ -989,12 +1505,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>concat(src):
- Parameter src: BSON doc to be concatenated.</p>
-
-<p>Concatenate src with self.doc</p>
-
-<p>Returns: true if successful; false if append would overflow max size.</p>
+                        <p>Concatenate src with self.doc</p>
 
                       </div>
                       <div class="declaration">
@@ -1005,6 +1516,31 @@
 
                         </div>
                       </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>src</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>BSON doc to be concatenated.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>true if successful; false if append would overflow max size.</p>
+
+                      </div>
                     </section>
                   </div>
                 </li>
@@ -1013,7 +1549,7 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-05-24)</p>
+          <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2016-05-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.6.2</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
