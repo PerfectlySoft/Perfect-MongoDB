@@ -267,9 +267,9 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of insert
     */
-	public func insert(document document: BSON, flag: MongoInsertFlag = .None) -> Result {
+	public func insert(document doc: BSON, flag: MongoInsertFlag = .None) -> Result {
 		var error = bson_error_t()
-		let res = mongoc_collection_insert(self.ptr!, flag.mongoFlag, document.doc!, nil, &error)
+		let res = mongoc_collection_insert(self.ptr!, flag.mongoFlag, doc.doc!, nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -302,9 +302,9 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of removal
     */
-	public func remove(selector selector: BSON, flag: MongoRemoveFlag = .None) -> Result {
+	public func remove(selector sel: BSON, flag: MongoRemoveFlag = .None) -> Result {
 		var error = bson_error_t()
-		let res = mongoc_collection_remove(self.ptr!, flag.mongoFlag, selector.doc!, nil, &error)
+		let res = mongoc_collection_remove(self.ptr!, flag.mongoFlag, sel.doc!, nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -318,9 +318,9 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of save
     */
-	public func save(document document: BSON) -> Result {
+	public func save(document doc: BSON) -> Result {
 		var error = bson_error_t()
-		let res = mongoc_collection_save(self.ptr!, document.doc!, nil, &error)
+		let res = mongoc_collection_save(self.ptr!, doc.doc!, nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}

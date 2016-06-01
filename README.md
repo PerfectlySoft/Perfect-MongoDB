@@ -1,9 +1,37 @@
 # Perfect - MongoDB Connector
 
-This repository is still in flux as we finalize support for Swift Package manager.
-**Download [release-1.0](https://github.com/PerfectlySoft/Perfect/releases/tag/v1.0.0) if you are using Xcode 7.3 with Swift 2.2.**
+[![GitHub version](https://badge.fury.io/gh/PerfectlySoft%2FPerfect-MongoDB.svg)](https://badge.fury.io/gh/PerfectlySoft%2FPerfect-MongoDB)
+
+This project provides a Swift wrapper around the mongo-c client library, enabling access to MongoDB servers.
+
+This package builds with Swift Package Manager and is part of the [Perfect](https://github.com/PerfectlySoft/Perfect) project. It was written to be stand-alone and so does not require PerfectLib or any other components.
+
+Ensure you have installed and activated the latest Swift 3.0 tool chain.
+
+## OS X Build Notes
+
+This package requires the [Home Brew](http://brew.sh) build of mongo-c.
+
+To install Home Brew:
+
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+
+To install mongo-c:
+
+```
+brew install mongo-c
+```
 
 ## Linux Build Notes
 
-* Follow these instructions for installing libmongoc: [libmongoc](http://api.mongodb.org/c/current/installing.html)
-* make
+Ensure that you have installed libmongoc.
+
+## Building
+
+Add this project as a dependency in your Package.swift file.
+
+```
+.Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 0, minor: 1)
+```

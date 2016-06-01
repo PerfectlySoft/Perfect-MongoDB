@@ -13,10 +13,10 @@
 		F80C641E1CC177930002F3C9 /* MongoConnectionPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80C64181CC177930002F3C9 /* MongoConnectionPool.swift */; };
 		F80C641F1CC177930002F3C9 /* MongoCursor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80C64191CC177930002F3C9 /* MongoCursor.swift */; };
 		F80C64201CC177930002F3C9 /* MongoDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80C641A1CC177930002F3C9 /* MongoDatabase.swift */; };
-		F80C64261CC177D60002F3C9 /* MongoDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80C64241CC177D60002F3C9 /* MongoDBTests.swift */; };
 		F80C64271CC177D60002F3C9 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F80C64251CC177D60002F3C9 /* Info.plist */; };
 		F80C642A1CC17A790002F3C9 /* libbson-1.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F80C64281CC17A790002F3C9 /* libbson-1.0.a */; };
 		F80C642B1CC17A790002F3C9 /* libmongoc-1.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F80C64291CC17A790002F3C9 /* libmongoc-1.0.a */; };
+		F82076A71CFF61FC00D8975F /* MongoDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82076A61CFF61FC00D8975F /* MongoDBTests.swift */; };
 		F8FD0CC01BFD079600F49A96 /* MongoDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8FD0CB51BFD079600F49A96 /* MongoDB.framework */; };
 		F8FD0CE01BFE244900F49A96 /* libcrypto.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = F8FD0CDF1BFE244900F49A96 /* libcrypto.tbd */; };
 		F8FD0CE11BFE245A00F49A96 /* libssl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = F8FD0CDD1BFE243900F49A96 /* libssl.tbd */; };
@@ -40,10 +40,10 @@
 		F80C64181CC177930002F3C9 /* MongoConnectionPool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MongoConnectionPool.swift; path = ../../Sources/MongoDB/MongoConnectionPool.swift; sourceTree = "<group>"; };
 		F80C64191CC177930002F3C9 /* MongoCursor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MongoCursor.swift; path = ../../Sources/MongoDB/MongoCursor.swift; sourceTree = "<group>"; };
 		F80C641A1CC177930002F3C9 /* MongoDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MongoDatabase.swift; path = ../../Sources/MongoDB/MongoDatabase.swift; sourceTree = "<group>"; };
-		F80C64241CC177D60002F3C9 /* MongoDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MongoDBTests.swift; path = ../../Sources/MongoDBTests/MongoDBTests.swift; sourceTree = "<group>"; };
 		F80C64251CC177D60002F3C9 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F80C64281CC17A790002F3C9 /* libbson-1.0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libbson-1.0.a"; path = "../../Sources/libmongoc/osx/libbson-1.0.a"; sourceTree = "<group>"; };
 		F80C64291CC17A790002F3C9 /* libmongoc-1.0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libmongoc-1.0.a"; path = "../../Sources/libmongoc/osx/libmongoc-1.0.a"; sourceTree = "<group>"; };
+		F82076A61CFF61FC00D8975F /* MongoDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MongoDBTests.swift; path = ../../Tests/MongoDB/MongoDBTests.swift; sourceTree = "<group>"; };
 		F8FD0CB51BFD079600F49A96 /* MongoDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MongoDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F8FD0CB81BFD079600F49A96 /* MongoDB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MongoDB.h; sourceTree = "<group>"; };
 		F8FD0CBA1BFD079600F49A96 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -80,7 +80,7 @@
 		F80C64231CC177C90002F3C9 /* MongoDBTests */ = {
 			isa = PBXGroup;
 			children = (
-				F80C64241CC177D60002F3C9 /* MongoDBTests.swift */,
+				F82076A61CFF61FC00D8975F /* MongoDBTests.swift */,
 				F80C64251CC177D60002F3C9 /* Info.plist */,
 			);
 			name = MongoDBTests;
@@ -262,7 +262,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F80C64261CC177D60002F3C9 /* MongoDBTests.swift in Sources */,
+				F82076A71CFF61FC00D8975F /* MongoDBTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

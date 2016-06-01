@@ -19,12 +19,24 @@
 
 import PackageDescription
 
+import PackageDescription
+
+#if os(OSX)
 let package = Package(
-	name: "MongoDB",
-	targets: [
-		Target(name: "MongoDB", dependencies: [.Target(name: "libmongoc")]),
-		Target(name: "libmongoc"),
-		Target(name: "MongoDBTests", dependencies: [.Target(name: "MongoDB")])
-	],
-	dependencies: []
+    name: "MongoDB",
+    targets: [],
+    dependencies: [
+        .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c.git", majorVersion: 0, minor: 2)
+    ],
+    exclude: ["Sources/libmongoc"]
 )
+#else
+let package = Package(
+    name: "MongoDB",
+    targets: [],
+    dependencies: [
+        .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c.git", majorVersion: 0, minor: 2)
+    ],
+    exclude: ["Sources/libmongoc"]
+)
+#endif

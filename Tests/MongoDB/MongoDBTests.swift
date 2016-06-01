@@ -156,7 +156,7 @@ class MongoDBTests: XCTestCase {
 		XCTAssert(db.name() == "test")
 		
 		let oldC = db.getCollection(name: "testcollection")
-		oldC.drop()
+		let _ = oldC.drop()
 		
 		let result = db.createCollection(name: "testcollection", options: BSON())
 		switch result {
@@ -255,6 +255,24 @@ class MongoDBTests: XCTestCase {
 			XCTAssert(false, "Bad result \(result2)")
 		}
 	}
+}
+
+extension MongoDBTests {
+    static var allTests : [(String, (MongoDBTests) -> () throws -> ())] {
+        return [
+            ("testBSONFromJSON", testBSONFromJSON),
+            ("testBSONAppend", testBSONAppend),
+            ("testBSONHasFields", testBSONHasFields),
+            ("testBSONCompare", testBSONCompare),
+            ("testClientConnect", testClientConnect),
+            ("testClientConnectFail", testClientConnectFail),
+            ("testClientGetDatabase", testClientGetDatabase),
+            ("testDBCreateCollection", testDBCreateCollection),
+            ("testClientGetDatabaseNames", testClientGetDatabaseNames),
+            ("testGetCollection", testGetCollection),
+            ("testDeleteDoc", testDeleteDoc)
+        ]
+    }
 }
 
 
