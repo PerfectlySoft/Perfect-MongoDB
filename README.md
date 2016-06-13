@@ -33,5 +33,5 @@ Ensure that you have installed libmongoc.
 Add this project as a dependency in your Package.swift file.
 
 ```
-.Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 0, minor: 1)
+.Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", versions: Version(0,0,0)..<Version(10,0,0))
 ```
