@@ -20,17 +20,17 @@
 import libmongoc
 /// Enum of flags for insertion options
 public enum MongoInsertFlag: Int {
-	case None
-	case ContinueOnError
-	case NoValidate
+	case none
+	case continueOnError
+	case noValidate
 
 	private var mongoFlag: mongoc_insert_flags_t {
 		switch self {
-		case .None:
+		case .none:
 			return MONGOC_INSERT_NONE
-		case .ContinueOnError:
+		case .continueOnError:
 			return MONGOC_INSERT_CONTINUE_ON_ERROR
-		case .NoValidate:
+		case .noValidate:
 			return mongoc_insert_flags_t(rawValue: MONGOC_INSERT_NO_VALIDATE)
 		}
 	}
@@ -38,20 +38,20 @@ public enum MongoInsertFlag: Int {
 
 /// Enum of flags for update options
 public enum MongoUpdateFlag: Int {
-	case None
-	case Upsert
-	case MultiUpdate
-	case NoValidate
+	case none
+	case upsert
+	case multiUpdate
+	case noValidate
 
 	private var mongoFlag: mongoc_update_flags_t {
 		switch self {
-		case .None:
+		case .none:
 			return MONGOC_UPDATE_NONE
-		case .Upsert:
+		case .upsert:
 			return MONGOC_UPDATE_UPSERT
-		case .MultiUpdate:
+		case .multiUpdate:
 			return MONGOC_UPDATE_MULTI_UPDATE
-		case .NoValidate:
+		case .noValidate:
 			return mongoc_update_flags_t(rawValue: MONGOC_UPDATE_NO_VALIDATE)
 		}
 	}
@@ -73,26 +73,26 @@ public struct MongoQueryFlag: OptionSet {
 		self.init(rawValue: Int(queryFlag.rawValue))
 	}
 
-	static let None				= MongoQueryFlag(MONGOC_QUERY_NONE)
-	static let TailableCursor	= MongoQueryFlag(MONGOC_QUERY_TAILABLE_CURSOR)
-	static let SlaveOk			= MongoQueryFlag(MONGOC_QUERY_SLAVE_OK)
-	static let OpLogReplay		= MongoQueryFlag(MONGOC_QUERY_OPLOG_REPLAY)
-	static let NoCursorTimeout	= MongoQueryFlag(MONGOC_QUERY_NO_CURSOR_TIMEOUT)
-	static let AwaitData		= MongoQueryFlag(MONGOC_QUERY_AWAIT_DATA)
-	static let Exhaust			= MongoQueryFlag(MONGOC_QUERY_EXHAUST)
-	static let Partial			= MongoQueryFlag(MONGOC_QUERY_PARTIAL)
+	public static let none				= MongoQueryFlag(MONGOC_QUERY_NONE)
+	public static let tailableCursor	= MongoQueryFlag(MONGOC_QUERY_TAILABLE_CURSOR)
+	public static let slaveOk			= MongoQueryFlag(MONGOC_QUERY_SLAVE_OK)
+	public static let opLogReplay       = MongoQueryFlag(MONGOC_QUERY_OPLOG_REPLAY)
+	public static let noCursorTimeout   = MongoQueryFlag(MONGOC_QUERY_NO_CURSOR_TIMEOUT)
+	public static let awaitData         = MongoQueryFlag(MONGOC_QUERY_AWAIT_DATA)
+	public static let exhaust			= MongoQueryFlag(MONGOC_QUERY_EXHAUST)
+	public static let partial			= MongoQueryFlag(MONGOC_QUERY_PARTIAL)
 }
 
 /// Enum of flags for remove options
 public enum MongoRemoveFlag: Int {
-	case None
-	case SingleRemove
+	case none
+	case singleRemove
 
 	private var mongoFlag: mongoc_remove_flags_t {
 		switch self {
-		case .None:
+		case .none:
 			return MONGOC_REMOVE_NONE
-		case .SingleRemove:
+		case .singleRemove:
 			return MONGOC_REMOVE_SINGLE_REMOVE
 		}
 	}
@@ -100,7 +100,7 @@ public enum MongoRemoveFlag: Int {
 
 /// class to manage Mongo Geospatial indexing options
 public class MongoIndexOptionsGeo {
-	var rawOpt = UnsafeMutablePointer<mongoc_index_opt_geo_t>.allocatingCapacity(1)
+    var rawOpt = UnsafeMutablePointer<mongoc_index_opt_geo_t>(allocatingCapacity: 1)
 
 	public init(twodSphereVersion: UInt8? = nil, twodBitsPrecision: UInt8? = nil, twodLocationMin: Double? = nil, twodLocationMax: Double? = nil, haystackBucketSize: Double? = nil) {
 		mongoc_index_opt_geo_init(self.rawOpt)
@@ -188,7 +188,7 @@ public class MongoIndexOptions {
 			self.rawOpt.geo_options = geoOptions.rawOpt
 		}
 		if let storageOptions = storageOptions {
-			self.storageOptions = UnsafeMutablePointer<mongoc_index_opt_storage_t>.allocatingCapacity(1)
+            self.storageOptions = UnsafeMutablePointer<mongoc_index_opt_storage_t>(allocatingCapacity: 1)
 			self.storageOptions!.pointee.type = Int32(storageOptions.rawValue)
 		}
 	}
@@ -211,13 +211,13 @@ public class MongoIndexOptions {
 
 /// Enum for storage options
 public enum MongoIndexStorageOptionType: UInt32 {
-	case MMapV1, WiredTiger
+	case mmapV1, wiredTiger
 
 	var mongoType: UInt32 {
 		switch self {
-		case .MMapV1:
+		case .mmapV1:
 			return MONGOC_INDEX_STORAGE_OPT_MMAPV1.rawValue
-		case .WiredTiger:
+		case .wiredTiger:
 			return MONGOC_INDEX_STORAGE_OPT_WIREDTIGER.rawValue
 		}
 	}
@@ -226,7 +226,7 @@ public enum MongoIndexStorageOptionType: UInt32 {
 /// The MongoCollection class
 public class MongoCollection {
 
-	var ptr: OpaquePointer? = OpaquePointer(bitPattern: 0)
+	var ptr = OpaquePointer(bitPattern: 0)
 
     /// Result Status enum for a MongoDB event
 	public typealias Result = MongoResult
@@ -253,10 +253,11 @@ public class MongoCollection {
 
     /// close connection to the current collection
 	public func close() {
-		if self.ptr != nil {
-			mongoc_collection_destroy(self.ptr!)
-			self.ptr = nil
-		}
+        guard let ptr = self.ptr else {
+            return
+        }
+		mongoc_collection_destroy(ptr)
+		self.ptr = nil
 	}
 
     /**
@@ -267,13 +268,19 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of insert
     */
-	public func insert(document doc: BSON, flag: MongoInsertFlag = .None) -> Result {
+	public func insert(document: BSON, flag: MongoInsertFlag = .none) -> Result {
+        guard let doc = document.doc else {
+            return .error(1, 1, "Invalid document")
+        }
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let res = mongoc_collection_insert(self.ptr!, flag.mongoFlag, doc.doc!, nil, &error)
+		let res = mongoc_collection_insert(ptr, flag.mongoFlag, doc, nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .Success
+		return .success
 	}
 
     /**
@@ -285,13 +292,22 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of update
     */
-	public func update(update: BSON, selector: BSON, flag: MongoUpdateFlag = .None) -> Result {
+	public func update(update: BSON, selector: BSON, flag: MongoUpdateFlag = .none) -> Result {
+        guard let sdoc = selector.doc else {
+            return .error(1, 1, "Invalid selector document")
+        }
+        guard let udoc = update.doc else {
+            return .error(1, 1, "Invalid update document")
+        }
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let res = mongoc_collection_update(self.ptr!, flag.mongoFlag, selector.doc!, update.doc!, nil, &error)
+		let res = mongoc_collection_update(ptr, flag.mongoFlag, sdoc, udoc, nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .Success
+		return .success
 	}
 
     /**
@@ -302,13 +318,19 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of removal
     */
-	public func remove(selector sel: BSON, flag: MongoRemoveFlag = .None) -> Result {
+	public func remove(selector sel: BSON, flag: MongoRemoveFlag = .none) -> Result {
+        guard let sdoc = sel.doc else {
+            return .error(1, 1, "Invalid selector document")
+        }
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let res = mongoc_collection_remove(self.ptr!, flag.mongoFlag, sel.doc!, nil, &error)
+		let res = mongoc_collection_remove(ptr, flag.mongoFlag, sdoc, nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .Success
+		return .success
 	}
 
     /**
@@ -318,13 +340,19 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of save
     */
-	public func save(document doc: BSON) -> Result {
+    public func save(document doc: BSON) -> Result {
+        guard let sdoc = doc.doc else {
+            return .error(1, 1, "Invalid document")
+        }
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let res = mongoc_collection_save(self.ptr!, doc.doc!, nil, &error)
+		let res = mongoc_collection_save(ptr, sdoc, nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .Success
+		return .success
 	}
 
     /**
@@ -336,13 +364,16 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of renaming
     */
-	public func rename(newDbName: String, newCollectionName: String, dropExisting: Bool) -> Result {
+    public func rename(newDbName: String, newCollectionName: String, dropExisting: Bool) -> Result {
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let res = mongoc_collection_rename(self.ptr!, newDbName, newCollectionName, dropExisting, &error)
+		let res = mongoc_collection_rename(ptr, newDbName, newCollectionName, dropExisting, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .Success
+		return .success
 	}
 
     /**
@@ -351,7 +382,10 @@ public class MongoCollection {
      *  - returns: String the name of the current collection
     */
 	public func name() -> String {
-		return String(validatingUTF8: mongoc_collection_get_name(self.ptr!))!
+        guard let ptr = self.ptr else {
+            return ""
+        }
+		return String(validatingUTF8: mongoc_collection_get_name(ptr)) ?? ""
 	}
 
     /**
@@ -361,14 +395,23 @@ public class MongoCollection {
      *
      *  - returns: BSON document describing the relationship between the collection and its physical representation
     */
-	public func validate(options: BSON) -> Result {
+    public func validate(options: BSON) -> Result {
+        guard let odoc = options.doc else {
+            return .error(1, 1, "Invalid options document")
+        }
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let reply = BSON()
-		let res = mongoc_collection_validate(self.ptr!, options.doc!, reply.doc!, &error)
+        let reply = BSON()
+        guard let rdoc = reply.doc else {
+            return .error(1, 1, "Invalid reply document")
+        }
+		let res = mongoc_collection_validate(ptr, odoc, rdoc, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .ReplyDoc(reply)
+		return .replyDoc(reply)
 	}
 
     /**
@@ -384,14 +427,23 @@ public class MongoCollection {
      *
      *  - returns: BSON document with formatted statistics or Results error document
     */
-	public func stats(options: BSON) -> Result {
+    public func stats(options: BSON) -> Result {
+        guard let odoc = options.doc else {
+            return .error(1, 1, "Invalid options document")
+        }
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let reply = BSON()
-		let res = mongoc_collection_stats(self.ptr!, options.doc!, reply.doc!, &error)
+        let reply = BSON()
+        guard let rdoc = reply.doc else {
+            return .error(1, 1, "Invalid reply document")
+        }
+		let res = mongoc_collection_stats(ptr, odoc, rdoc, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .ReplyDoc(reply)
+		return .replyDoc(reply)
 	}
 
     /**
@@ -406,8 +458,11 @@ public class MongoCollection {
      *
      *  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
     */
-	public func find(query: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.None, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
-		let cursor = mongoc_collection_find(self.ptr!, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), query.doc!, (fields == nil ? nil : fields!.doc), nil)
+    public func find(query: BSON?, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
+        guard let ptr = self.ptr else {
+            return nil
+        }
+		let cursor = mongoc_collection_find(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), query?.doc, fields?.doc, nil)
 		guard cursor != nil else {
 			return nil
 		}
@@ -422,13 +477,19 @@ public class MongoCollection {
      *
      *  - returns: a Result status
     */
-	public func createIndex(keys: BSON, options: MongoIndexOptions) -> Result {
+    public func createIndex(keys: BSON, options: MongoIndexOptions) -> Result {
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
+        guard let kdoc = keys.doc else {
+            return .error(1, 1, "Invalid keys document")
+        }
 		var error = bson_error_t()
-		let res = mongoc_collection_create_index(self.ptr!, keys.doc!, &options.rawOpt, &error)
+		let res = mongoc_collection_create_index(ptr, kdoc, &options.rawOpt, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .Success
+		return .success
 	}
 
     /**
@@ -439,12 +500,15 @@ public class MongoCollection {
      *  - returns: a Result status
     */
 	public func dropIndex(name: String) -> Result {
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let res = mongoc_collection_drop_index(self.ptr!, name, &error)
+		let res = mongoc_collection_drop_index(ptr, name, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .Success
+		return .success
 	}
 
     /**
@@ -453,19 +517,21 @@ public class MongoCollection {
      *  - returns: a Result status
     */
 	public func drop() -> Result {
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
 		var error = bson_error_t()
-		let res = mongoc_collection_drop(self.ptr!, &error)
+		let res = mongoc_collection_drop(ptr, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .Success
+		return .success
 	}
 
     /**
      *  The count of documents that would match a find() query.
      *
      *  - parameter query:    The query selection criteria.
-     *  - parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
      *  - parameter flags:    Optional. set queryFlags for the current search
      *  - parameter skip:     Optional. Skip the supplied number of records.
      *  - parameter limit:    Optional. return no more than the supplied number of records.
@@ -473,13 +539,19 @@ public class MongoCollection {
      *
      *  - returns: the count of documents that would match a find() query. The count() method does not perform the find() operation but instead counts and returns the number of results that match a query.
      */
-	public func count(query: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.None, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> Result {
+    public func count(query: BSON, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> Result {
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
+        guard let qdoc = query.doc else {
+            return .error(1, 1, "Invalid query document")
+        }
 		var error = bson_error_t()
-		let ires = mongoc_collection_count(self.ptr!, flags.queryFlags, query.doc!, Int64(skip), Int64(limit), nil, &error)
+		let ires = mongoc_collection_count(ptr, flags.queryFlags, qdoc, Int64(skip), Int64(limit), nil, &error)
 		guard ires != -1 else {
 			return Result.fromError(error)
 		}
-		return .ReplyInt(Int(ires))
+		return .replyInt(Int(ires))
 	}
 
     /**
@@ -495,14 +567,23 @@ public class MongoCollection {
      *
      *  - returns: Modifies and returns a single document. By default, the returned document does not include the modifications made on the update. To return the document with the modifications made on the update, use the new option.
     */
-	public func findAndModify(query: BSON, sort: BSON, update: BSON, fields: BSON, remove: Bool, upsert: Bool, new: Bool) -> Result {
+    public func findAndModify(query: BSON?, sort: BSON?, update: BSON?, fields: BSON?, remove: Bool, upsert: Bool, new: Bool) -> Result {
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
+        if update == nil && !remove {
+            return .error(1, 1, "Either update or remove must be given")
+        }
 		var error = bson_error_t()
-		let reply = BSON()
-		let res = mongoc_collection_find_and_modify(self.ptr!, query.doc!, sort.doc!, update.doc!, fields.doc!, remove, upsert, new, reply.doc!, &error)
+        let reply = BSON()
+        guard let rdoc = reply.doc else {
+            return .error(1, 1, "Invalid reply document")
+        }
+		let res = mongoc_collection_find_and_modify(ptr, query?.doc, sort?.doc, update?.doc, fields?.doc, remove, upsert, new, rdoc, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
-		return .ReplyDoc(reply)
+		return .replyDoc(reply)
 	}
 
     /**
@@ -511,8 +592,10 @@ public class MongoCollection {
      *  - returns: BSON document with description of last transaction status
     */
 	public func getLastError() -> BSON {
-		let reply = mongoc_collection_get_last_error(self.ptr!)
+        guard let ptr = self.ptr else {
+            return BSON()
+        }
+		let reply = mongoc_collection_get_last_error(ptr)
 		return NoDestroyBSON(rawBson: UnsafeMutablePointer(reply))
 	}
-
 }

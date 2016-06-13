@@ -22,7 +22,7 @@ import libmongoc
 /// The Mongo Cursor interface
 public class MongoCursor {
 
-	var ptr: OpaquePointer? = OpaquePointer(bitPattern: 0)
+	var ptr = OpaquePointer(bitPattern: 0)
 
 	init(rawPtr: OpaquePointer?) {
 		self.ptr = rawPtr
@@ -42,8 +42,11 @@ public class MongoCursor {
     
     /// - returns: next document if available, else nil
 	public func next() -> BSON? {
+        guard let ptr = self.ptr else {
+            return nil
+        }
 		var bson = UnsafePointer<bson_t>(nil)
-		if mongoc_cursor_next(self.ptr!, &bson) {
+		if mongoc_cursor_next(ptr, &bson) {
 			return NoDestroyBSON(rawBson: UnsafeMutablePointer<bson_t>(bson))
 		}
 		return nil

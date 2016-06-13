@@ -23,18 +23,18 @@ import libmongoc
  *  Result Status for a MongoDB event
  */
 public enum MongoResult {
-	case Success
-	case Error(UInt32, UInt32, String)
-	case ReplyDoc(BSON)
-	case ReplyInt(Int)
-	case ReplyCollection(MongoCollection)
+	case success
+	case error(UInt32, UInt32, String)
+	case replyDoc(BSON)
+	case replyInt(Int)
+	case replyCollection(MongoCollection)
 
 	static func fromError(_ error: bson_error_t) -> MongoResult {
 		var vError = error
 		let message = withUnsafePointer(&vError.message) {
-			String(validatingUTF8: UnsafePointer($0))!
+			String(validatingUTF8: UnsafePointer($0)) ?? "unknown error"
 		}
-		return .Error(error.domain, error.code, message)
+		return .error(error.domain, error.code, message)
 	}
 }
 /**
@@ -44,7 +44,7 @@ public enum MongoClientError: ErrorProtocol {
     /**
      *  returns error string
      */
-    case InitError(String)
+    case initError(String)
 }
 
 public class MongoClient {
@@ -63,21 +63,15 @@ public class MongoClient {
      *
     */
 	public init(uri: String) throws {
-		self.ptr = mongoc_client_new(uri)
-        
-        if nil == ptr {
-            throw MongoClientError.InitError("Could not parse URI '\(uri)'")
+        guard let ptr = mongoc_client_new(uri) else {
+            throw MongoClientError.initError("Could not parse URI '\(uri)'")
         }
+        self.ptr = ptr
 	}
-	#if swift(>=3.0)
+
     init(pointer: OpaquePointer?) {
         ptr = pointer
     }
-	#else
-	init(pointer: OpaquePointer) {
-		ptr = pointer
-	}
-	#endif
 	
     deinit {
         close()
@@ -85,10 +79,11 @@ public class MongoClient {
 
     /// terminate current Mongo Client connection
 	public func close() {
-		if self.ptr != nil {
-			mongoc_client_destroy(self.ptr)
-			self.ptr = nil
-		}
+        guard let ptr = self.ptr else {
+            return
+        }
+        mongoc_client_destroy(ptr)
+        self.ptr = nil
 	}
 
     /**
@@ -125,10 +120,13 @@ public class MongoClient {
 			mongoc_read_prefs_destroy(readPrefs)
 		}
 		let bson = BSON()
-		guard mongoc_client_get_server_status(self.ptr, readPrefs, bson.doc!, &error) else {
+        guard let doc = bson.doc else {
+            return .error(1, 1, "Invalid BSON doc")
+        }
+		guard mongoc_client_get_server_status(self.ptr, readPrefs, doc, &error) else {
 			return Result.fromError(error)
 		}
-		return .ReplyDoc(bson)
+		return .replyDoc(bson)
 	}
 
     /** 
@@ -138,31 +136,15 @@ public class MongoClient {
     */
 	public func databaseNames() -> [String] {
 		var ret = [String]()
-	#if swift(>=3.0)
 		guard let names = mongoc_client_get_database_names(self.ptr, nil) else {
 			return ret
 		}
-		
 		var curr = names
 		while let currPtr = curr[0] {
 			ret.append(String(validatingUTF8: currPtr) ?? "")
 			curr = curr.successor()
 		}
-	#else
-		let names = mongoc_client_get_database_names(self.ptr, nil)
-		guard nil != names else {
-			return ret
-		}
-		
-		var curr = names
-		while nil != curr[0] {
-			ret.append(String(validatingUTF8: curr[0]) ?? "")
-			curr = curr.successor()
-		}
-	#endif
 		bson_strfreev(names)
-		
 		return ret
 	}
-
 }

@@ -1,4 +1,0 @@
-module libmongoc {
-	header "mongodb.h"
-    export *
-}

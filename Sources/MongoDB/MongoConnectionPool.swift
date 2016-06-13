@@ -71,8 +71,6 @@ public class MongoClientPool {
         mongoc_client_pool_push(ptr, client.ptr)
         client.ptr = nil
     }
-
-	#if swift(>=3.0)
     
     /**
      *  Automatically pops a client, makes it available within the block and pushes it back.
@@ -84,18 +82,5 @@ public class MongoClientPool {
         block(client: client)
         pushClient(client)
     }
-	#else
-    
-    /**
-     *  Automatically pops a client, makes it available within the block and pushes it back.
-     *
-     *  - parameter block: block to be executed with popped client
-     */
-	public func executeBlock(@noescape block: (client: MongoClient) -> Void) {
-		let client = popClient()
-		block(client: client)
-		pushClient(client)
-	}
-	#endif
 }
 

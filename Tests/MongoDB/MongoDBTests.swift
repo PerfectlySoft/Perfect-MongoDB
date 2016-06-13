@@ -63,7 +63,7 @@ class MongoDBTests: XCTestCase {
 		
 		XCTAssert(bson.append(key: "boolKey", bool: true))
 		
-		let t = Darwin.time(nil)
+		let t = time(nil)
 		XCTAssert(bson.append(key: "timeKey", time: t))
 		XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
 		
@@ -126,9 +126,9 @@ class MongoDBTests: XCTestCase {
 		let client = try! MongoClient(uri: "mongodb://localhost")
 		let status = client.serverStatus()
 		switch status {
-		case .Error(let domain, let code, let message):
+		case .error(let domain, let code, let message):
 			XCTAssert(false, "Error: \(domain) \(code) \(message)")
-		case .ReplyDoc(let doc):
+		case .replyDoc(let doc):
 			print("Status doc: \(doc)")
 			XCTAssert(true)
 		default:
@@ -155,12 +155,13 @@ class MongoDBTests: XCTestCase {
 		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
-		let oldC = db.getCollection(name: "testcollection")
-		let _ = oldC.drop()
+        if let oldC = db.getCollection(name: "testcollection") {
+            let _ = oldC.drop()
+        }
 		
 		let result = db.createCollection(name: "testcollection", options: BSON())
 		switch result {
-		case .ReplyCollection(let collection):
+		case .replyCollection(let collection):
 			XCTAssert(collection.name() == "testcollection")
 			collection.close()
 		default:
@@ -175,9 +176,18 @@ class MongoDBTests: XCTestCase {
 		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
-		let collection = db.getCollection(name: "testcollection")
+        guard let collection = db.getCollection(name: "testcollection") else {
+            XCTAssert(false, "Collection was nil")
+            return
+        }
 		XCTAssert(collection.name() == "testcollection")
-			
+		
+        defer {
+            collection.close()
+            db.close()
+            client.close()
+        }
+        
 		let bson = BSON()
 		defer {
 			bson.close()
@@ -192,27 +202,24 @@ class MongoDBTests: XCTestCase {
 		
 		let result2 = collection.save(document: bson)
 		switch result2 {
-		case .Success:
+		case .success:
 			XCTAssert(true)
 		default:
 			XCTAssert(false, "Bad result \(result2)")
 		}
 		
-		collection.close()
-	
-		db.close()
-		
 		let names = client.databaseNames()
 		
 		XCTAssert(names == ["test"])
-		
-		client.close()
 	}
 	
 	func testGetCollection() {
 		let client = try! MongoClient(uri: "mongodb://localhost")
 		let db = client.getDatabase(name: "test")
-		let col = db.getCollection(name: "testcollection")
+        guard let col = db.getCollection(name: "testcollection") else {
+            XCTAssert(false, "Collection was nil")
+            return
+        }
 		XCTAssert(db.name() == "test")
 		XCTAssert(col.name() == "testcollection")
 		db.close()
@@ -224,9 +231,18 @@ class MongoDBTests: XCTestCase {
 		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
-		let collection = db.getCollection(name: "testcollection")
+        guard let collection = db.getCollection(name: "testcollection") else {
+            XCTAssert(false, "Collection was nil")
+            return
+        }
 		XCTAssert(collection.name() == "testcollection")
 		
+        defer {
+            collection.close()
+            db.close()
+            client.close()
+        }
+        
 		let bson = BSON()
 		defer {
 			bson.close()
@@ -241,7 +257,7 @@ class MongoDBTests: XCTestCase {
 		
 		let result2 = collection.insert(document: bson)
 		switch result2 {
-		case .Success:
+		case .success:
 			XCTAssert(true)
 		default:
 			XCTAssert(false, "Bad result \(result2)")
@@ -249,7 +265,7 @@ class MongoDBTests: XCTestCase {
 		
 		let result3 = collection.remove(selector: bson)
 		switch result3 {
-		case .Success:
+		case .success:
 			XCTAssert(true)
 		default:
 			XCTAssert(false, "Bad result \(result2)")
