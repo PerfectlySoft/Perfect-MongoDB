@@ -271,6 +271,94 @@ class MongoDBTests: XCTestCase {
 			XCTAssert(false, "Bad result \(result2)")
 		}
 	}
+    
+    
+    
+    func testCollectionFind() {
+        let client = try! MongoClient(uri: "mongodb://localhost")
+        let db = client.getDatabase(name: "test")
+        XCTAssert(db.name() == "test")
+        
+        guard let collection = db.getCollection(name: "testcollection") else {
+            XCTAssert(false, "Collection was nil")
+            return
+        }
+        XCTAssert(collection.name() == "testcollection")
+        
+        defer {
+            collection.close()
+            db.close()
+            client.close()
+        }
+        
+        do {
+            let bson = BSON()
+            defer {
+                bson.close()
+            }
+            
+            XCTAssert(bson.append(key: "stringKey", string: "String Value"))
+            XCTAssert(bson.append(key: "intKey", int: 42))
+            XCTAssert(bson.append(key: "nullKey"))
+            XCTAssert(bson.append(key: "int32Key", int32: 42))
+            XCTAssert(bson.append(key: "doubleKey", double: 4.2))
+            XCTAssert(bson.append(key: "boolKey", bool: true))
+            
+            let result2 = collection.save(document: bson)
+            switch result2 {
+            case .success:
+                XCTAssert(true)
+            default:
+                XCTAssert(false, "Bad result \(result2)")
+                return
+            }
+        }
+        
+        do {
+            let bson = BSON()
+            defer {
+                bson.close()
+            }
+            
+            XCTAssert(bson.append(key: "stringKey", string: "String Value 2"))
+            XCTAssert(bson.append(key: "intKey", int: 43))
+            XCTAssert(bson.append(key: "nullKey"))
+            XCTAssert(bson.append(key: "int32Key", int32: 43))
+            XCTAssert(bson.append(key: "doubleKey", double: 4.3))
+            XCTAssert(bson.append(key: "boolKey", bool: false))
+            
+            let result2 = collection.save(document: bson)
+            switch result2 {
+            case .success:
+                XCTAssert(true)
+            default:
+                XCTAssert(false, "Bad result \(result2)")
+                return
+            }
+        }
+        
+        let countResult = collection.count(query: BSON())
+        guard case MongoResult.replyInt(let expectedCount) = countResult else {
+            XCTAssert(false, "Invalid count response")
+            return
+        }
+        
+        guard let fnd = collection.find(query: BSON()) else {
+            XCTAssert(false, "Cursor was nil")
+            return
+        }
+        
+        var looped = 0
+        for _ in fnd {
+            looped += 1
+        }
+        
+        XCTAssert(looped == expectedCount)
+        
+        let names = client.databaseNames()
+        
+        XCTAssert(names == ["test"])
+    }
 }
 
 extension MongoDBTests {
@@ -286,7 +374,8 @@ extension MongoDBTests {
             ("testDBCreateCollection", testDBCreateCollection),
             ("testClientGetDatabaseNames", testClientGetDatabaseNames),
             ("testGetCollection", testGetCollection),
-            ("testDeleteDoc", testDeleteDoc)
+            ("testDeleteDoc", testDeleteDoc),
+            ("testCollectionFind", testCollectionFind)
         ]
     }
 }

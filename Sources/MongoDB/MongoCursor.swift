@@ -20,8 +20,8 @@
 import libmongoc
 
 /// The Mongo Cursor interface
-public class MongoCursor {
-
+public class MongoCursor: Sequence, IteratorProtocol {
+    
 	var ptr = OpaquePointer(bitPattern: 0)
 
 	init(rawPtr: OpaquePointer?) {

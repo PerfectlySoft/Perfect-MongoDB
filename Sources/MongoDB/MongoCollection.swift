@@ -449,7 +449,7 @@ public class MongoCollection {
     /**
      *  Selects documents in a collection and returns a cursor to the selected documents.
      *
-     *  - parameter query:    Optional. Specifies selection filter using query operators. To return all documents in a collection, omit this- Parameter or pass an empty document ({}).
+     *  - parameter query:    Specifies selection filter using query operators. To return all documents in a collection, omit this- Parameter or pass an empty document ({}).
      *  - parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
      *  - parameter flags:    Optional. set queryFlags for the current search
      *  - parameter skip:     Optional. Skip the supplied number of records.
@@ -458,11 +458,14 @@ public class MongoCollection {
      *
      *  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
     */
-    public func find(query: BSON?, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
+    public func find(query: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
         guard let ptr = self.ptr else {
             return nil
         }
-		let cursor = mongoc_collection_find(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), query?.doc, fields?.doc, nil)
+        guard let qdoc = query.doc else {
+            return nil
+        }
+		let cursor = mongoc_collection_find(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), qdoc, fields?.doc, nil)
 		guard cursor != nil else {
 			return nil
 		}
