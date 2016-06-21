@@ -1,7 +1,7 @@
 Perfect - MongoDB Connector
 ===========================
 
-<https://badge.fury.io/gh/PerfectlySoft%2FPerfect-MongoDB>
+[![GitHub version](https://badge.fury.io/gh/PerfectlySoft%2FPerfect-MongoDB.svg)](https://badge.fury.io/gh/PerfectlySoft%2FPerfect-MongoDB)
 
 This project provides a Swift wrapper around the mongo-c client library,
 enabling access to MongoDB servers.
