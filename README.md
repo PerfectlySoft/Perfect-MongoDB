@@ -1,7 +1,18 @@
 Perfect - MongoDB Connector
 ===========================
 
+[![Perfect logo](http://www.perfect.org/images/perfect-git-banner.png)](http://perfect.org/get-involved.html)
+
+[![Swift 3.0](https://img.shields.io/badge/Swift-3.0-orange.svg?style=flat)](https://developer.apple.com/swift/)
+[![Platforms OS X | Linux](https://img.shields.io/badge/Platforms-OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat)](https://developer.apple.com/swift/)
+[![License Apache](https://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat)](http://perfect.org/licensing.html)
+[![Docs](https://img.shields.io/badge/docs-100%25-yellow.svg?style=flat)](http://www.perfect.org/docs/)
 [![GitHub version](https://badge.fury.io/gh/PerfectlySoft%2FPerfect-MongoDB.svg)](https://badge.fury.io/gh/PerfectlySoft%2FPerfect-MongoDB)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=flat)](https://paypal.me/perfectlysoft)
+[![Twitter](https://img.shields.io/badge/Twitter-@PerfectlySoft-brightgreen.svg?style=flat)](http://twitter.com/PerfectlySoft)
+[![Join the chat at https://gitter.im/PerfectlySoft/Perfect](https://img.shields.io/badge/Gitter-Join%20Chat-brightgreen.svg)](https://gitter.im/PerfectlySoft/Perfect?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+
 
 This project provides a Swift wrapper around the mongo-c client library,
 enabling access to MongoDB servers.
@@ -191,3 +202,25 @@ func mongoHandler(request: WebRequest, _ response: WebResponse) {
 For detailed information about the MongoDB connector check out the
 Perfect-MongoDB project from GitHub and view the latest generated documentation
 at `/Perfect-MongoDB/docs/index.html`
+
+## Repository Layout
+
+We have finished refactoring Perfect to support Swift Package Manager. The Perfect project has been split up into the following repositories:
+
+* [Perfect](https://github.com/PerfectlySoft/Perfect) - This repository contains the core PerfectLib and will continue to be the main landing point for the project.
+* [PerfectTemplate](https://github.com/PerfectlySoft/PerfectTemplate) - A simple starter project which compiles with SPM into a stand-alone executable HTTP server. This repository is ideal for starting on your own Perfect based project.
+* [PerfectDocs](https://github.com/PerfectlySoft/PerfectDocs) - Contains all API reference related material.
+* [PerfectExamples](https://github.com/PerfectlySoft/PerfectExamples) - All the Perfect example projects and documentation.
+* [PerfectEverything](https://github.com/PerfectlySoft/PerfectEverything) - This umbrella repository allows one to pull in all the related Perfect modules in one go, including the servers, examples, database connectors and documentation. This is a great place to start for people wishing to get up to speed with Perfect.
+* [PerfectServer](https://github.com/PerfectlySoft/PerfectServer) - Contains the PerfectServer variants, including the stand-alone HTTP and FastCGI servers. Those wishing to do a manual deployment should clone and build from this repository.
+* [Perfect-Redis](https://github.com/PerfectlySoft/Perfect-Redis) - Redis database connector.
+* [Perfect-SQLite](https://github.com/PerfectlySoft/Perfect-SQLite) - SQLite3 database connector.
+* [Perfect-PostgreSQL](https://github.com/PerfectlySoft/Perfect-PostgreSQL) - PostgreSQL database connector.
+* [Perfect-MySQL](https://github.com/PerfectlySoft/Perfect-MySQL) - MySQL database connector.
+* [Perfect-MongoDB](https://github.com/PerfectlySoft/Perfect-MongoDB) - MongoDB database connector.
+* [Perfect-FastCGI-Apache2.4](https://github.com/PerfectlySoft/Perfect-FastCGI-Apache2.4) - Apache 2.4 FastCGI module; required for the Perfect FastCGI server variant.
+
+The database connectors are all stand-alone and can be used outside of the Perfect framework and server.
+
+## Further Information
+For more information on the Perfect project, please visit [perfect.org](http://perfect.org).
