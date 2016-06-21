@@ -19,8 +19,6 @@
 
 import PackageDescription
 
-import PackageDescription
-
 #if os(OSX)
 let package = Package(
     name: "MongoDB",
