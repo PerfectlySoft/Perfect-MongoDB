@@ -64,7 +64,7 @@ git clone https://github.com/PerfectlySoft/PerfectTemplate.git
 cd PerfectTemplate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Add to the Package.swift file the dependancy:
+Add to the Package.swift file the dependency:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 let package = Package(
