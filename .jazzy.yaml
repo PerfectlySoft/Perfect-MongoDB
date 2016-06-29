@@ -1,0 +1,8 @@
+module: PerfectMongoDB
+author: PerfectlySoft
+author_url: https://perfect.org
+github_url: https://github.com/PerfectlySoft/Perfect-MongoDB
+copyright: '© 2016 PerfectlySoft Inc. and the Perfect project authors'
+theme: fullwidth
+xcodebuild_arguments: [-target, MongoDB, -toolchain, org.swift.3020160620a]
+clean: true
