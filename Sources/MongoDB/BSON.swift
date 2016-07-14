@@ -149,12 +149,13 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      *
      */
-    public func append(key k: String, document: BSON) -> Bool {
-        guard let sDoc = self.doc, dDoc = document.doc else {
-            return false
-        }
-        return bson_append_document(sDoc, k, -1, dDoc)
-	}
+	@discardableResult
+		public func append(key k: String, document: BSON) -> Bool {
+			guard let sDoc = self.doc, dDoc = document.doc else {
+				return false
+			}
+			return bson_append_document(sDoc, k, -1, dDoc)
+		}
 
     /**
      * Appends a new field to self.doc with NULL for the value.
@@ -163,12 +164,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-        return bson_append_null(doc, k, -1)
-	}
+	@discardableResult
+		public func append(key k: String) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_null(doc, k, -1)
+		}
 
     /**
      * Appends a new field to the self.doc of type BSON_TYPE_OID using the contents of
@@ -179,13 +181,14 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, oid: bson_oid_t) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-		var cpy = oid
-		return bson_append_oid(doc, k, -1, &cpy)
-	}
+	@discardableResult
+		public func append(key k: String, oid: bson_oid_t) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			var cpy = oid
+			return bson_append_oid(doc, k, -1, &cpy)
+		}
 
     /**
      * Appends a new field of type BSON_TYPE_INT64 to self.doc .
@@ -196,12 +199,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, int: Int) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-        return bson_append_int64(doc, k, -1, Int64(int))
-	}
+	@discardableResult
+		public func append(key k: String, int: Int) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_int64(doc, k, -1, Int64(int))
+		}
 
     /**
      * Appends a new field of type BSON_TYPE_INT32 to self.doc .
@@ -212,12 +216,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, int32: Int32) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-        return bson_append_int32(doc, k, -1, int32)
-	}
+	@discardableResult
+		public func append(key k: String, int32: Int32) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_int32(doc, k, -1, int32)
+		}
 
     /**
      * Appends a new field to self.doc of type BSON_TYPE_DATE_TIME.
@@ -228,12 +233,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if sucessful; otherwise false.
      */
-    public func append(key k: String, dateTime: Int64) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-        return bson_append_date_time(doc, k, -1, dateTime)
-	}
+	@discardableResult
+		public func append(key k: String, dateTime: Int64) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_date_time(doc, k, -1, dateTime)
+		}
 
     /**
      * Appends a BSON_TYPE_DATE_TIME field to self.doc using the time_t @value for the
@@ -245,12 +251,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, time: time_t) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-        return bson_append_time_t(doc, k, -1, time)
-	}
+	@discardableResult
+		public func append(key k: String, time: time_t) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_time_t(doc, k, -1, time)
+		}
 
     /**
      * Appends a new field to self.doc of the type BSON_TYPE_DOUBLE.
@@ -260,12 +267,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, double: Double) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-        return bson_append_double(doc, k, -1, double)
-	}
+	@discardableResult
+		public func append(key k: String, double: Double) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_double(doc, k, -1, double)
+		}
 
     /**
      * Appends a new field to self.doc of type BSON_TYPE_BOOL.
@@ -275,12 +283,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, bool: Bool) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-        return bson_append_bool(doc, k, -1, bool)
-	}
+	@discardableResult
+		public func append(key k: String, bool: Bool) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_bool(doc, k, -1, bool)
+		}
 
     /**
      * Appends a new field to self.doc using @key as the key and @string as the UTF-8
@@ -291,12 +300,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, string: String) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-        return bson_append_utf8(doc, k, -1, string, -1)
-	}
+	@discardableResult
+		public func append(key k: String, string: String) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_utf8(doc, k, -1, string, -1)
+		}
     
     /**
      * Appends a bytes buffer to the BSON document.
@@ -306,12 +316,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, bytes: [UInt8]) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-		return bson_append_binary(doc, k, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
-	}
+	@discardableResult
+		public func append(key k: String, bytes: [UInt8]) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_binary(doc, k, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
+		}
 
     /**
      * Appends a new field to self.doc of type BSON_TYPE_REGEX. @regex should
@@ -334,12 +345,13 @@ public class BSON: CustomStringConvertible {
      *
      * - returns: true if successful; false if append would overflow max size.
      */
-    public func append(key k: String, regex: String, options: String) -> Bool {
-        guard let doc = self.doc else {
-            return false
-        }
-		return bson_append_regex(doc, k, -1, regex, options)
-	}
+	@discardableResult
+		public func append(key k: String, regex: String, options: String) -> Bool {
+			guard let doc = self.doc else {
+				return false
+			}
+			return bson_append_regex(doc, k, -1, regex, options)
+		}
 
     /**
      * Counts the number of elements found in self.doc.
