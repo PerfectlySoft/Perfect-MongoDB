@@ -391,14 +391,18 @@ public class MongoCollection {
     /**
      *  Validates a collection. The method scans a collection’s data structures for correctness and returns a single document that describes the relationship between the logical collection and the physical representation of the data.
      *
-     *  - parameter options: Optional. Specify true to enable a full validation and to return full statistics. MongoDB disables full validation by default because it is a potentially resource-intensive operation.
+     *  - parameter full: Optional. Specify true to enable a full validation and to return full statistics. MongoDB disables full validation by default because it is a potentially resource-intensive operation.
      *
      *  - returns: BSON document describing the relationship between the collection and its physical representation
     */
-    public func validate(options: BSON) -> Result {
-        guard let odoc = options.doc else {
-            return .error(1, 1, "Invalid options document")
-        }
+    public func validate(full: Bool = false) -> Result {
+		let bson = BSON()
+		defer {
+			bson.close()
+		}
+		bson.append(key: "full", bool: full)
+		let odoc = bson.doc
+		
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
         }
