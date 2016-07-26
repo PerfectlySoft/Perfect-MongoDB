@@ -40,7 +40,7 @@ public enum MongoResult {
 /**
  *  ErrorType for MongoClient error reporting
  */
-public enum MongoClientError: ErrorProtocol {
+public enum MongoClientError: Error {
     /**
      *  returns error string
      */

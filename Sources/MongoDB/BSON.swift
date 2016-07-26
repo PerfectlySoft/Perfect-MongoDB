@@ -20,7 +20,7 @@
 import libmongoc
 
 /// BSON error enum
-public enum BSONError: ErrorProtocol {
+public enum BSONError: Error {
 	/// The JSON data was malformed.
 	case syntaxError(String)
 }
@@ -102,7 +102,7 @@ public class BSON: CustomStringConvertible {
      */
 	public var asString: String {
 		var length = 0
-		guard let doc = self.doc, data = bson_as_json(doc, &length) else {
+		guard let doc = self.doc, let data = bson_as_json(doc, &length) else {
 			return ""
 		}
 		defer {
@@ -114,7 +114,7 @@ public class BSON: CustomStringConvertible {
     /** like asString() but for outermost arrays. */
 	public var asArrayString: String {
 		var length = 0
-		guard let doc = self.doc, data = bson_array_as_json(doc, &length) else {
+		guard let doc = self.doc, let data = bson_array_as_json(doc, &length) else {
 			return ""
 		}
 		defer {
@@ -130,7 +130,7 @@ public class BSON: CustomStringConvertible {
      */
 	public var asBytes: [UInt8] {
 		var ret = [UInt8]()
-		guard let doc = self.doc, data = bson_get_data(doc) else {
+		guard let doc = self.doc, let data = bson_get_data(doc) else {
 			return ret
 		}
 		let length = Int(doc.pointee.len)
@@ -151,7 +151,7 @@ public class BSON: CustomStringConvertible {
      */
 	@discardableResult
 		public func append(key k: String, document: BSON) -> Bool {
-			guard let sDoc = self.doc, dDoc = document.doc else {
+			guard let sDoc = self.doc, let dDoc = document.doc else {
 				return false
 			}
 			return bson_append_document(sDoc, k, -1, dDoc)
@@ -397,7 +397,7 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
     public func appendArrayBegin(key k: String, child: BSON) -> Bool {
-        guard let doc = self.doc, cdoc = child.doc else {
+        guard let doc = self.doc, let cdoc = child.doc else {
             return false
         }
 		return bson_append_array_begin(doc, k, -1, cdoc)
@@ -412,7 +412,7 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
     public func appendArrayEnd(child: BSON) -> Bool {
-        guard let doc = self.doc, cdoc = child.doc else {
+        guard let doc = self.doc, let cdoc = child.doc else {
             return false
         }
 		return bson_append_array_end(doc, cdoc)
@@ -429,7 +429,7 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
     public func appendArray(key k: String, array: BSON) -> Bool {
-        guard let doc = self.doc, adoc = array.doc else {
+        guard let doc = self.doc, let adoc = array.doc else {
             return false
         }
 		return bson_append_array(doc, k, -1, adoc)
@@ -443,7 +443,7 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
     public func concat(src: BSON) -> Bool {
-        guard let doc = self.doc, sdoc = src.doc else {
+        guard let doc = self.doc, let sdoc = src.doc else {
             return false
         }
 		return bson_concat(doc, sdoc)
@@ -456,7 +456,7 @@ public class BSON: CustomStringConvertible {
  * - returns: BOOL.
  */
 public func ==(lhs: BSON, rhs: BSON) -> Bool {
-    guard let ldoc = lhs.doc, rdoc = rhs.doc else {
+    guard let ldoc = lhs.doc, let rdoc = rhs.doc else {
         return false
     }
 	let cmp = bson_compare(ldoc, rdoc)
@@ -469,7 +469,7 @@ public func ==(lhs: BSON, rhs: BSON) -> Bool {
  * - returns: true if lhs sorts above rhs, false otherwise.
  */
 public func <(lhs: BSON, rhs: BSON) -> Bool {
-    guard let ldoc = lhs.doc, rdoc = rhs.doc else {
+    guard let ldoc = lhs.doc, let rdoc = rhs.doc else {
         return false
     }
     let cmp = bson_compare(ldoc, rdoc)
