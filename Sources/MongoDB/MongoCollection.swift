@@ -24,7 +24,7 @@ public enum MongoInsertFlag: Int {
 	case continueOnError
 	case noValidate
 
-	private var mongoFlag: mongoc_insert_flags_t {
+	var mongoFlag: mongoc_insert_flags_t {
 		switch self {
 		case .none:
 			return MONGOC_INSERT_NONE
@@ -43,7 +43,7 @@ public enum MongoUpdateFlag: Int {
 	case multiUpdate
 	case noValidate
 
-	private var mongoFlag: mongoc_update_flags_t {
+	var mongoFlag: mongoc_update_flags_t {
 		switch self {
 		case .none:
 			return MONGOC_UPDATE_NONE
@@ -88,7 +88,7 @@ public enum MongoRemoveFlag: Int {
 	case none
 	case singleRemove
 
-	private var mongoFlag: mongoc_remove_flags_t {
+	var mongoFlag: mongoc_remove_flags_t {
 		switch self {
 		case .none:
 			return MONGOC_REMOVE_NONE
@@ -195,13 +195,13 @@ public class MongoIndexOptions {
 
 	deinit {
 		if self.nameNil && self.rawOpt.name != nil {
-			free(UnsafeMutablePointer<()>(self.rawOpt.name))
+			free(UnsafeMutableRawPointer(mutating: self.rawOpt.name))
 		}
 		if self.defLangNil && self.rawOpt.default_language != nil {
-			free(UnsafeMutablePointer<()>(self.rawOpt.default_language))
+			free(UnsafeMutableRawPointer(mutating: self.rawOpt.default_language))
 		}
 		if self.langOverNil && self.rawOpt.language_override != nil {
-			free(UnsafeMutablePointer<()>(self.rawOpt.language_override))
+			free(UnsafeMutableRawPointer(mutating: self.rawOpt.language_override))
 		}
 		if self.storageOptions != nil {
 			self.storageOptions!.deallocate(capacity: 1)
@@ -603,6 +603,6 @@ public class MongoCollection {
             return BSON()
         }
 		let reply = mongoc_collection_get_last_error(ptr)
-		return NoDestroyBSON(rawBson: UnsafeMutablePointer(reply))
+		return NoDestroyBSON(rawBson: UnsafeMutablePointer(mutating: reply))
 	}
 }

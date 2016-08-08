@@ -45,9 +45,9 @@ public class MongoCursor: Sequence, IteratorProtocol {
         guard let ptr = self.ptr else {
             return nil
         }
-		var bson = UnsafePointer<bson_t>(nil)
+		var bson = UnsafePointer<bson_t>(nil as OpaquePointer?)
 		if mongoc_cursor_next(ptr, &bson) {
-			return NoDestroyBSON(rawBson: UnsafeMutablePointer<bson_t>(bson))
+			return NoDestroyBSON(rawBson: UnsafeMutablePointer<bson_t>(mutating: bson))
 		}
 		return nil
 	}

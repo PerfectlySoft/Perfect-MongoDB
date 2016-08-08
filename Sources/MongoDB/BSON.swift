@@ -57,8 +57,10 @@ public class BSON: CustomStringConvertible {
 	public init(json: String) throws {
 		var error = bson_error_t()
         guard let doc = bson_new_from_json(json, json.utf8.count, &error) else {
-            let message = withUnsafePointer(&error.message) {
-                String(validatingUTF8: UnsafePointer($0)) ?? "Unknown error while parsing JSON"
+			let message = withUnsafePointer(to: &error.message) {
+				$0.withMemoryRebound(to: CChar.self, capacity: 0) {
+					String(validatingUTF8: $0) ?? "Unknown error while parsing JSON"
+				}
             }
             throw BSONError.syntaxError(message)
         }

@@ -77,9 +77,9 @@ public class MongoClientPool {
      *
      *  - parameter block: block to be executed with popped client
      */
-	public func executeBlock(_ block: @noescape(client: MongoClient) -> Void) {
+	public func executeBlock(_ block: @noescape(_ client: MongoClient) -> Void) {
         let client = popClient()
-        block(client: client)
+        block(client)
         pushClient(client)
     }
 }

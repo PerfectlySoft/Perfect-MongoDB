@@ -31,8 +31,10 @@ public enum MongoResult {
 
 	static func fromError(_ error: bson_error_t) -> MongoResult {
 		var vError = error
-		let message = withUnsafePointer(&vError.message) {
-			String(validatingUTF8: UnsafePointer($0)) ?? "unknown error"
+		let message = withUnsafePointer(to: &vError.message) {
+			return $0.withMemoryRebound(to: CChar.self, capacity: 0) {
+				String(validatingUTF8: $0) ?? "unknown error"
+			}
 		}
 		return .error(error.domain, error.code, message)
 	}
