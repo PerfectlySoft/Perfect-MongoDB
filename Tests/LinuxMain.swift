@@ -1,7 +1,6 @@
 import XCTest
+@testable import MongoDBTests
 
-import MongoDBTestSuite
-
-var tests = [XCTestCaseEntry]()
-tests += MongoDBTestSuite.allTests()
-XCTMain(tests)
+XCTMain([
+	testCase(MongoDBTests.allTests),
+])
