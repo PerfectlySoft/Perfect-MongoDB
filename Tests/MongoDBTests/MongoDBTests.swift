@@ -17,6 +17,7 @@
 //===----------------------------------------------------------------------===//
 //
 
+import Foundation
 import XCTest
 @testable import MongoDB
 
@@ -88,7 +89,7 @@ class MongoDBTests: XCTestCase {
 		
 		XCTAssert(bson.append(key: "boolKey", bool: true))
 		
-		let t = Darwin.time(nil)
+		let t = time(nil)
 		XCTAssert(bson.append(key: "timeKey", time: t))
 		XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
 		
