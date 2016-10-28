@@ -1,4 +1,4 @@
-Perfect - MongoDB Connector
+Perfect - MongoDB Connector [简体中文](README.zh_CN.md)
 ===========================
 
 <p align="center">
@@ -81,7 +81,17 @@ brew install mongo-c
 Linux Build Notes
 -----------------
 
-Ensure that you have installed libmongoc.
+Ensure that you have installed components below:
+
+```
+apt-get install libmongoc-dev libbson-dev libssl-dev
+```
+
+The default installation of libmongoc is /usr/local/include. If not, please correct the path manually:
+
+```
+ln -s /usr/include/libmongoc-1.0/ libmongoc-1.0
+```
 
 Building
 --------
