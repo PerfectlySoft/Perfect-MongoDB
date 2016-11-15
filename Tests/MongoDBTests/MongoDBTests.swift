@@ -360,6 +360,68 @@ class MongoDBTests: XCTestCase {
         
         XCTAssert(names == ["test"])
     }
+    
+    func testCollectionDistinct() {
+        let collectionName = "testdistinctcollection"
+        let attributeName = "attribute"
+        
+        let client = try! MongoClient(uri: "mongodb://localhost")
+        let db = client.getDatabase(name: "test")
+        XCTAssert(db.name() == "test")
+        
+        guard let collection = db.getCollection(name: collectionName) else {
+            XCTAssert(false, "Collection was nil")
+            return
+        }
+        XCTAssert(collection.name() == collectionName)
+        
+        defer {
+            collection.close()
+            db.close()
+            client.close()
+        }
+        
+        do {
+            let testValues = ["a", "a", "a", "b", "b", "c"]
+            for value in testValues {
+                let bson = BSON()
+                defer {
+                    bson.close()
+                }
+                
+                XCTAssert(bson.append(key: attributeName, string: value))
+                
+                let result2 = collection.save(document: bson)
+                switch result2 {
+                case .success:
+                    XCTAssert(true)
+                default:
+                    XCTAssert(false, "Bad result \(result2)")
+                    return
+                }
+            }
+            
+            guard let _ = collection.distinct(key: attributeName) else {
+                XCTAssert(false, "Invalid distinct response")
+                return
+            }
+            
+/*
+ * Unfortunately PerfectLib unavailable
+ * imposible to validate distinct result
+             
+            let expectingValues = Set(testValues)
+            let distinctStr = distinct.asString
+            
+            guard let distinctDict = try! distinctStr.jsonDecode() as? [String:Any] else {
+                XCTAssert(false, "Invalid distinct response")
+                return
+            }
+            let distinctValues = Set(distinctDict["values"])
+            XCTAssertEqual(expectingValues, distinctValues)
+ */
+        }
+    }
 }
 
 extension MongoDBTests {
@@ -376,7 +438,8 @@ extension MongoDBTests {
             ("testClientGetDatabaseNames", testClientGetDatabaseNames),
             ("testGetCollection", testGetCollection),
             ("testDeleteDoc", testDeleteDoc),
-            ("testCollectionFind", testCollectionFind)
+            ("testCollectionFind", testCollectionFind),
+            ("testCollectionDistinct", testCollectionDistinct)
         ]
     }
 }
