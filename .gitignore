@@ -64,3 +64,4 @@ fastlane/screenshots
 
 Packages/
 MongoDB.xcodeproj/
+.DS_Store
