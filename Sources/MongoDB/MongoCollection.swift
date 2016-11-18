@@ -605,4 +605,64 @@ public class MongoCollection {
 		let reply = mongoc_collection_get_last_error(ptr)
 		return NoDestroyBSON(rawBson: UnsafeMutablePointer(mutating: reply))
 	}
+    
+    /**
+     *  Finds the distinct values and returns a cursor for a specified field across a single collection.
+     *
+     *  - parameter key:    The field for which to return distinct values.
+     *  - parameter query:    Optional. A query that specifies the documents from which to retrieve the distinct values.
+     *  - parameter readConcern:    Optional. Specifies a level of isolation for read operations.
+     *  - parameter flags:    Optional. set queryFlags for the current search
+     *  - parameter skip:     Optional. Skip the supplied number of records.
+     *  - parameter limit:    Optional. return no more than the supplied number of records.
+     *  - parameter batchSize:    Optional. Change number of automatically iterated documents.
+     *
+     *  - returns:	BSON document with distinct document.
+     */
+    public func distinct(key: String, query: BSON? = nil, readConcern: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> BSON? {
+        let command = BSON()
+        defer { command.close() }
+        
+        command.append(key: "distinct", string: self.name())
+        command.append(key: "key", string: key)
+        if let query = query {
+            command.append(key: "query", document: query)
+        }
+        if let readConcern = readConcern {
+            command.append(key: "readConcern", document: readConcern)
+        }
+        let cursor = self.command(command: command, fields: nil, flags: flags, skip: skip, limit: limit, batchSize: batchSize)
+        
+        guard let result  = cursor?.next() else {
+            return nil
+        }
+        
+        return NoDestroyBSON(document: result)
+    }
+    
+    /**
+     *  Runs specified database command.
+     *
+     *  - parameter command:    Database command.
+     *  - parameter fields:   Optional. Specifies the fields to return in the documents that match the query filter. To return all fields in the matching documents, omit this parameter.
+     *  - parameter flags:    Optional. set queryFlags for the current search
+     *  - parameter skip:     Optional. Skip the supplied number of records.
+     *  - parameter limit:    Optional. return no more than the supplied number of records.
+     *  - parameter batchSize:    Optional. Change number of automatically iterated documents.
+     *
+     *  - returns:	A cursor to the command execution result documents.
+     */
+    public func command(command: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
+        guard let ptr = self.ptr else {
+            return nil
+        }
+        guard let cdoc = command.doc else {
+            return nil
+        }
+        let cursor = mongoc_collection_command(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), cdoc, fields?.doc, nil)
+        guard cursor != nil else {
+            return nil
+        }
+        return MongoCursor(rawPtr: cursor)
+    }
 }
