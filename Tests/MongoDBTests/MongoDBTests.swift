@@ -106,6 +106,75 @@ class MongoDBTests: XCTestCase {
 		XCTAssert(false == bson.hasField(key: "noKey"))
 	}
 	
+	func testBSONIterate() {
+		let bson = BSON()
+		defer {
+			bson.close()
+		}
+		
+		XCTAssert(bson.append(key: "stringKey", string: "String Value"))
+		XCTAssert(bson.append(key: "intKey", int: 42))
+		XCTAssert(bson.append(key: "nullKey"))
+		XCTAssert(bson.append(key: "int32Key", int32: 42))
+		XCTAssert(bson.append(key: "doubleKey", double: 4.2))
+		
+		XCTAssert(bson.append(key: "boolKey", bool: true))
+		
+		let t = time(nil)
+		XCTAssert(bson.append(key: "timeKey", time: t))
+		XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
+		
+		let bsonAry = BSON()
+		bsonAry.append(key: "0", string: "String Value 1")
+		bsonAry.append(key: "1", string: "String Value 2")
+		
+		XCTAssert(bson.appendArray(key: "arrayKey", array: bsonAry))
+		
+		bson.append(key: "regexKey", regex: "/[^ ]/c", options: "")
+		
+		let expectedKeys = ["stringKey", "intKey", "nullKey", "int32Key", "doubleKey",
+		                    "boolKey", "timeKey", "dateTimeKey", "arrayKey", "regexKey"]
+		guard var iterator = bson.iterator() else {
+			return XCTAssert(false, "nil iterator")
+		}
+		var keysGen = expectedKeys.makeIterator()
+		var valuesDict: [String:BSON.BSONValue] = [:]
+		while iterator.next() {
+			guard let currentKey = iterator.currentKey else {
+				return XCTAssert(false)
+			}
+			XCTAssert(currentKey == keysGen.next())
+			if currentKey == "nullKey" {
+				XCTAssert(nil == iterator.currentValue)
+			} else if currentKey == "arrayKey" {
+				guard var subIt = iterator.currentChildIterator else {
+					return XCTAssert(false)
+				}
+				
+				XCTAssert(subIt.next())
+				XCTAssert(subIt.currentKey == "0")
+				XCTAssert(subIt.next())
+				XCTAssert(subIt.currentKey == "1")
+				
+			} else {
+				guard let value = iterator.currentValue else {
+					return XCTAssert(false, "No value")
+				}
+				valuesDict[currentKey] = value
+			}
+		}
+		
+		XCTAssert(valuesDict["stringKey"]!.string! == "String Value")
+		XCTAssert(valuesDict["intKey"]!.int! == 42)
+		XCTAssert(valuesDict["int32Key"]!.int! == 42)
+		XCTAssert(valuesDict["doubleKey"]!.double == 4.2)
+		XCTAssert(valuesDict["boolKey"]!.bool)
+		XCTAssert(time_t(valuesDict["timeKey"]!.int!) == t * 1000)
+		XCTAssert(valuesDict["dateTimeKey"]!.int! == 4200102)
+		
+		XCTAssert(nil == keysGen.next())
+	}
+	
 	func testBSONCompare() {
 		let bson = BSON()
 		defer {
@@ -368,6 +437,7 @@ extension MongoDBTests {
             ("testBSONFromJSON", testBSONFromJSON),
             ("testBSONAppend", testBSONAppend),
             ("testBSONHasFields", testBSONHasFields),
+            ("testBSONIterate", testBSONIterate),
             ("testBSONCompare", testBSONCompare),
             ("testClientConnect", testClientConnect),
             ("testClientConnectFail", testClientConnectFail),

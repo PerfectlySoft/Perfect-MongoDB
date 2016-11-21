@@ -485,3 +485,219 @@ class NoDestroyBSON: BSON {
 		self.doc = nil
 	}
 }
+
+private func ptr2Str(_ ptr: UnsafeMutablePointer<Int8>!, length: Int) -> String? {
+	var ary = Array(UnsafeBufferPointer(start: ptr, count: Int(length)))
+	ary.append(0)
+	return String(validatingUTF8: ary)
+}
+
+extension BSON {
+	
+	/// An underlying BSON value type.
+	public enum BSONType: UInt32 {
+		case
+		eod           = 0x00,
+		double        = 0x01,
+		utf8          = 0x02,
+		document      = 0x03,
+		array         = 0x04,
+		binary        = 0x05,
+		undefined     = 0x06,
+		oid           = 0x07,
+		bool          = 0x08,
+		dateTime      = 0x09,
+		null          = 0x0A,
+		regex         = 0x0B,
+		dbpointer     = 0x0C,
+		code          = 0x0D,
+		symbol        = 0x0E,
+		codewscope    = 0x0F,
+		int32         = 0x10,
+		timestamp     = 0x11,
+		int64         = 0x12,
+		maxKey        = 0x7F,
+		minKey        = 0xFF
+	}
+	
+	/// A BSONValue produced by iterating a document's keys.
+	public struct BSONValue {
+		private enum Base {
+			case double(Double), string(String), bytes([UInt8])
+		}
+		/// The Mongo type for the value.
+		public let type: BSONType
+		
+		let double: Double
+		let string: String?
+		let bytes: [UInt8]?
+		
+		/// The value as an int, if possible.
+		public var int: Int? {
+			return Int(double)
+		}
+		
+		/// The value as an bool, if possible.
+		public var bool: Bool {
+			return double != 0.0
+		}
+		
+		private init(type: BSONType, double: Double, string: String?, bytes: [UInt8]?) {
+			self.type = type
+			self.double = double
+			self.string = string
+			self.bytes = bytes
+		}
+		
+		// these *bson_value_t are not to be saved or modified
+		// the data is saved off into 1 or more base types depending on the value's type
+		init?(value: UnsafePointer<bson_value_t>) {
+			guard let type = BSONType(rawValue: value.pointee.value_type.rawValue) else {
+				return nil
+			}
+			self.type = type
+			switch type {
+			case .eod, .array/*arrays use different api*/,
+					.undefined, .null, .dbpointer,
+					.maxKey, .minKey:
+				return nil
+			case .double:
+				double = value.pointee.value.v_double
+				string = String(double)
+				bytes = nil
+			case .utf8:
+				let utf8 = value.pointee.value.v_utf8
+				bytes = nil
+				string = ptr2Str(utf8.str, length: Int(utf8.len))
+				double = Double(string ?? "0.0") ?? 0.0
+			case .document:
+				let doc = value.pointee.value.v_doc
+				bytes = Array(UnsafeBufferPointer(start: doc.data, count: Int(doc.data_len)))
+				string = nil
+				double = 0.0
+			case .binary:
+				let b = value.pointee.value.v_binary
+				guard BSON_SUBTYPE_BINARY.rawValue == b.subtype.rawValue else {
+					return nil
+				}
+				bytes = Array(UnsafeBufferPointer(start: b.data, count: Int(b.data_len)))
+				string = nil
+				double = 0.0
+			case .oid:
+				var oid = value.pointee.value.v_oid
+				let up = UnsafeMutablePointer<Int8>.allocate(capacity: 25)
+				defer {
+					up.deallocate(capacity: 25)
+				}
+				bson_oid_to_string(&oid, up)
+				string = ptr2Str(up, length: 25)
+				double = 0.0
+				bytes = []
+			case .bool:
+				double = value.pointee.value.v_bool ? 1.0 : 0.0
+				string = nil
+				bytes = nil
+			case .dateTime:
+				double = Double(value.pointee.value.v_datetime)
+				string = nil
+				bytes = nil
+			case .regex:
+				let regex = value.pointee.value.v_regex
+				
+				let rstr = String(validatingUTF8: regex.regex)
+				let ostr = String(validatingUTF8: regex.options)
+				
+				double = 0.0
+				string = "/\(rstr ?? "")/\(ostr ?? "")"
+				bytes = nil
+			case .code:
+				let code = value.pointee.value.v_code
+				bytes = nil
+				string = ptr2Str(code.code, length: Int(code.code_len))
+				double = 0.0
+			case .symbol:
+				let symbol = value.pointee.value.v_symbol
+				bytes = nil
+				string = ptr2Str(symbol.symbol, length: Int(symbol.len))
+				double = 0.0
+			case .codewscope:
+				double = 0.0
+				string = nil
+				bytes = nil
+			case .int32:
+				double = Double(value.pointee.value.v_int32)
+				string = String(Int32(double))
+				bytes = nil
+			case .timestamp:
+				double = 0.0
+				string = nil
+				bytes = nil
+			case .int64:
+				double = Double(value.pointee.value.v_int64)
+				string = String(Int64(double))
+				bytes = nil
+			}
+		}
+	}
+	
+	/// An iterator for BSON keys and values.
+	public struct Iterator {
+		var iter = bson_iter_t()
+		/// The type of the current value.
+		public var currentType: BSONType? {
+			var cpy = iter
+			return BSONType(rawValue: bson_iter_type(&cpy).rawValue)
+		}
+		/// The key for the current value.
+		public var currentKey: String? {
+			var cpy = iter
+			guard let c = bson_iter_key(&cpy) else {
+				return nil
+			}
+			return String(validatingUTF8: c)
+		}
+		/// If the current value is an narray or document, this returns an iterator
+		/// which can be used to walk it.
+		public var currentChildIterator: Iterator? {
+			guard let currentType = self.currentType else {
+				return nil
+			}
+			switch currentType {
+			case .array, .document:
+				return Iterator(recursing: self.iter)
+			default:
+				return nil
+			}
+		}
+		/// The BSON value for the current element.
+		public var currentValue: BSONValue? {
+			var cpy = iter
+			guard let b = bson_iter_value(&cpy) else {
+				return nil
+			}
+			return BSONValue(value: b)
+		}
+		
+		init?(bson: BSON) {
+			guard bson_iter_init(&self.iter, bson.doc) else {
+				return nil
+			}
+		}
+		
+		init?(recursing: bson_iter_t) {
+			var c1 = recursing
+			guard bson_iter_recurse(&c1, &iter) else {
+				return nil
+			}
+		}
+		/// Advance to the next element.
+		/// Note that all iterations must begin by first calling next.
+		public mutating func next() -> Bool {
+			return bson_iter_next(&iter)
+		}
+	}
+	/// Return a new iterator for this document.
+	public func iterator() -> Iterator? {
+		return Iterator(bson: self)
+	}
+}
