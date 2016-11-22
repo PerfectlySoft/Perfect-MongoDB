@@ -134,45 +134,57 @@ class MongoDBTests: XCTestCase {
 		
 		let expectedKeys = ["stringKey", "intKey", "nullKey", "int32Key", "doubleKey",
 		                    "boolKey", "timeKey", "dateTimeKey", "arrayKey", "regexKey"]
-		guard var iterator = bson.iterator() else {
-			return XCTAssert(false, "nil iterator")
-		}
-		var keysGen = expectedKeys.makeIterator()
-		var valuesDict: [String:BSON.BSONValue] = [:]
-		while iterator.next() {
-			guard let currentKey = iterator.currentKey else {
-				return XCTAssert(false)
+		do {
+			guard var iterator = bson.iterator() else {
+				return XCTAssert(false, "nil iterator")
 			}
-			XCTAssert(currentKey == keysGen.next())
-			if currentKey == "nullKey" {
-				XCTAssert(nil == iterator.currentValue)
-			} else if currentKey == "arrayKey" {
-				guard var subIt = iterator.currentChildIterator else {
+			var keysGen = expectedKeys.makeIterator()
+			var valuesDict: [String:BSON.BSONValue] = [:]
+			while iterator.next() {
+				guard let currentKey = iterator.currentKey else {
 					return XCTAssert(false)
 				}
-				
-				XCTAssert(subIt.next())
-				XCTAssert(subIt.currentKey == "0")
-				XCTAssert(subIt.next())
-				XCTAssert(subIt.currentKey == "1")
-				
-			} else {
-				guard let value = iterator.currentValue else {
-					return XCTAssert(false, "No value")
+				XCTAssert(currentKey == keysGen.next())
+				if currentKey == "nullKey" {
+					XCTAssert(nil == iterator.currentValue)
+				} else if currentKey == "arrayKey" {
+					guard var subIt = iterator.currentChildIterator else {
+						return XCTAssert(false)
+					}
+					
+					XCTAssert(subIt.next())
+					XCTAssert(subIt.currentKey == "0")
+					XCTAssert(subIt.next())
+					XCTAssert(subIt.currentKey == "1")
+					
+				} else {
+					guard let value = iterator.currentValue else {
+						return XCTAssert(false, "No value")
+					}
+					valuesDict[currentKey] = value
 				}
-				valuesDict[currentKey] = value
 			}
+			
+			XCTAssert(valuesDict["stringKey"]!.string! == "String Value")
+			XCTAssert(valuesDict["intKey"]!.int! == 42)
+			XCTAssert(valuesDict["int32Key"]!.int! == 42)
+			XCTAssert(valuesDict["doubleKey"]!.double == 4.2)
+			XCTAssert(valuesDict["boolKey"]!.bool)
+			XCTAssert(time_t(valuesDict["timeKey"]!.int!) == t * 1000)
+			XCTAssert(valuesDict["dateTimeKey"]!.int! == 4200102)
+			
+			XCTAssert(nil == keysGen.next())
 		}
 		
-		XCTAssert(valuesDict["stringKey"]!.string! == "String Value")
-		XCTAssert(valuesDict["intKey"]!.int! == 42)
-		XCTAssert(valuesDict["int32Key"]!.int! == 42)
-		XCTAssert(valuesDict["doubleKey"]!.double == 4.2)
-		XCTAssert(valuesDict["boolKey"]!.bool)
-		XCTAssert(time_t(valuesDict["timeKey"]!.int!) == t * 1000)
-		XCTAssert(valuesDict["dateTimeKey"]!.int! == 4200102)
-		
-		XCTAssert(nil == keysGen.next())
+		do {
+			guard var iterator = bson.iterator() else {
+				return XCTAssert(false, "nil iterator")
+			}
+			guard let newIt = iterator.findDescendant(key: "arrayKey.1") else {
+				return XCTAssert(false, "nil iterator")
+			}
+			XCTAssert(newIt.currentValue?.string == "String Value 2")
+		}
 	}
 	
 	func testBSONCompare() {

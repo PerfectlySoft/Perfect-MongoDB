@@ -678,6 +678,8 @@ extension BSON {
 			return BSONValue(value: b)
 		}
 		
+		private init() {}
+		
 		init?(bson: BSON) {
 			guard bson_iter_init(&self.iter, bson.doc) else {
 				return nil
@@ -690,10 +692,25 @@ extension BSON {
 				return nil
 			}
 		}
+		
 		/// Advance to the next element.
 		/// Note that all iterations must begin by first calling next.
 		public mutating func next() -> Bool {
 			return bson_iter_next(&iter)
+		}
+		/// Located the key and advance the iterator to point at it.
+		/// If `withCase` is false then the search will be case in-sensitive.
+		public mutating func find(key: String, withCase: Bool = true) -> Bool {
+			return withCase ? bson_iter_find(&iter, key) : bson_iter_find_case(&iter, key)
+		}
+		/// Follow standard MongoDB dot notation to recurse into subdocuments.
+		/// Returns nil if the descendant is not found.
+		public mutating func findDescendant(key: String) -> Iterator? {
+			var subit = Iterator()
+			guard bson_iter_find_descendant(&iter, key, &subit.iter) else {
+				return nil
+			}
+			return subit
 		}
 	}
 	/// Return a new iterator for this document.
