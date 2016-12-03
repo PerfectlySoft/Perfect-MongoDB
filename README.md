@@ -64,9 +64,9 @@ A comprehensive list of open issues can be found at [http://jira.perfect.org:808
 OS X Build Notes
 ----------------
 
-This package requires the [Home Brew](http://brew.sh) build of mongo-c.
+This package requires the [Homebrew](http://brew.sh) build of mongo-c.
 
-To install Home Brew:
+To install Homebrew:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -75,7 +75,7 @@ To install Home Brew:
 To install mongo-c:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-brew install mongo-c
+brew install mongo-c-driver
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Linux Build Notes

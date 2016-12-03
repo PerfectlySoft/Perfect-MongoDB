@@ -61,9 +61,9 @@ Perfect - MongoDB 数据库连接器 [English](README.md)
 OS X 注意事项
 ----------------
 
-本程序依赖于 [Home Brew](http://brew.sh) 发行的 mongo-c 函数库。 
+本程序依赖于 [Homebrew](http://brew.sh) 发行的 mongo-c 函数库。 
 
-如果您要安装 Home Brew:
+如果您要安装 Homebrew:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -72,7 +72,7 @@ OS X 注意事项
 安装 mongo-c 的方法:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-brew install mongo-c
+brew install mongo-c-driver
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Linux 注意事项
