@@ -284,6 +284,43 @@ public class MongoCollection {
 	}
 
     /**
+     *  Insert **documents** into the current collection returning a result status
+     *
+     *  - parameter documents: BSON documents to be inserted
+     *
+     *  - returns: Result object with status of insert
+    */
+    public func insert(documents: [BSON]) -> Result {
+        
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
+        
+        let bulk = mongoc_collection_create_bulk_operation(ptr, true, nil)
+        var error = bson_error_t()
+        var reply = bson_t()
+        defer {
+            bson_destroy(&reply)
+            mongoc_bulk_operation_destroy(bulk)
+        }
+        
+        for document in documents {
+            guard let doc = document.doc else {
+                return .error(1, 1, "Invalid document")
+            }
+            mongoc_bulk_operation_insert(bulk, doc)
+            // no need to destroy because "public func close()" does it
+            // bson_destroy (doc)
+        }
+        
+        guard mongoc_bulk_operation_execute(bulk, &reply, &error) == 1 else {
+            return Result.fromError(error)
+        }
+        
+        return .success
+    }
+
+    /**
      *  Update the document found using **selector** with the **update** document returning a result status
      *  
      *  - parameter update: BSON document to be used to update
