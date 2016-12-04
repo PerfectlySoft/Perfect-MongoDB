@@ -230,6 +230,8 @@ public class MongoCollection {
 
     /// Result Status enum for a MongoDB event
 	public typealias Result = MongoResult
+    /// Update struct for updating event
+    public typealias Update = MongoUpdate
 
     /**
      *  obtain access to a specified database and collection using the MongoClient
@@ -329,23 +331,66 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of update
     */
-	public func update(update: BSON, selector: BSON, flag: MongoUpdateFlag = .none) -> Result {
-        guard let sdoc = selector.doc else {
+    public func update(update: Update) -> Result {
+        guard let sdoc = update.selector.doc else {
             return .error(1, 1, "Invalid selector document")
         }
-        guard let udoc = update.doc else {
+        guard let udoc = update.update.doc else {
             return .error(1, 1, "Invalid update document")
         }
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
         }
-		var error = bson_error_t()
-		let res = mongoc_collection_update(ptr, flag.mongoFlag, sdoc, udoc, nil, &error)
-		guard res == true else {
-			return Result.fromError(error)
-		}
-		return .success
-	}
+        var error = bson_error_t()
+        let res = mongoc_collection_update(ptr, update.flag.mongoFlag, sdoc, udoc, nil, &error)
+        guard res == true else {
+            return Result.fromError(error)
+        }
+        return .success
+    }
+
+    /**
+     *  Update the document found using MongoCollection.Update returning a result status
+     *
+     *  - parameter update: BSON document to be used to update
+     *  - parameter selector: BSON document with selection criteria
+     *  - parameter flag: Optional MongoUpdateFlag defaults to .None
+     *
+     *  - returns: Result object with status of update
+     */
+    public func update(updates: [Update]) -> Result {
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
+        let bulk = mongoc_collection_create_bulk_operation(ptr, true, nil)
+        var error = bson_error_t()
+        var reply = bson_t()
+        defer {
+            bson_destroy(&reply)
+            mongoc_bulk_operation_destroy(bulk)
+        }
+        for update in updates {
+            guard let sdoc = update.selector.doc else {
+                return .error(1, 1, "Invalid selector document")
+            }
+            guard let udoc = update.update.doc else {
+                return .error(1, 1, "Invalid update document")
+            }
+            // mongoc_bulk_operation_update(bulk, sdoc, udoc, false)
+            // mongoc_bulk_operation_update_one(bulk, sdoc, udoc, true)
+            // mongoc_bulk_operation_update_one_with_opts(bulk, sdoc, udoc, nil, &error)
+            // mongoc_bulk_operation_update_many_with_opts(bulk, sdoc, udoc, nil, &error)
+            // mongoc_bulk_operation_replace_one(bulk, sdoc, udoc, false)
+            mongoc_bulk_operation_replace_one_with_opts(bulk, sdoc, udoc, nil, &error)
+            // no need to destroy because "public func close()" does it
+            // bson_destroy(sdoc)
+            // bson_destroy(udoc)
+        }
+        guard mongoc_bulk_operation_execute(bulk, &reply, &error) == 1 else {
+            return Result.fromError(error)
+        }
+        return .success
+    }
 
     /**
      *  Remove the document found using **selector** returning a result status

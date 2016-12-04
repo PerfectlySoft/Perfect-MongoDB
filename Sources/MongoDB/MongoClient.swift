@@ -49,6 +49,21 @@ public enum MongoClientError: Error {
     case initError(String)
 }
 
+/**
+ *  Struct for MongoCollection
+ */
+public struct MongoUpdate {
+    var selector: BSON
+    var update: BSON
+    var flag: MongoUpdateFlag
+    
+    public init(selector: BSON, update: BSON, flag: MongoUpdateFlag = .none) {
+        self.selector = selector
+        self.update = update
+        self.flag = flag
+    }
+}
+
 public class MongoClient {
 
 	var ptr = OpaquePointer(bitPattern: 0)
