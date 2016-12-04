@@ -450,6 +450,40 @@ public class BSON: CustomStringConvertible {
         }
 		return bson_concat(doc, sdoc)
 	}
+	
+	/// Represents a BSON OID.
+	public struct OID: CustomStringConvertible {
+		var oid: bson_oid_t
+		public var description: String {
+			let up = UnsafeMutablePointer<Int8>.allocate(capacity: 25)
+			defer {
+				up.deallocate(capacity: 25)
+			}
+			var oid = self.oid
+			bson_oid_to_string(&oid, up)
+			return ptr2Str(up, length: 25) ?? ""
+		}
+		init(oid: bson_oid_t) {
+			self.oid = oid
+		}
+		public init(_ string: String) {
+			var oid = bson_oid_t()
+			bson_oid_init_from_string(&oid, string)
+			self.oid = oid
+		}
+	}
+	
+	/// Add the OID with the given key.
+	/// Key defaults to "_id"
+	@discardableResult
+	public func append(key: String = "_id", oid: OID) -> Bool {
+		guard let doc = self.doc else {
+			return false
+		}
+		var oid = oid.oid
+		bson_append_oid(doc, key, -1, &oid)
+		return true
+	}
 }
 
 /**
@@ -528,9 +562,11 @@ extension BSON {
 		/// The Mongo type for the value.
 		public let type: BSONType
 		
-		let double: Double
-		let string: String?
-		let bytes: [UInt8]?
+		public let double: Double
+		public let string: String?
+		public let bytes: [UInt8]?
+		public let oid: OID?
+		public let doc: BSON?
 		
 		/// The value as an int, if possible.
 		public var int: Int? {
@@ -540,13 +576,6 @@ extension BSON {
 		/// The value as an bool, if possible.
 		public var bool: Bool {
 			return double != 0.0
-		}
-		
-		private init(type: BSONType, double: Double, string: String?, bytes: [UInt8]?) {
-			self.type = type
-			self.double = double
-			self.string = string
-			self.bytes = bytes
 		}
 		
 		// these *bson_value_t are not to be saved or modified
@@ -565,16 +594,24 @@ extension BSON {
 				double = value.pointee.value.v_double
 				string = String(double)
 				bytes = nil
+				oid = nil
+				doc = nil
 			case .utf8:
 				let utf8 = value.pointee.value.v_utf8
 				bytes = nil
 				string = ptr2Str(utf8.str, length: Int(utf8.len))
 				double = Double(string ?? "0.0") ?? 0.0
+				oid = nil
+				doc = nil
 			case .document:
 				let doc = value.pointee.value.v_doc
-				bytes = Array(UnsafeBufferPointer(start: doc.data, count: Int(doc.data_len)))
+				var bson = bson_t()
+				bson_init_static(&bson, doc.data, Int(doc.data_len))
+				self.doc = BSON(rawBson: bson_copy(&bson))
+				bytes = nil
 				string = nil
 				double = 0.0
+				oid = nil
 			case .binary:
 				let b = value.pointee.value.v_binary
 				guard BSON_SUBTYPE_BINARY.rawValue == b.subtype.rawValue else {
@@ -583,24 +620,27 @@ extension BSON {
 				bytes = Array(UnsafeBufferPointer(start: b.data, count: Int(b.data_len)))
 				string = nil
 				double = 0.0
+				oid = nil
+				doc = nil
 			case .oid:
-				var oid = value.pointee.value.v_oid
-				let up = UnsafeMutablePointer<Int8>.allocate(capacity: 25)
-				defer {
-					up.deallocate(capacity: 25)
-				}
-				bson_oid_to_string(&oid, up)
-				string = ptr2Str(up, length: 25)
+				let oid = value.pointee.value.v_oid
+				self.oid = OID(oid: oid)
+				string = self.oid?.description
 				double = 0.0
 				bytes = []
+				doc = nil
 			case .bool:
 				double = value.pointee.value.v_bool ? 1.0 : 0.0
 				string = nil
 				bytes = nil
+				oid = nil
+				doc = nil
 			case .dateTime:
 				double = Double(value.pointee.value.v_datetime)
 				string = nil
 				bytes = nil
+				oid = nil
+				doc = nil
 			case .regex:
 				let regex = value.pointee.value.v_regex
 				
@@ -610,32 +650,46 @@ extension BSON {
 				double = 0.0
 				string = "/\(rstr ?? "")/\(ostr ?? "")"
 				bytes = nil
+				oid = nil
+				doc = nil
 			case .code:
 				let code = value.pointee.value.v_code
 				bytes = nil
 				string = ptr2Str(code.code, length: Int(code.code_len))
 				double = 0.0
+				oid = nil
+				doc = nil
 			case .symbol:
 				let symbol = value.pointee.value.v_symbol
 				bytes = nil
 				string = ptr2Str(symbol.symbol, length: Int(symbol.len))
 				double = 0.0
+				oid = nil
+				doc = nil
 			case .codewscope:
 				double = 0.0
 				string = nil
 				bytes = nil
+				oid = nil
+				doc = nil
 			case .int32:
 				double = Double(value.pointee.value.v_int32)
 				string = String(Int32(double))
 				bytes = nil
+				oid = nil
+				doc = nil
 			case .timestamp:
 				double = 0.0
 				string = nil
 				bytes = nil
+				oid = nil
+				doc = nil
 			case .int64:
 				double = Double(value.pointee.value.v_int64)
 				string = String(Int64(double))
 				bytes = nil
+				oid = nil
+				doc = nil
 			}
 		}
 	}
