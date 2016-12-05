@@ -568,7 +568,7 @@ public class MongoCollection {
      *
      *  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
     */
-    public func find(query: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
+    public func find(query: BSON = BSON(), fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
 		//	@available(*, deprecated, message: "Use find(filter: BSON, options: BSON?)")
 
 		guard let ptr = self.ptr else {

@@ -568,7 +568,7 @@ class MongoDBTests: XCTestCase {
 			return XCTAssert(false, "Invalid count response")
 		}
 		
-		guard let fnd = collection.find(filter: queryBson),
+		guard let fnd = collection.find(query: queryBson),
 			let foundBson = fnd.next(),
 			var bsonIt = foundBson.iterator() else {
 			return XCTAssert(false, "Cursor was nil")
