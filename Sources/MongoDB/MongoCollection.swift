@@ -353,7 +353,7 @@ public class MongoCollection {
     }
 
     /**
-     *  Update the document found using MongoCollection.Update returning a result status
+     *  Update the documents and return a result status
      *
      *  - parameter updates: Tuple of (selector: BSON, update: BSON)
      *
@@ -400,10 +400,10 @@ public class MongoCollection {
             guard let udoc = update.update.doc else {
                 return .error(1, 1, "Invalid update document")
             }
-            // mongoc_bulk_operation_update(bulk, sdoc, udoc, false)
+            mongoc_bulk_operation_update(bulk, sdoc, udoc, false)
             // mongoc_bulk_operation_update_one(bulk, sdoc, udoc, true)
             // mongoc_bulk_operation_update_one_with_opts(bulk, sdoc, udoc, nil, &error)
-            mongoc_bulk_operation_update_many_with_opts(bulk, sdoc, udoc, nil, &error)
+            //mongoc_bulk_operation_update_many_with_opts(bulk, sdoc, udoc, nil, &error)
             // mongoc_bulk_operation_replace_one(bulk, sdoc, udoc, false)
             // Remongoc_bulk_operation_replace_one_with_opts(bulk, sdoc, udoc, nil, &error)
             // no need to destroy because "public func close()" does it
@@ -568,9 +568,10 @@ public class MongoCollection {
      *
      *  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
     */
-	@available(*, deprecated, message: "Use find(filter: BSON, options: BSON?)")
     public func find(query: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
-        guard let ptr = self.ptr else {
+		//	@available(*, deprecated, message: "Use find(filter: BSON, options: BSON?)")
+
+		guard let ptr = self.ptr else {
             return nil
         }
         guard let qdoc = query.doc else {
@@ -591,16 +592,16 @@ public class MongoCollection {
 	*
 	*  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
 	*/
-	public func find(filter: BSON = BSON(), options: BSON? = nil) -> MongoCursor? {
-		guard let ptr = self.ptr else {
-			return nil
-		}
-		let cursor = mongoc_collection_find_with_opts(ptr, filter.doc, options?.doc, nil)
-		guard cursor != nil else {
-			return nil
-		}
-		return MongoCursor(rawPtr: cursor)
-	}
+//	public func find(filter: BSON = BSON(), options: BSON? = nil) -> MongoCursor? {
+//		guard let ptr = self.ptr else {
+//			return nil
+//		}
+//		let cursor = mongoc_collection_find_with_opts(ptr, filter.doc, options?.doc, nil)
+//		guard cursor != nil else {
+//			return nil
+//		}
+//		return MongoCursor(rawPtr: cursor)
+//	}
 
     /**
      *  Creates indexes on collections.
