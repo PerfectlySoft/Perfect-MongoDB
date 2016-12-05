@@ -330,17 +330,17 @@ public class MongoCollection {
      *  - returns: Result object with status of update
     */
     public func update(selector: BSON, update: BSON, flag: MongoUpdateFlag = .none) -> Result {
-        guard let sdoc = update.selector.doc else {
+        guard let sdoc = selector.doc else {
             return .error(1, 1, "Invalid selector document")
         }
-        guard let udoc = update.update.doc else {
+        guard let udoc = update.doc else {
             return .error(1, 1, "Invalid update document")
         }
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
         }
         var error = bson_error_t()
-        let res = mongoc_collection_update(ptr, update.flag.mongoFlag, sdoc, udoc, nil, &error)
+        let res = mongoc_collection_update(ptr, flag.mongoFlag, sdoc, udoc, nil, &error)
         guard res == true else {
             return Result.fromError(error)
         }
