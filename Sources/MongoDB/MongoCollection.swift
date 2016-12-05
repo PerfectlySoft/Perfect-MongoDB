@@ -284,6 +284,43 @@ public class MongoCollection {
 	}
 
     /**
+     *  Insert **documents** into the current collection returning a result status
+     *
+     *  - parameter documents: BSON documents to be inserted
+     *
+     *  - returns: Result object with status of insert
+    */
+    public func insert(documents: [BSON]) -> Result {
+        
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
+        
+        let bulk = mongoc_collection_create_bulk_operation(ptr, true, nil)
+        var error = bson_error_t()
+        var reply = bson_t()
+        defer {
+            bson_destroy(&reply)
+            mongoc_bulk_operation_destroy(bulk)
+        }
+        
+        for document in documents {
+            guard let doc = document.doc else {
+                return .error(1, 1, "Invalid document")
+            }
+            mongoc_bulk_operation_insert(bulk, doc)
+            // no need to destroy because "public func close()" does it
+            // bson_destroy (doc)
+        }
+        
+        guard mongoc_bulk_operation_execute(bulk, &reply, &error) == 1 else {
+            return Result.fromError(error)
+        }
+        
+        return .success
+    }
+
+    /**
      *  Update the document found using **selector** with the **update** document returning a result status
      *  
      *  - parameter update: BSON document to be used to update
@@ -292,7 +329,7 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of update
     */
-	public func update(update: BSON, selector: BSON, flag: MongoUpdateFlag = .none) -> Result {
+    public func update(selector: BSON, update: BSON, flag: MongoUpdateFlag = .none) -> Result {
         guard let sdoc = selector.doc else {
             return .error(1, 1, "Invalid selector document")
         }
@@ -302,13 +339,77 @@ public class MongoCollection {
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
         }
-		var error = bson_error_t()
-		let res = mongoc_collection_update(ptr, flag.mongoFlag, sdoc, udoc, nil, &error)
-		guard res == true else {
-			return Result.fromError(error)
-		}
-		return .success
-	}
+        var error = bson_error_t()
+        let res = mongoc_collection_update(ptr, flag.mongoFlag, sdoc, udoc, nil, &error)
+        guard res == true else {
+            return Result.fromError(error)
+        }
+        return .success
+    }
+
+    /**
+     *  Update the document found using MongoCollection.Update returning a result status
+     *
+     *  - parameter updates: Tuple of (selector: BSON, update: BSON)
+     *
+     *  - returns: Result object with status of update
+     *
+     *  How to use it!
+     *
+     *  var updates: [(selector: BSON, update: BSON)] = []
+     *  guard var users = collection.find(query: BSON()) else {
+     *      response.status = HTTPResponseStatus.custom(code: 404, message: "Collection users cannot perform find().")
+     *      response.completed()
+     *  return
+     }
+     *  for user in users {
+     *      let oldBson = BSON()
+     *      oldBson.append(key: "_id", oid: user.oid!)
+     *      let innerBson = BSON()
+     *      innerBson.append(key: "firstname", string: "Ciccio")
+     *      let newdBson = BSON()
+     *      newdBson.append(key: "$set", document: innerBson)
+     *      updates.append((selector: oldBson, update: newdBson))
+     *  }
+     *  if case .error = collection.update(updates: updates) {
+     *      response.status = HTTPResponseStatus.custom(code: 404, message: "Collection users cannot perform multiple update().")
+     *      response.completed()
+     *  return
+     }
+     */
+    public func update(updates: [(selector: BSON, update: BSON)]) -> Result {
+        guard let ptr = self.ptr else {
+            return .error(1, 1, "Invalid collection")
+        }
+        let bulk = mongoc_collection_create_bulk_operation(ptr, true, nil)
+        var error = bson_error_t()
+        var reply = bson_t()
+        defer {
+            bson_destroy(&reply)
+            mongoc_bulk_operation_destroy(bulk)
+        }
+        for update in updates {
+            guard let sdoc = update.selector.doc else {
+                return .error(1, 1, "Invalid selector document")
+            }
+            guard let udoc = update.update.doc else {
+                return .error(1, 1, "Invalid update document")
+            }
+            // mongoc_bulk_operation_update(bulk, sdoc, udoc, false)
+            // mongoc_bulk_operation_update_one(bulk, sdoc, udoc, true)
+            // mongoc_bulk_operation_update_one_with_opts(bulk, sdoc, udoc, nil, &error)
+            mongoc_bulk_operation_update_many_with_opts(bulk, sdoc, udoc, nil, &error)
+            // mongoc_bulk_operation_replace_one(bulk, sdoc, udoc, false)
+            // Remongoc_bulk_operation_replace_one_with_opts(bulk, sdoc, udoc, nil, &error)
+            // no need to destroy because "public func close()" does it
+            // bson_destroy(sdoc)
+            // bson_destroy(udoc)
+        }
+        guard mongoc_bulk_operation_execute(bulk, &reply, &error) == 1 else {
+            return Result.fromError(error)
+        }
+        return .success
+    }
 
     /**
      *  Remove the document found using **selector** returning a result status
