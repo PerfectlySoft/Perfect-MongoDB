@@ -434,7 +434,7 @@ class MongoDBTests: XCTestCase {
             return
         }
         
-        guard let fnd = collection.find(query: BSON()) else {
+        guard let fnd = collection.find() else {
             XCTAssert(false, "Cursor was nil")
             return
         }
@@ -568,7 +568,7 @@ class MongoDBTests: XCTestCase {
 			return XCTAssert(false, "Invalid count response")
 		}
 		
-		guard let fnd = collection.find(query: queryBson),
+		guard let fnd = collection.find(filter: queryBson),
 			let foundBson = fnd.next(),
 			var bsonIt = foundBson.iterator() else {
 			return XCTAssert(false, "Cursor was nil")
@@ -589,13 +589,13 @@ class MongoDBTests: XCTestCase {
 			inner.append(key: "intKey", int: 44)
 			newBson.append(key: "$set", document: inner)
 			
-			guard case .success = collection.update(update: newBson, selector: query) else {
+			guard case .success = collection.update(selector: query, update: newBson) else {
 				return XCTAssert(false)
 			}
 		}
 		
 		do {
-			guard let cursor = collection.find(query: BSON()),
+			guard let cursor = collection.find(),
 				let bson = cursor.next(),
 				var it = bson.iterator(),
 				it.find(key: "intKey") else {
@@ -628,7 +628,15 @@ extension MongoDBTests {
     }
 }
 
-
+extension BSON {
+	var oid: OID? {
+		guard var it = self.iterator(),
+			it.find(key: "_id") else {
+			return nil
+		}
+		return it.currentValue?.oid
+	}
+}
 
 
 

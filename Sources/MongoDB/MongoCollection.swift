@@ -319,16 +319,21 @@ public class MongoCollection {
         
         return .success
     }
-
-    /**
-     *  Update the document found using **selector** with the **update** document returning a result status
-     *  
-     *  - parameter update: BSON document to be used to update
-     *  - parameter selector: BSON document with selection criteria
-     *  - parameter flag: Optional MongoUpdateFlag defaults to .None
-     *
-     *  - returns: Result object with status of update
-    */
+	
+	@available(*, deprecated, message: "Use update(selector: BSON, update: BSON, flag: MongoUpdateFlag")
+	public func update(update: BSON, selector: BSON, flag: MongoUpdateFlag = .none) -> Result {
+		return self.update(selector: selector, update: update, flag: flag)
+	}
+	
+	/**
+	*  Update the document found using **selector** with the **update** document returning a result status
+	*
+	*  - parameter selector: BSON document with selection criteria
+	*  - parameter update: BSON document to be used to update
+	*  - parameter flag: Optional MongoUpdateFlag defaults to .None
+	*
+	*  - returns: Result object with status of update
+	*/
     public func update(selector: BSON, update: BSON, flag: MongoUpdateFlag = .none) -> Result {
         guard let sdoc = selector.doc else {
             return .error(1, 1, "Invalid selector document")
@@ -563,6 +568,7 @@ public class MongoCollection {
      *
      *  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
     */
+	@available(*, deprecated, message: "Use find(filter: BSON, options: BSON?)")
     public func find(query: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
         guard let ptr = self.ptr else {
             return nil
@@ -571,6 +577,25 @@ public class MongoCollection {
             return nil
         }
 		let cursor = mongoc_collection_find(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), qdoc, fields?.doc, nil)
+		guard cursor != nil else {
+			return nil
+		}
+		return MongoCursor(rawPtr: cursor)
+	}
+	
+	/**
+	*  Selects documents in a collection and returns a cursor to the selected documents.
+	*
+	*  - parameter filter:    Specifies selection filter using query operators. To return all documents in a collection, omit this Parameter.
+	*  - parameter options:   Optional. Specifies the query options, including sort order and which fields to return.
+	*
+	*  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
+	*/
+	public func find(filter: BSON = BSON(), options: BSON? = nil) -> MongoCursor? {
+		guard let ptr = self.ptr else {
+			return nil
+		}
+		let cursor = mongoc_collection_find_with_opts(ptr, filter.doc, options?.doc, nil)
 		guard cursor != nil else {
 			return nil
 		}
