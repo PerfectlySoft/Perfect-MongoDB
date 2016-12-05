@@ -230,8 +230,6 @@ public class MongoCollection {
 
     /// Result Status enum for a MongoDB event
 	public typealias Result = MongoResult
-    /// Update struct for updating event
-    public typealias Update = MongoUpdate
 
     /**
      *  obtain access to a specified database and collection using the MongoClient
@@ -331,7 +329,7 @@ public class MongoCollection {
      *
      *  - returns: Result object with status of update
     */
-    public func update(update: Update) -> Result {
+    public func update(selector: BSON, update: BSON, flag: MongoUpdateFlag = .none) -> Result {
         guard let sdoc = update.selector.doc else {
             return .error(1, 1, "Invalid selector document")
         }
@@ -352,13 +350,34 @@ public class MongoCollection {
     /**
      *  Update the document found using MongoCollection.Update returning a result status
      *
-     *  - parameter update: BSON document to be used to update
-     *  - parameter selector: BSON document with selection criteria
-     *  - parameter flag: Optional MongoUpdateFlag defaults to .None
+     *  - parameter updates: Tuple of (selector: BSON, update: BSON)
      *
      *  - returns: Result object with status of update
+     *
+     *  How to use it!
+     *
+     *  var updates: [(selector: BSON, update: BSON)] = []
+     *  guard var users = collection.find(query: BSON()) else {
+     *      response.status = HTTPResponseStatus.custom(code: 404, message: "Collection users cannot perform find().")
+     *      response.completed()
+     *  return
+     }
+     *  for user in users {
+     *      let oldBson = BSON()
+     *      oldBson.append(key: "_id", oid: user.oid!)
+     *      let innerBson = BSON()
+     *      innerBson.append(key: "firstname", string: "Ciccio")
+     *      let newdBson = BSON()
+     *      newdBson.append(key: "$set", document: innerBson)
+     *      updates.append((selector: oldBson, update: newdBson))
+     *  }
+     *  if case .error = collection.update(updates: updates) {
+     *      response.status = HTTPResponseStatus.custom(code: 404, message: "Collection users cannot perform multiple update().")
+     *      response.completed()
+     *  return
+     }
      */
-    public func update(updates: [Update]) -> Result {
+    public func update(updates: [(selector: BSON, update: BSON)]) -> Result {
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
         }
@@ -379,9 +398,9 @@ public class MongoCollection {
             // mongoc_bulk_operation_update(bulk, sdoc, udoc, false)
             // mongoc_bulk_operation_update_one(bulk, sdoc, udoc, true)
             // mongoc_bulk_operation_update_one_with_opts(bulk, sdoc, udoc, nil, &error)
-            // mongoc_bulk_operation_update_many_with_opts(bulk, sdoc, udoc, nil, &error)
+            mongoc_bulk_operation_update_many_with_opts(bulk, sdoc, udoc, nil, &error)
             // mongoc_bulk_operation_replace_one(bulk, sdoc, udoc, false)
-            mongoc_bulk_operation_replace_one_with_opts(bulk, sdoc, udoc, nil, &error)
+            // Remongoc_bulk_operation_replace_one_with_opts(bulk, sdoc, udoc, nil, &error)
             // no need to destroy because "public func close()" does it
             // bson_destroy(sdoc)
             // bson_destroy(udoc)
