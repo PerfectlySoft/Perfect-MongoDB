@@ -512,7 +512,7 @@ class MongoDBTests: XCTestCase {
  */
         }
     }
-	
+
 	func testUpdate() {
 		let client = try! MongoClient(uri: "mongodb://localhost")
 		let db = client.getDatabase(name: "test")
@@ -605,6 +605,61 @@ class MongoDBTests: XCTestCase {
 		}
 		
 	}
+
+  func testGridfs() {
+    let client = try! MongoClient(uri: "mongodb://localhost")
+    var gridfs: GridFS
+    do {
+      gridfs = try client.gridFS(db: "test")
+    }catch(let err) {
+      XCTFail("gridfs open: \(err)")
+      return
+    }
+
+    defer {
+      gridfs.close()
+    }//end defer
+
+    let now = String(format:"%2X", time(nil))
+    let local = "/tmp/gridfsTest\(now).dat"
+    let sz = 31457280 // 30MB
+    let buffer = malloc(sz)
+    memset(buffer, Int32(time(nil)), sz)
+    let fd = fopen(local, "wb")
+    fwrite(buffer, sz, 1, fd)
+    fclose(fd)
+    free(buffer)
+    let remote = "uploadTest\(now).dat"
+    do {
+      try gridfs.upload(from: local, to: remote)
+    }catch (let err) {
+      XCTFail("gridfs upload: \(err)")
+    }
+    unlink(local)
+    do {
+      let a = try gridfs.list()
+      print(a)
+      XCTAssertGreaterThan(a.count, 0)
+    }catch (let err) {
+      XCTFail("gridfs list: \(err)")
+    }
+
+    do {
+      let downloaded = "/tmp/gridfsdownload.bin"
+      let a = try gridfs.download(from: remote, to: downloaded)
+      unlink(downloaded)
+      XCTAssertEqual(a, sz)
+    }catch(let err){
+      XCTFail("gridfs download: \(err)")
+    }
+
+    do {
+      try gridfs.delete(remoteFile: remote)
+    }catch(let err){
+      XCTFail("gridfs delete: \(err)")
+    }
+  }
+
 }
 
 extension MongoDBTests {
@@ -623,7 +678,8 @@ extension MongoDBTests {
             ("testGetCollection", testGetCollection),
             ("testDeleteDoc", testDeleteDoc),
             ("testCollectionFind", testCollectionFind),
-            ("testCollectionDistinct", testCollectionDistinct)
+            ("testCollectionDistinct", testCollectionDistinct),
+            ("testGridfs", testGridfs)
         ]
     }
 }
