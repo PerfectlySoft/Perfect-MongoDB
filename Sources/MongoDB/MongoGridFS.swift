@@ -19,6 +19,19 @@
 
 import libmongoc
 
+struct _DOWNPARAM{
+  var file: OpaquePointer
+  var to: String
+  var done: (Int)->()
+}//end DOWNPARAM
+
+func _EXEC_DOWNLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
+  let param = unsafeBitCast(pointerParam, to: UnsafeMutablePointer<_DOWNPARAM>.self)
+  let p = param.pointee
+  GridFile._download(file: p.file, to:p.to , done: p.done)
+  param.deallocate(capacity: 1)
+  return nil
+}//end _EXEC_DOWNLOAD
 
 public class GridFile {
   private var _fp: OpaquePointer?
@@ -114,33 +127,9 @@ public class GridFile {
     }//end get
   }//end meta
 
-  private func _download(_ to: UnsafeRawPointer) -> UnsafeRawPointer {
-    let pName = unsafeBitCast(to, to: UnsafePointer<Int8>.self)
-    let fp = fopen(pName, "wb")
-    let stream = mongoc_stream_gridfs_new(_fp)
-    var r = 0
-    var write_ok = true
-    var iov = mongoc_iovec_t()
-    iov.iov_len = 4096
-    iov.iov_base = malloc(iov.iov_len)
-    var total = 0
-    repeat {
-      r = mongoc_stream_readv (stream, &iov, 1, -1, 0)
-      if (r > 0) {
-        let w = fwrite(iov.iov_base, 1, r, fp)
-        write_ok = r == w
-        total += w
-      }//end if
-    }while(r != 0 && write_ok)
-    free(iov.iov_base)
-    mongoc_stream_destroy(stream)
-    fclose(fp)
-    return to
-  }//
-
-  public func download(to: String) throws -> Int {
+  static func _download(file: OpaquePointer?, to: String, done:@escaping (Int)->()){
     let fp = fopen(to, "wb")
-    let stream = mongoc_stream_gridfs_new(_fp)
+    let stream = mongoc_stream_gridfs_new(file)
     var r = 0
     var write_ok = true
     var iov = mongoc_iovec_t()
@@ -158,11 +147,24 @@ public class GridFile {
     free(iov.iov_base)
     mongoc_stream_destroy(stream)
     fclose(fp)
+    done(total)
+  }//end inner download
 
-    if write_ok {
-      return total
-    }//end if
-    throw MongoClientError.initError("gridfs.download.write(\(to))")
+
+  public func download(to: String) -> Int {
+    var totalBytes = 0
+    GridFile._download(file:_fp, to: to) { totalBytes = $0 }
+    return totalBytes
+  }//end download
+
+  public func download(to: String, done:@escaping (Int)->()) {
+    let param = _DOWNPARAM(file:_fp!, to: to, done: done)
+    let pParam = UnsafeMutablePointer<_DOWNPARAM>.allocate(capacity: 1)
+    pParam.initialize(to: param)
+    let pRaw = unsafeBitCast(pParam, to: UnsafeMutableRawPointer.self)
+    let downloader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_DOWNLOAD
+    var th = pthread_t.init(bitPattern: 0)
+    let _ = pthread_create(&th, nil, downloader, pRaw)
   }//end download
 
   public func delete() throws {

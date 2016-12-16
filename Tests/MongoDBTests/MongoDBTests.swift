@@ -657,18 +657,28 @@ class MongoDBTests: XCTestCase {
       XCTAssertEqual(f?.fileName, remote)
       XCTAssertEqual(f?.length, Int64(sz))
     }catch(let err){
-      XCTFail("gridfs download: \(err)")
+      XCTFail("gridfs search: \(err)")
     }//end f
 
-    do {
-      let downloaded = "/tmp/gridfsdownload.bin"
-      let a = try f?.download(to: downloaded)
+    let downloaded = "/tmp/gridfsdownload.bin"
+    let a = f?.download(to: downloaded)
+    unlink(downloaded)
+    XCTAssertEqual(a, sz)
+
+    let expectation = self.expectation(description: "async downloading")
+    f?.download(to: downloaded) { total in
       unlink(downloaded)
       XCTAssertEqual(a, sz)
-    }catch(let err){
-      XCTFail("gridfs download: \(err)")
-    }
+      expectation.fulfill()
+    }//end download
 
+    self.waitForExpectations(timeout: 10) {
+      error in
+      if let error = error {
+        XCTFail("gridfs async download: \(error.localizedDescription)")
+      }//end if
+    }//end wait
+    
     do {
       try f?.delete()
     }catch(let err){
