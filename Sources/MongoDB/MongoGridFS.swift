@@ -344,18 +344,21 @@ public class GridFS {
   }//end close
 
   /// list all files on the gridfs
+  /// - parameters:
+  ///   - filter: a bson to determine which kind of files and how to list, such as order by upload date, or by size. nil for all files. 
   /// - throws:
   ///	MongoClientError if failed
   /// - returns:
   /// [GridFile]: array to hold a list of GridFile objects
   @discardableResult
-  public func list() throws -> [GridFile]{
+  public func list(filter: BSON? = nil) throws -> [GridFile]{
     // query content
     var query = bson_t()
     // context element for building the query
     var child = bson_t()
     // start a new query
     bson_init(&query)
+    bson_init(&child)
     // declare to list all files in an alphabetic order
     bson_append_document_begin (&query, "$orderby", -1, &child);
     bson_append_int32 (&child, "filename", -1, 1);
@@ -364,12 +367,20 @@ public class GridFS {
     bson_append_document_end (&query, &child);
 
     // perform actually query
-    guard let list = mongoc_gridfs_find_with_opts(handle, &query, nil) else {
-      bson_destroy(&query)
+    var plist: OpaquePointer?
+    if filter == nil {
+      plist = mongoc_gridfs_find_with_opts(handle, &query, nil)
+    }else {
+      plist = mongoc_gridfs_find_with_opts(handle, filter?.doc, nil)
+    }//end if
+
+    // release the query resource
+    bson_destroy(&child)
+    bson_destroy(&query)
+
+    guard let list = plist else {
       throw MongoClientError.initError("gridfs.list()")
     }//end guard
-    // release the query resource
-    bson_destroy(&query)
 
     // iterate the query result
     // handler of each file in the list
@@ -398,7 +409,7 @@ public class GridFS {
         // and declare an error
         err = MongoClientError.initError("gridfs.list() = \(e)")
       }//end do
-    // loop until out of elements
+      // loop until out of elements
     }while(file != nil)
     // release the mongoc_gridfs_file_list
     mongoc_gridfs_file_list_destroy(list)
