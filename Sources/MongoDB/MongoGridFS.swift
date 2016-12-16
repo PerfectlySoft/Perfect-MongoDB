@@ -300,6 +300,40 @@ public class GridFile {
     let _ = pthread_create(&th, nil, downloader, pRaw)
   }//end download
 
+  public enum Whence {
+    case begin
+    case current
+    case end
+  }//end whence
+
+  /// get the current file position
+  public func tell() -> UInt64 {
+    return mongoc_gridfs_file_tell(_fp)
+  }//end tell
+
+  /// set the current file position
+  /// - parameters:
+  ///   - cursor: new position
+  ///   - whence: whence of new position, i.e., file begin, current or end of file.
+  /// - throws
+  /// MongoClientError if failed to seek
+  public func seek(cursor: Int64, whence:Whence = .begin) throws {
+    var w = Int32(0)
+    switch whence {
+    case .begin:
+      w = Int32(SEEK_SET)
+    case .end:
+      w = Int32(SEEK_END)
+    default:
+      w = Int32(SEEK_CUR)
+    }//end case
+    let res = mongoc_gridfs_file_seek(_fp, cursor, Int32(w))
+    if res == 0 {
+      return
+    }//end if
+    throw MongoClientError.initError("gridfs.file.seek(\(cursor)) failed")
+  }//end seek
+
   /// remove the file from server
   /// - throws:
   /// MongoClientError
@@ -345,7 +379,7 @@ public class GridFS {
 
   /// list all files on the gridfs
   /// - parameters:
-  ///   - filter: a bson to determine which kind of files and how to list, such as order by upload date, or by size. nil for all files. 
+  ///   - filter: a bson to determine which kind of files and how to list, such as order by upload date, or by size. nil for all files.
   /// - throws:
   ///	MongoClientError if failed
   /// - returns:
