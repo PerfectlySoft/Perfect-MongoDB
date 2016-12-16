@@ -334,6 +334,63 @@ public class GridFile {
     throw MongoClientError.initError("gridfs.file.seek(\(cursor)) failed")
   }//end seek
 
+  /// partially read some bytes from the remote file
+  /// - parameters:
+  ///   - amount: bytes count to read
+  ///   - timeout: milliseconds to wait. default 0 to return immediately
+  /// - returns:
+  /// an array of bytes as outcome
+  /// - throws:
+  /// MongoClientError if failed to read
+  public func partiallyRead(amount: UInt32, timeout:UInt32 = 0) throws -> [UInt8] {
+    // prepare a buffer to read
+    var iov = mongoc_iovec_t()
+    iov.iov_len = Int(amount)
+    iov.iov_base = malloc(iov.iov_len)
+
+    // perform a reading
+    let res = mongoc_gridfs_file_readv(_fp, &iov, 1, iov.iov_len, timeout)
+
+    // check the reading outcome
+    if res < 0 {
+      free(iov.iov_base)
+      throw MongoClientError.initError("gridfs.file.read(\(amount)) = \(res) in \(timeout) ms")
+    }//end if
+
+    // turn the c type buffer to an array
+    let p = unsafeBitCast(iov.iov_base, to: UnsafePointer<UInt8>.self)
+    let buf = UnsafeBufferPointer<UInt8>(start: p, count: res)
+    let a = Array(buf)
+    free(iov.iov_base)
+    return a
+  }//end read
+
+  /// partially write some bytes to the remote file
+  /// - parameters:
+  ///   - bytes: an array of bytes to write
+  ///   - timeout: milliseconds to wait. default 0 to return immediately
+  /// - returns:
+  /// bytes totally written
+  /// - throws:
+  /// MongoClientError if failed to read
+  public func partiallyWrite(bytes:[UInt8], timeout:UInt32 = 0) throws -> Int {
+    // prepare a buffer to write
+    let pointer = UnsafeBufferPointer<UInt8>(start: bytes, count: bytes.count)
+    var iov = mongoc_iovec_t()
+    iov.iov_len = Int(bytes.count)
+    iov.iov_base = malloc(iov.iov_len)
+    memcpy(iov.iov_base, pointer.baseAddress, 8)
+    
+    // perform writing
+    let res = mongoc_gridfs_file_writev(_fp, &iov, 1, timeout)
+
+    // check the writing outcome
+    if res < 0 {
+      throw MongoClientError.initError("gridfs.file.write(\(bytes.count)) = \(res) in \(timeout) ms")
+    }//end if
+    return res
+  }//end read
+
   /// remove the file from server
   /// - throws:
   /// MongoClientError
