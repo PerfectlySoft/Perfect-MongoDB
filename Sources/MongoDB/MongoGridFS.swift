@@ -19,6 +19,160 @@
 
 import libmongoc
 
+
+public class GridFile {
+  private var _fp: OpaquePointer?
+  var error = bson_error_t()
+
+  public init(_ from: OpaquePointer?) throws {
+    guard from != nil else {
+      throw MongoClientError.initError("gridfs.file.init(nil)")
+    }//end guard
+    _fp = from
+  }//end init
+
+  public init(gridFS:OpaquePointer?, from: String ) throws {
+    guard let file = mongoc_gridfs_find_one_by_filename(gridFS, from, &error) else{
+      throw MongoClientError.initError("gridfs.file.init(\(from)) = \(error.code)")
+    }//end file
+    _fp = file
+  }//end init
+
+  public func close() {
+    mongoc_gridfs_file_destroy(_fp);
+  }//end close
+
+  private func _STR(_ u: UnsafePointer<bson_value_t>) -> String{
+    var v = u.pointee
+    if v.value_type == BSON_TYPE_UTF8 {
+      let p = unsafeBitCast(v.value.v_utf8, to: UnsafePointer<CChar>.self)
+      return String.init(cString: p)
+    }else {
+      return ""
+    }//end if
+  }//end str
+
+  private func _STR(_ u: UnsafePointer<Int8>) -> String{
+    let p = unsafeBitCast(u, to: UnsafePointer<CChar>.self)
+    return String.init(cString: p)
+  }//end str
+
+  public var id: String {
+    get { return _STR(mongoc_gridfs_file_get_id(_fp)) }
+  }//end id
+
+  public var md5: String {
+    get {
+      let m = mongoc_gridfs_file_get_md5(_fp)
+      if m == nil {
+        return ""
+      }
+      return _STR(m!)
+    }//end get
+    /// LINK BUG TO FIX: unresolved symbol mongoc_gridfs_file_set_md5
+    /*
+    set {
+      mongoc_gridfs_file_set_md5(_fp, md5)
+    }//end set
+    */
+  }//end md5
+
+  public var aliases: BSON {
+    get {
+      let a = BSON()
+      a.doc = unsafeBitCast(mongoc_gridfs_file_get_aliases(_fp), to:UnsafeMutablePointer<bson_t>.self)
+      return a
+    }//end get
+  }//end aliases
+
+  public var contentType: String {
+    get {
+      guard let t = mongoc_gridfs_file_get_content_type(_fp) else {
+        return ""
+      }
+      return _STR(t)
+    }
+  }//end contentType
+
+  public var length: Int64 {
+    get { return mongoc_gridfs_file_get_length(_fp) }
+  }//end length
+
+  public var uploadDate: Int64 {
+    get { return mongoc_gridfs_file_get_upload_date(_fp) }
+  }//end uploadDate
+
+  public var fileName: String {
+    get { return _STR(mongoc_gridfs_file_get_filename(_fp)) }
+  }//end fileName
+
+  public var metaData: BSON {
+    get {
+      let m = BSON()
+      m.doc = unsafeBitCast(mongoc_gridfs_file_get_metadata(_fp), to:UnsafeMutablePointer<bson_t>.self)
+      return m
+    }//end get
+  }//end meta
+
+  private func _download(_ to: UnsafeRawPointer) -> UnsafeRawPointer {
+    let pName = unsafeBitCast(to, to: UnsafePointer<Int8>.self)
+    let fp = fopen(pName, "wb")
+    let stream = mongoc_stream_gridfs_new(_fp)
+    var r = 0
+    var write_ok = true
+    var iov = mongoc_iovec_t()
+    iov.iov_len = 4096
+    iov.iov_base = malloc(iov.iov_len)
+    var total = 0
+    repeat {
+      r = mongoc_stream_readv (stream, &iov, 1, -1, 0)
+      if (r > 0) {
+        let w = fwrite(iov.iov_base, 1, r, fp)
+        write_ok = r == w
+        total += w
+      }//end if
+    }while(r != 0 && write_ok)
+    free(iov.iov_base)
+    mongoc_stream_destroy(stream)
+    fclose(fp)
+    return to
+  }//
+
+  public func download(to: String) throws -> Int {
+    let fp = fopen(to, "wb")
+    let stream = mongoc_stream_gridfs_new(_fp)
+    var r = 0
+    var write_ok = true
+    var iov = mongoc_iovec_t()
+    iov.iov_len = 4096
+    iov.iov_base = malloc(iov.iov_len)
+    var total = 0
+    repeat {
+      r = mongoc_stream_readv (stream, &iov, 1, -1, 0)
+      if (r > 0) {
+        let w = fwrite(iov.iov_base, 1, r, fp)
+        write_ok = r == w
+        total += w
+      }//end if
+    }while(r != 0 && write_ok)
+    free(iov.iov_base)
+    mongoc_stream_destroy(stream)
+    fclose(fp)
+
+    if write_ok {
+      return total
+    }//end if
+    throw MongoClientError.initError("gridfs.download.write(\(to))")
+  }//end download
+
+  public func delete() throws {
+    if mongoc_gridfs_file_remove(_fp, &error) {
+      return
+    }//end if
+    throw MongoClientError.initError("gridfs.delete() = \(error.code)")
+  }
+}//end File
+
 public class GridFS {
 
   private var handle: OpaquePointer?
@@ -40,7 +194,7 @@ public class GridFS {
   }//end close
 
   @discardableResult
-  public func list() throws -> [String]{
+  public func list() throws -> [GridFile]{
     var query = bson_t()
     var child = bson_t()
     bson_init(&query)
@@ -55,19 +209,26 @@ public class GridFS {
     }//end guard
     bson_destroy(&query)
     var file: OpaquePointer?
-    var ret:[String] = []
+    var ret:[GridFile] = []
+    var err: MongoClientError? = nil
     repeat {
       file = mongoc_gridfs_file_list_next(list)
       if (file == nil) {
         break
       }//end if
-      let cstr = mongoc_gridfs_file_get_filename(file)
-      let name = String.init(cString: unsafeBitCast(cstr, to: UnsafePointer<CChar>.self))
-      ret.append(name)
-      mongoc_gridfs_file_destroy(file)
+      do {
+        let f = try GridFile(file)
+        ret.append(f)
+      }catch (let e){
+        file = nil
+        err = MongoClientError.initError("gridfs.list() = \(e)")
+      }//end do
     }while(file != nil)
     if (ret.count > 0) {
       mongoc_gridfs_file_list_destroy(list)
+    }//end if
+    if err != nil {
+      throw err!
     }//end if
     return ret
   }//end list
@@ -85,47 +246,9 @@ public class GridFS {
     mongoc_gridfs_file_destroy(file)
   }//end upload
 
-  @discardableResult
-  public func download(from: String, to: String) throws -> Int {
-    guard let file = mongoc_gridfs_find_one_by_filename(handle, from, &error) else{
-      throw MongoClientError.initError("gridfs.download.find(\(from)) = \(error.code)")
-    }//end file
-    let fp = fopen(to, "wb")
-    let stream = mongoc_stream_gridfs_new(file)
-    var r = 0
-    var write_ok = true
-    var iov = mongoc_iovec_t()
-    iov.iov_len = 4096
-    iov.iov_base = malloc(iov.iov_len)
-    var total = 0
-    repeat {
-      r = mongoc_stream_readv (stream, &iov, 1, -1, 0)
-      if (r > 0) {
-        let w = fwrite(iov.iov_base, 1, r, fp)
-        write_ok = r == w
-        total += w
-      }//end if
-    }while(r != 0 && write_ok)
-    free(iov.iov_base)
-    mongoc_stream_destroy(stream)
-    mongoc_gridfs_file_destroy(file)
-    fclose(fp)
-
-    if write_ok {
-      return total
-    }//end if
-    throw MongoClientError.initError("gridfs.download.write(\(to))")
-  }//end download
-
-  public func delete(remoteFile: String) throws {
-    guard let file = mongoc_gridfs_find_one_by_filename(handle, remoteFile, &error) else{
-      throw MongoClientError.initError("gridfs.delete.find(\(remoteFile)) = \(error.code)")
-    }//end file
-    if mongoc_gridfs_file_remove(file, &error) {
-      return
-    }//end if
-    throw MongoClientError.initError("gridfs.deleted(\(remoteFile))")
-  }//end delete
+  public func search(name: String) throws -> GridFile {
+    return try GridFile(gridFS: handle, from: name)
+  }//end search
 }//end class
 
 extension MongoClient {

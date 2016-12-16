@@ -644,9 +644,25 @@ class MongoDBTests: XCTestCase {
       XCTFail("gridfs list: \(err)")
     }
 
+
+    var f: GridFile? = nil
+    do {
+      f = try gridfs.search(name: remote)
+      print(f?.id ?? "")
+      print(f?.fileName ?? "")
+      print(f?.contentType ?? "")
+      print(f?.md5 ?? "")
+      print(f?.metaData ?? "")
+      print(f?.uploadDate ?? 0)
+      XCTAssertEqual(f?.fileName, remote)
+      XCTAssertEqual(f?.length, Int64(sz))
+    }catch(let err){
+      XCTFail("gridfs download: \(err)")
+    }//end f
+
     do {
       let downloaded = "/tmp/gridfsdownload.bin"
-      let a = try gridfs.download(from: remote, to: downloaded)
+      let a = try f?.download(to: downloaded)
       unlink(downloaded)
       XCTAssertEqual(a, sz)
     }catch(let err){
@@ -654,10 +670,11 @@ class MongoDBTests: XCTestCase {
     }
 
     do {
-      try gridfs.delete(remoteFile: remote)
+      try f?.delete()
     }catch(let err){
       XCTFail("gridfs delete: \(err)")
     }
+    f?.close()
   }
 
 }
