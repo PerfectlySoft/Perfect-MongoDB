@@ -384,6 +384,7 @@ public class GridFile {
     // perform writing
     let res = mongoc_gridfs_file_writev(_fp, &iov, 1, timeout)
 
+    free(iov.iov_base)
     // check the writing outcome
     if res < 0 {
       throw MongoClientError.initError("gridfs.file.write(\(bytes.count)) = \(res) in \(timeout) ms")
