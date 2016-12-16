@@ -683,6 +683,7 @@ class MongoDBTests: XCTestCase {
       XCTAssertEqual(bytes?.count, mb)
       let sz = try f?.partiallyWrite(bytes: bytes!)
       XCTAssertEqual(sz, mb)
+      try f?.seek(cursor: 0)
     }catch(let err){
       XCTFail("gridfs search: \(err)")
     }//end f
@@ -692,7 +693,7 @@ class MongoDBTests: XCTestCase {
     let exp2 = self.expectation(description: "async downloading")
     f?.download(to: downloaded) { total in
       unlink(downloaded)
-      XCTAssertGreaterThanOrEqual(total, 0)
+      XCTAssertEqual(total, sz)
       exp2.fulfill()
     }//end download
 
