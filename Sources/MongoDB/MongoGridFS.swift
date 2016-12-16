@@ -19,88 +19,158 @@
 
 import libmongoc
 
+/// private param structure for non-blocking downloads, *NOT FOR API END USERS*
 struct _DOWNPARAM{
+  /// mongoc file handler
   var file: OpaquePointer
+  /// download destination filename in local drive
   var to: String
-  var done: (Int)->()
+  /// callback once downloaded with reporting total bytes number as int
+  var completion: (Int)->()
 }//end DOWNPARAM
 
+/// private param structure for non-blocking uploads, *NOT FOR API END USERS*
 struct _UPPARAM{
+  /// mongoc gridfs handler
   var fs: OpaquePointer
+  /// local file name
   var from: String
+  /// remote file name
   var to: String
-  var done: (Bool)->()
+  /// callback once upload with reporting whether succeed as bool
+  var completion: (Bool)->()
 }//end UPPARAM
 
+/// private thread function for downloading, *NOT FOR API END USERS*
+/// - paramters:
+///   - pointerParam: pointer of _DOWNPARAM
+/// - returns:
+/// nil
 func _EXEC_DOWNLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
+  // convert raw pointer to accessible pointer
   let param = unsafeBitCast(pointerParam, to: UnsafeMutablePointer<_DOWNPARAM>.self)
+  // get the param structure
   let p = param.pointee
-  GridFile._download(file: p.file, to:p.to , done: p.done)
+  // call the real download
+  GridFile._download(file: p.file, to:p.to , completion: p.completion)
+  // release the param pointer
   param.deallocate(capacity: 1)
   return nil
 }//end _EXEC_DOWNLOAD
 
+/// private thread function for uploading, *NOT FOR API END USERS*
+/// - paramters:
+///   - pointerParam: pointer of _UPPARAM
+/// - returns:
+/// nil
 func _EXEC_UPLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
+  // convert raw pointer to accessible pointer
   let param = unsafeBitCast(pointerParam, to: UnsafeMutablePointer<_UPPARAM>.self)
+  // get the param structure
   let p = param.pointee
-  GridFS._upload(fsHandle: p.fs, from: p.from, to: p.to, done: p.done)
+  // call the real upload
+  GridFS._upload(fsHandle: p.fs, from: p.from, to: p.to, completion: p.completion)
+  // release the param pointer
   param.deallocate(capacity: 1)
   return nil
-}//end _EXEC_DOWNLOAD
+}//end _EXEC_UPLOAD
 
+/// private bson_value_t converter macro *NOT FOR API END USERS*
+/// - parameters:
+///   - u: pointer of bson_value_t
+/// - returns:
+/// string value of the input
 func _STR(_ u: UnsafePointer<bson_value_t>) -> String{
+  // get the value of bson_value_t
   var v = u.pointee
+  // check value type
   if v.value_type == BSON_TYPE_UTF8 {
+    // convert the value to a utf pointer
     let p = unsafeBitCast(v.value.v_utf8, to: UnsafePointer<CChar>.self)
+    // conver the pointer to a string
     return String.init(cString: p)
   }else {
+    // not a string, return empty
     return ""
   }//end if
 }//end str
 
+/// private string converter macro *NOT FOR API END USERS*
+/// - parameters:
+///   - u: pointer of a string
+/// returns:
+/// string value of the input
 func _STR(_ u: UnsafePointer<Int8>) -> String{
+  // convert the value to a utf pointer
   let p = unsafeBitCast(u, to: UnsafePointer<CChar>.self)
+  // conver the pointer to a string
   return String.init(cString: p)
 }//end str
 
-func _PTR(_ of: UnsafePointer<Int8>) -> UnsafePointer<Int8> {
-  return of
-}//end _PTR
+/// a quick dirty macro of get a pointer from a swift string *NOT FOR API END USERS*
+func _PTR(_ of: UnsafePointer<Int8>) -> UnsafePointer<Int8> { return of }
 
+/// File class of GridFS
+/// - Author:
+/// Rockford Wei
 public class GridFile {
+
+  /// inner pointer of gridfs file handle
   private var _fp: OpaquePointer?
+
+  /// error info for internal usage
   var error = bson_error_t()
 
+  /// constructor of GridFile class object
+  /// - parameters:
+  ///   - from: a mongoc_gridfs_file_t for handle the file, not nullable
+  /// - throws:
+  /// MongoClientError
   public init(_ from: OpaquePointer?) throws {
+    // validate the imported file handler
     guard from != nil else {
       throw MongoClientError.initError("gridfs.file.init(nil)")
     }//end guard
+    // store the file handler
     _fp = from
   }//end init
 
+  /// constructor of a GridFile class object
+  /// - parameters:
+  ///   - gridFS: mongo_gridfs_t for gridfs handle, not nullable
+  ///   - from: a mongoc_gridfs_file_t for handle the file, not nullable
+  /// - throws:
+  /// MongoClientError
   public init(gridFS:OpaquePointer?, from: String ) throws {
+    guard gridFS != nil else {
+      throw MongoClientError.initError("gridfs.file.init(fsHandler) = \(error.code)")
+    }//end file
     guard let file = mongoc_gridfs_find_one_by_filename(gridFS, from, &error) else{
       throw MongoClientError.initError("gridfs.file.init(\(from)) = \(error.code)")
     }//end file
     _fp = file
   }//end init
 
+  /// destructor of a GridFile class object
+  /// defer it as the most preferable practice
   public func close() {
     mongoc_gridfs_file_destroy(_fp);
   }//end close
 
-
-
+  /// id (oid) property of GridFile, readonly.
   public var id: String {
     get { return _STR(mongoc_gridfs_file_get_id(_fp)) }
   }//end id
 
+  /// md5 property of GridFile, readonly.
   public var md5: String {
     get {
+      // get the bson value of md5
       let m = mongoc_gridfs_file_get_md5(_fp)
       if m == nil {
         return ""
-      }
+      }//end if
+      // return the string value
       return _STR(m!)
     }//end get
     /// LINK BUG TO FIX: unresolved symbol mongoc_gridfs_file_set_md5
@@ -111,6 +181,7 @@ public class GridFile {
     */
   }//end md5
 
+  /// aliases property of GridFile, readonly.
   public var aliases: BSON {
     get {
       let a = BSON()
@@ -119,6 +190,7 @@ public class GridFile {
     }//end get
   }//end aliases
 
+  /// content type property of GridFile, readonly.
   public var contentType: String {
     get {
       guard let t = mongoc_gridfs_file_get_content_type(_fp) else {
@@ -128,18 +200,22 @@ public class GridFile {
     }
   }//end contentType
 
+  /// length (in bytes) property of GridFile, readonly.
   public var length: Int64 {
     get { return mongoc_gridfs_file_get_length(_fp) }
   }//end length
 
+  /// upload date property of GridFile, in unix epoch time format, readonly.
   public var uploadDate: Int64 {
     get { return mongoc_gridfs_file_get_upload_date(_fp) }
   }//end uploadDate
 
+  /// name of the grid file object, readonly
   public var fileName: String {
     get { return _STR(mongoc_gridfs_file_get_filename(_fp)) }
   }//end fileName
 
+  /// meta data of the grid file object, in bson format, readonly
   public var metaData: BSON {
     get {
       let m = BSON()
@@ -148,156 +224,283 @@ public class GridFile {
     }//end get
   }//end meta
 
-  static func _download(file: OpaquePointer?, to: String, done:@escaping (Int)->()){
+  /// internal download method, private function. *NOT FOR API END USERS*
+  /// - parameters:
+  ///   - file: grid file handler, not nullable
+  ///   - to: downloading destination file name on local drive
+  ///   - completion: callback once downloaded with bytes number as integer
+  static func _download(file: OpaquePointer?, to: String, completion:@escaping (Int)->()){
+    // open the local file to write in binary
     let fp = fopen(to, "wb")
+    // create a new file on gridfs
     let stream = mongoc_stream_gridfs_new(file)
+    // check result 
     var r = 0
+    // flow control
     var write_ok = true
+    // setup the read/write controller
     var iov = mongoc_iovec_t()
+    // set transfer buffer to 4k, as default in network traffic
     iov.iov_len = 4096
     iov.iov_base = malloc(iov.iov_len)
+    // bytes to go
     var total = 0
+    // loop until done
     repeat {
+      // read buffer from server
       r = mongoc_stream_readv (stream, &iov, 1, -1, 0)
       if (r > 0) {
+        // write to local destination
         let w = fwrite(iov.iov_base, 1, r, fp)
+        // check whether read / write maches
         write_ok = r == w
+        // caculate the total bytes
         total += w
       }//end if
+    // exit loop once done or fault
     }while(r != 0 && write_ok)
+    // release buffer
     free(iov.iov_base)
+    // close download stream
     mongoc_stream_destroy(stream)
+    // close local saving
     fclose(fp)
-    done(total)
+    // call the callback function
+    completion(total)
   }//end inner download
 
-
+  /// download a file directly. Not suggest because it will block the thread before completion
+  /// - parameters:
+  ///   - to: the destinated file name on local drive
   public func download(to: String) -> Int {
     var totalBytes = 0
+    // call the internal static download method
     GridFile._download(file:_fp, to: to) { totalBytes = $0 }
     return totalBytes
   }//end download
 
-  public func download(to: String, done:@escaping (Int)->()) {
-    let param = _DOWNPARAM(file:_fp!, to: to, done: done)
+  /// download a file and call the user customized callback function once completed.
+  /// - parameters:
+  ///   - to: download destination file name on local drive
+  ///   - completion: callback function once downloaded. Int is the number downloaded.
+  public func download(to: String, completion:@escaping (Int)->()) {
+    // prepare a parameter for download procedure
+    let param = _DOWNPARAM(file:_fp!, to: to, completion: completion)
+    // prepare a pointer to hold these parameters
     let pParam = UnsafeMutablePointer<_DOWNPARAM>.allocate(capacity: 1)
+    // memory copy, from the parameter to the pointer
     pParam.initialize(to: param)
+    // convert the paramter pointer to a thread param pointer
     let pRaw = unsafeBitCast(pParam, to: UnsafeMutableRawPointer.self)
+    // load the thread execution function
     let downloader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_DOWNLOAD
+    // prepare the thread handler
     var th = pthread_t.init(bitPattern: 0)
+    // call the thread
     let _ = pthread_create(&th, nil, downloader, pRaw)
   }//end download
 
+  /// remove the file from server
+  /// - throws:
+  /// MongoClientError
   public func delete() throws {
     if mongoc_gridfs_file_remove(_fp, &error) {
       return
     }//end if
     throw MongoClientError.initError("gridfs.delete() = \(error.code)")
-  }
+  }//end delete
 }//end File
 
+
+/// GridFS class for MongoDB
+/// - Author:
+/// Rockford Wei
 public class GridFS {
 
+  /// mongoc_gridfs_t for handle the api
   private var handle: OpaquePointer?
+
+  /// error structure for internal usage
   var error = bson_error_t()
 
-
-  public init(client: MongoClient, db: String, prefix: String? = nil) throws {
-    handle = mongoc_client_get_gridfs(client.ptr, db, prefix, &error)
+  /// constructor of gridfs
+  /// - parameters:
+  ///   - client: MongoClient
+  ///   - database: database name of gridfs
+  ///   - prefix: prefix of the file system
+  /// - throws:
+  ///	MongoClientError, if failed to get the expected handle
+  public init(client: MongoClient, database: String, prefix: String? = nil) throws {
+    /// get gridfs handle from a mongo client
+    handle = mongoc_client_get_gridfs(client.ptr, database, prefix, &error)
     guard handle != nil else {
       throw MongoClientError.initError("gridfs.init() = [\(error.code), \(error.domain)]")
     }//end guard
   }//end init
 
+  /// destuctor of gridfs, a defer is suggested to use this method.
   public func close() {
     mongoc_gridfs_destroy(handle)
   }//end close
 
+  /// list all files on the gridfs
+  /// - throws:
+  ///	MongoClientError if failed
+  /// - returns:
+  /// [GridFile]: array to hold a list of GridFile objects
   @discardableResult
   public func list() throws -> [GridFile]{
+    // query content
     var query = bson_t()
+    // context element for building the query
     var child = bson_t()
+    // start a new query
     bson_init(&query)
+    // declare to list all files in an alphabetic order
     bson_append_document_begin (&query, "$orderby", -1, &child);
     bson_append_int32 (&child, "filename", -1, 1);
     bson_append_document_end (&query, &child);
     bson_append_document_begin (&query, "$query", -1, &child);
     bson_append_document_end (&query, &child);
+
+    // perform actually query
     guard let list = mongoc_gridfs_find_with_opts(handle, &query, nil) else {
       bson_destroy(&query)
       throw MongoClientError.initError("gridfs.list()")
     }//end guard
+    // release the query resource
     bson_destroy(&query)
+
+    // iterate the query result
+    // handler of each file in the list
     var file: OpaquePointer?
+    // prepare an empty array to hold all files
     var ret:[GridFile] = []
+    // prepare an error holder
     var err: MongoClientError? = nil
+    // iterate the query result
     repeat {
+      // retrieve the next element from the query list
       file = mongoc_gridfs_file_list_next(list)
       if (file == nil) {
         break
       }//end if
+      // construct a grid file object from the mongoc_grid_file_t pointer
       do {
         let f = try GridFile(file)
+        // add the new file object to the array
         ret.append(f)
+        // notify the system to flush the garbage once discarded.
+        defer { f.close() }
       }catch (let e){
+        // if anything wrong, terminate the loop by setting the next element to a nil pointer
         file = nil
+        // and declare an error
         err = MongoClientError.initError("gridfs.list() = \(e)")
       }//end do
+    // loop until out of elements
     }while(file != nil)
-    if (ret.count > 0) {
-      mongoc_gridfs_file_list_destroy(list)
-    }//end if
+    // release the mongoc_gridfs_file_list
+    mongoc_gridfs_file_list_destroy(list)
+    // if there is an error, throw it out.
     if err != nil {
       throw err!
     }//end if
+    // if not, safely return
     return ret
   }//end list
 
-  static func _upload(fsHandle: OpaquePointer?, from: String, to: String, done:@escaping (Bool)->()) {
+  /// internal grid file uploader. *NOT FOR API END USERS*
+  /// - parameters:
+  ///   - fsHandler: MongoClient gridfs handler
+  ///   - from: local file name to upload
+  ///   - to: remote file name as expected
+  ///   - completion: callback once uploaded with a bool hint for success
+  static func _upload(fsHandle: OpaquePointer?, from: String, to: String, completion:@escaping (Bool)->()) {
+    // validate the gridfs_t
     guard fsHandle != nil else {
-      done(false)
+      completion(false)
       return
     }//end guard
+    // open a stream for reading
     guard let stream = mongoc_stream_file_new_for_path(from, O_RDONLY, 0) else {
-      done(false)
+      completion(false)
       return
     }//end guard
+    // set the reading option with local file name to upload
     var opt = mongoc_gridfs_file_opt_t()
     opt.filename = _PTR(to)
+    // create remote file handler
     guard let file = mongoc_gridfs_create_file_from_stream(fsHandle, stream, &opt) else {
-      done(false)
+      completion(false)
       return
     }//end guard
+    // upload the file
     mongoc_gridfs_file_save(file)
+    // release resources
     mongoc_gridfs_file_destroy(file)
-    done(true)
+    // call the callback once uploaded
+    completion(true)
   }//end _upload
 
+  /// upload a file from local drive to server directly. *NOT SUGGESTED* because it will block the thread.
+  /// - parameters:
+  ///   - from: local file name to upload
+  ///   - to: destinated file name on server
+  /// - returns:
+  /// true for a successful upload
   public func upload(from: String, to: String) -> Bool {
     var success = false
+    // call the static internal upload method
     GridFS._upload(fsHandle: handle, from: from, to: to) { success = $0 }
     return success
   }//end upload
 
-  public func upload(from: String, to: String, done:@escaping (Bool)->()) {
-    let param = _UPPARAM(fs: handle!, from: from, to: to, done: done)
+  /// upload a file in a non-blocking fashion.
+  /// - parameters:
+  ///   - from: local file name to upload
+  ///   - to: destinated file name on server
+  ///   - completion: callback for upload with indicating whether success or not
+  public func upload(from: String, to: String, completion:@escaping (Bool)->()) {
+    // setup a structure to pass the parameters for internal static calling
+    let param = _UPPARAM(fs: handle!, from: from, to: to, completion: completion)
+    // prepare a pointer to hold these parameters
     let pParam = UnsafeMutablePointer<_UPPARAM>.allocate(capacity: 1)
+    // memory copy from the structure to the pointer
     pParam.initialize(to: param)
+    // cast the structure pointer to a thread parameter pointer
     let pRaw = unsafeBitCast(pParam, to: UnsafeMutableRawPointer.self)
+    // prepare the thread routine
     let uploader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_UPLOAD
+    // prepare the thread handler
     var th = pthread_t.init(bitPattern: 0)
+    // run the thread
     let _ = pthread_create(&th, nil, uploader, pRaw)
-  }//end download
+  }//end upload
 
+  /// search for a file on the gridfs
+  /// - parameters:
+  ///   - name: name of file to find
+  /// returns:
+  /// a grid file object if found
+  /// throws:
+  /// MongoClientError if failed or not found
   public func search(name: String) throws -> GridFile {
     return try GridFile(gridFS: handle, from: name)
   }//end search
 }//end class
 
 extension MongoClient {
-  public func gridFS(db: String, prefix: String? = nil) throws -> GridFS {
-    return try GridFS(client: self, db: db, prefix: prefix)
+  /// an express way of calling gridfs. Please note to defer a close() immediately.
+  /// parameters:
+  /// - database: database name of the gridfs
+  /// - prefix: name of starting with of the gridfs, nullable
+  /// returns:
+  /// - gridfs handle if success
+  /// throws:
+  /// - MongoClientError if failed to open such a handle
+  public func gridFS(database: String, prefix: String? = nil) throws -> GridFS {
+    return try GridFS(client: self, database: database, prefix: prefix)
   }//end gridFS
 }//end MongoClient
-
 

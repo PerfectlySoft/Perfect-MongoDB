@@ -610,7 +610,7 @@ class MongoDBTests: XCTestCase {
     let client = try! MongoClient(uri: "mongodb://localhost")
     var gridfs: GridFS
     do {
-      gridfs = try client.gridFS(db: "test")
+      gridfs = try client.gridFS(database: "test")
     }catch(let err) {
       XCTFail("gridfs open: \(err)")
       return
@@ -619,6 +619,14 @@ class MongoDBTests: XCTestCase {
     defer {
       gridfs.close()
     }//end defer
+
+    do {
+      let a = try gridfs.list()
+      print(a)
+      XCTAssertGreaterThanOrEqual(a.count, 0)
+    }catch (let err) {
+      XCTFail("gridfs list: \(err)")
+    }
 
     let now = String(format:"%2X", time(nil))
     let local = "/tmp/gridfsTest\(now).dat"
