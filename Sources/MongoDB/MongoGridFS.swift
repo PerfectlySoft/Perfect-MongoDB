@@ -33,6 +33,25 @@ func _EXEC_DOWNLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawP
   return nil
 }//end _EXEC_DOWNLOAD
 
+func _STR(_ u: UnsafePointer<bson_value_t>) -> String{
+  var v = u.pointee
+  if v.value_type == BSON_TYPE_UTF8 {
+    let p = unsafeBitCast(v.value.v_utf8, to: UnsafePointer<CChar>.self)
+    return String.init(cString: p)
+  }else {
+    return ""
+  }//end if
+}//end str
+
+func _STR(_ u: UnsafePointer<Int8>) -> String{
+  let p = unsafeBitCast(u, to: UnsafePointer<CChar>.self)
+  return String.init(cString: p)
+}//end str
+
+func _PTR(_ of: UnsafePointer<Int8>) -> UnsafePointer<Int8> {
+  return of
+}//end _PTR
+
 public class GridFile {
   private var _fp: OpaquePointer?
   var error = bson_error_t()
@@ -55,20 +74,7 @@ public class GridFile {
     mongoc_gridfs_file_destroy(_fp);
   }//end close
 
-  private func _STR(_ u: UnsafePointer<bson_value_t>) -> String{
-    var v = u.pointee
-    if v.value_type == BSON_TYPE_UTF8 {
-      let p = unsafeBitCast(v.value.v_utf8, to: UnsafePointer<CChar>.self)
-      return String.init(cString: p)
-    }else {
-      return ""
-    }//end if
-  }//end str
 
-  private func _STR(_ u: UnsafePointer<Int8>) -> String{
-    let p = unsafeBitCast(u, to: UnsafePointer<CChar>.self)
-    return String.init(cString: p)
-  }//end str
 
   public var id: String {
     get { return _STR(mongoc_gridfs_file_get_id(_fp)) }
@@ -180,9 +186,6 @@ public class GridFS {
   private var handle: OpaquePointer?
   var error = bson_error_t()
 
-  private func _PTR(_ of: UnsafePointer<Int8>) -> UnsafePointer<Int8> {
-    return of
-  }//end _PTR
 
   public init(client: MongoClient, db: String, prefix: String? = nil) throws {
     handle = mongoc_client_get_gridfs(client.ptr, db, prefix, &error)
