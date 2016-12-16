@@ -622,7 +622,7 @@ class MongoDBTests: XCTestCase {
 
     let now = String(format:"%2X", time(nil))
     let local = "/tmp/gridfsTest\(now).dat"
-    let sz = 31457280 // 30MB
+    let sz = 134217728 // 128MB
     let buffer = malloc(sz)
     memset(buffer, Int32(time(nil)), sz)
     let fd = fopen(local, "wb")
@@ -630,12 +630,22 @@ class MongoDBTests: XCTestCase {
     fclose(fd)
     free(buffer)
     let remote = "uploadTest\(now).dat"
-    do {
-      try gridfs.upload(from: local, to: remote)
-    }catch (let err) {
-      XCTFail("gridfs upload: \(err)")
-    }
-    unlink(local)
+
+
+    let exp1 = self.expectation(description: "async uploading")
+    gridfs.upload(from: local, to: remote) { success in
+      unlink(local)
+      XCTAssertTrue(success)
+      exp1.fulfill()
+    }//end upload
+
+    self.waitForExpectations(timeout: 10) {
+      error in
+      if let error = error {
+        XCTFail("gridfs async upload: \(error.localizedDescription)")
+      }//end if
+    }//end wait
+    
     do {
       let a = try gridfs.list()
       print(a)
@@ -661,15 +671,12 @@ class MongoDBTests: XCTestCase {
     }//end f
 
     let downloaded = "/tmp/gridfsdownload.bin"
-    let a = f?.download(to: downloaded)
-    unlink(downloaded)
-    XCTAssertEqual(a, sz)
 
-    let expectation = self.expectation(description: "async downloading")
+    let exp2 = self.expectation(description: "async downloading")
     f?.download(to: downloaded) { total in
       unlink(downloaded)
-      XCTAssertEqual(a, sz)
-      expectation.fulfill()
+      XCTAssertEqual(total, sz)
+      exp2.fulfill()
     }//end download
 
     self.waitForExpectations(timeout: 10) {

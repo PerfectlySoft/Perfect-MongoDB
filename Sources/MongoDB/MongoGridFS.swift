@@ -25,10 +25,25 @@ struct _DOWNPARAM{
   var done: (Int)->()
 }//end DOWNPARAM
 
+struct _UPPARAM{
+  var fs: OpaquePointer
+  var from: String
+  var to: String
+  var done: (Bool)->()
+}//end UPPARAM
+
 func _EXEC_DOWNLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
   let param = unsafeBitCast(pointerParam, to: UnsafeMutablePointer<_DOWNPARAM>.self)
   let p = param.pointee
   GridFile._download(file: p.file, to:p.to , done: p.done)
+  param.deallocate(capacity: 1)
+  return nil
+}//end _EXEC_DOWNLOAD
+
+func _EXEC_UPLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
+  let param = unsafeBitCast(pointerParam, to: UnsafeMutablePointer<_UPPARAM>.self)
+  let p = param.pointee
+  GridFS._upload(fsHandle: p.fs, from: p.from, to: p.to, done: p.done)
   param.deallocate(capacity: 1)
   return nil
 }//end _EXEC_DOWNLOAD
@@ -238,18 +253,41 @@ public class GridFS {
     return ret
   }//end list
 
-  public func upload(from: String, to: String) throws {
+  static func _upload(fsHandle: OpaquePointer?, from: String, to: String, done:@escaping (Bool)->()) {
+    guard fsHandle != nil else {
+      done(false)
+      return
+    }//end guard
     guard let stream = mongoc_stream_file_new_for_path(from, O_RDONLY, 0) else {
-      throw MongoClientError.initError("gridfs.upload.from(\(from))")
+      done(false)
+      return
     }//end guard
     var opt = mongoc_gridfs_file_opt_t()
     opt.filename = _PTR(to)
-    guard let file = mongoc_gridfs_create_file_from_stream(handle, stream, &opt) else {
-      throw MongoClientError.initError("gridfs.upload.open(\(to)")
+    guard let file = mongoc_gridfs_create_file_from_stream(fsHandle, stream, &opt) else {
+      done(false)
+      return
     }//end guard
     mongoc_gridfs_file_save(file)
     mongoc_gridfs_file_destroy(file)
+    done(true)
+  }//end _upload
+
+  public func upload(from: String, to: String) -> Bool {
+    var success = false
+    GridFS._upload(fsHandle: handle, from: from, to: to) { success = $0 }
+    return success
   }//end upload
+
+  public func upload(from: String, to: String, done:@escaping (Bool)->()) {
+    let param = _UPPARAM(fs: handle!, from: from, to: to, done: done)
+    let pParam = UnsafeMutablePointer<_UPPARAM>.allocate(capacity: 1)
+    pParam.initialize(to: param)
+    let pRaw = unsafeBitCast(pParam, to: UnsafeMutableRawPointer.self)
+    let uploader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_UPLOAD
+    var th = pthread_t.init(bitPattern: 0)
+    let _ = pthread_create(&th, nil, uploader, pRaw)
+  }//end download
 
   public func search(name: String) throws -> GridFile {
     return try GridFile(gridFS: handle, from: name)
