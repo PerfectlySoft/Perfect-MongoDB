@@ -148,6 +148,8 @@ class MongoDBTests: XCTestCase {
 				if currentKey == "nullKey" {
 					XCTAssert(nil == iterator.currentValue)
 				} else if currentKey == "arrayKey" {
+					XCTAssert(.array == iterator.currentType)
+					XCTAssert(nil != iterator.currentValue)
 					guard var subIt = iterator.currentChildIterator else {
 						return XCTAssert(false)
 					}

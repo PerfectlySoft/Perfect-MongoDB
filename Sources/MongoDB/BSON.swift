@@ -586,7 +586,7 @@ extension BSON {
 			}
 			self.type = type
 			switch type {
-			case .eod, .array/*arrays use different api*/,
+			case .eod,
 					.undefined, .null, .dbpointer,
 					.maxKey, .minKey:
 				return nil
@@ -601,6 +601,12 @@ extension BSON {
 				bytes = nil
 				string = ptr2Str(utf8.str, length: Int(utf8.len))
 				double = Double(string ?? "0.0") ?? 0.0
+				oid = nil
+				doc = nil
+			case .array:
+				double = 0.0
+				string = nil
+				bytes = nil
 				oid = nil
 				doc = nil
 			case .document:
