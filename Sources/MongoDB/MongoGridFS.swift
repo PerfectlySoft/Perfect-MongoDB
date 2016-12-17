@@ -184,9 +184,8 @@ public class GridFile {
   /// aliases property of GridFile, readonly.
   public var aliases: BSON {
     get {
-      let a = BSON()
-      a.doc = unsafeBitCast(mongoc_gridfs_file_get_aliases(_fp), to:UnsafeMutablePointer<bson_t>.self)
-      return a
+      let a = unsafeBitCast(mongoc_gridfs_file_get_aliases(_fp), to:UnsafeMutablePointer<bson_t>.self)
+      return BSON(rawBson: a)
     }//end get
   }//end aliases
 
@@ -218,9 +217,8 @@ public class GridFile {
   /// meta data of the grid file object, in bson format, readonly
   public var metaData: BSON {
     get {
-      let m = BSON()
-      m.doc = unsafeBitCast(mongoc_gridfs_file_get_metadata(_fp), to:UnsafeMutablePointer<bson_t>.self)
-      return m
+      let m = unsafeBitCast(mongoc_gridfs_file_get_metadata(_fp), to:UnsafeMutablePointer<bson_t>.self)
+      return BSON(rawBson: m)
     }//end get
   }//end meta
 
