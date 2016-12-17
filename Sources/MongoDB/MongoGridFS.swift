@@ -584,13 +584,23 @@ public class GridFS {
   /// search for a file on the gridfs
   /// - parameters:
   ///   - name: name of file to find
-  /// returns:
+  /// - returns:
   /// a grid file object if found
-  /// throws:
+  /// - throws:
   /// MongoClientError if failed or not found
   public func search(name: String) throws -> GridFile {
     return try GridFile(gridFS: handle, from: name)
   }//end search
+
+  /// Requests that an entire GridFS be dropped, including all files associated with
+  /// - throws:
+  /// MongoClientError if failed
+  public func drop() throws {
+    if mongoc_gridfs_drop(handle, &error) {
+      return
+    }//end if
+    throw MongoClientError.initError("gridfs.drop() = \(error.code)")
+  }//end drop
 }//end class
 
 extension MongoClient {
