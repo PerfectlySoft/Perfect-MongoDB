@@ -234,8 +234,6 @@ public class GridFile {
     let stream = mongoc_stream_gridfs_new(file)
     // check result 
     var r = 0
-    // flow control
-    var write_ok = true
     // setup the read/write controller
     var iov = mongoc_iovec_t()
     // set transfer buffer to 4k, as default in network traffic
@@ -250,13 +248,11 @@ public class GridFile {
       if (r > 0) {
         // write to local destination
         let w = fwrite(iov.iov_base, 1, r, fp)
-        // check whether read / write maches
-        write_ok = r == w
         // caculate the total bytes
         total += w
       }//end if
     // exit loop once done or fault
-    }while(r != 0 && write_ok)
+    }while(r != 0)
     // release buffer
     free(iov.iov_base)
     // close download stream
