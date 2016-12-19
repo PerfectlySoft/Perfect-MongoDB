@@ -632,7 +632,11 @@ class MongoDBTests: XCTestCase {
     let local = "/tmp/gridfsTest\(now).dat"
     let sz = 134217728 // 128MB
     let buffer = malloc(sz)
-    memset(buffer, Int32(time(nil)), sz)
+    #if os(Linux)
+      memset(buffer!, Int32(time(nil)), sz)
+    #else
+      memset(buffer, Int32(time(nil)), sz)
+    #endif
     let fd = fopen(local, "wb")
     fwrite(buffer, sz, 1, fd)
     fclose(fd)

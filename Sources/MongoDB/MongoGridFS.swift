@@ -41,12 +41,19 @@ struct _UPPARAM{
   var completion: (Bool)->()
 }//end UPPARAM
 
+#if os(Linux)
+  typealias THREADPARAM = UnsafeMutableRawPointer?
+#else
+  typealias THREADPARAM = UnsafeMutableRawPointer
+#endif
+typealias THREADPROC = @convention(c) (THREADPARAM) -> UnsafeMutableRawPointer?
+
 /// private thread function for downloading, *NOT FOR API END USERS*
 /// - paramters:
 ///   - pointerParam: pointer of _DOWNPARAM
 /// - returns:
 /// nil
-func _EXEC_DOWNLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
+func _EXEC_DOWNLOAD(_ pointerParam:THREADPARAM) -> UnsafeMutableRawPointer? {
   // convert raw pointer to accessible pointer
   let param = unsafeBitCast(pointerParam, to: UnsafeMutablePointer<_DOWNPARAM>.self)
   // get the param structure
@@ -63,7 +70,7 @@ func _EXEC_DOWNLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawP
 ///   - pointerParam: pointer of _UPPARAM
 /// - returns:
 /// nil
-func _EXEC_UPLOAD(_ pointerParam:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
+func _EXEC_UPLOAD(_ pointerParam:THREADPARAM) -> UnsafeMutableRawPointer? {
   // convert raw pointer to accessible pointer
   let param = unsafeBitCast(pointerParam, to: UnsafeMutablePointer<_UPPARAM>.self)
   // get the param structure
@@ -296,11 +303,7 @@ public class GridFile {
     // convert the paramter pointer to a thread param pointer
     let pRaw = unsafeBitCast(pParam, to: UnsafeMutableRawPointer.self)
     // load the thread execution function
-    #if os(Linux)
-      let downloader: @convention(c) (UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? = _EXEC_DOWNLOAD
-    #else
-      let downloader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_DOWNLOAD
-    #endif
+    let downloader: THREADPROC = _EXEC_DOWNLOAD
     // prepare the thread handler
     var th = pthread_t.init(bitPattern: 0)
     // call the thread
@@ -390,8 +393,12 @@ public class GridFile {
     var iov = mongoc_iovec_t()
     iov.iov_len = Int(bytes.count)
     iov.iov_base = malloc(iov.iov_len)
-    memcpy(iov.iov_base, pointer.baseAddress, 8)
-    
+    #if os(Linux)
+      memcpy(iov.iov_base, pointer.baseAddress!, 8)
+    #else
+      memcpy(iov.iov_base, pointer.baseAddress, 8)
+    #endif
+
     // perform writing
     let res = mongoc_gridfs_file_writev(_fp, &iov, 1, timeout)
 
@@ -481,9 +488,9 @@ public class GridFS {
     // perform actually query
     var plist: OpaquePointer?
     if filter == nil {
-      plist = mongoc_gridfs_find_with_opts(handle, &query, nil)
+      plist = mongoc_gridfs_find(handle, &query)
     }else {
-      plist = mongoc_gridfs_find_with_opts(handle, filter?.doc, nil)
+      plist = mongoc_gridfs_find(handle, filter?.doc)
     }//end if
 
     // release the query resource
@@ -594,11 +601,7 @@ public class GridFS {
     // cast the structure pointer to a thread parameter pointer
     let pRaw = unsafeBitCast(pParam, to: UnsafeMutableRawPointer.self)
     // prepare the thread routine
-    #if os(Linux)
-      let uploader: @convention(c) (UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? = _EXEC_UPLOAD
-    #else
-      let uploader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_UPLOAD
-    #endif
+    let uploader: THREADPROC = _EXEC_UPLOAD
     // prepare the thread handler
     var th = pthread_t.init(bitPattern: 0)
     // run the thread
