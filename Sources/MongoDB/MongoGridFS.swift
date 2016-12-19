@@ -303,9 +303,13 @@ public class GridFile {
     let _ = pthread_create(&th, nil, downloader, pRaw)
   }//end download
 
+  /// Offset measurement reference for seek() method
   public enum Whence {
+    // offset from starting point of file
     case begin
+    // offset from current file cursor
     case current
+    // offset from the last byte of the file
     case end
   }//end whence
 
