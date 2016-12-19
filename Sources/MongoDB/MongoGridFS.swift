@@ -631,6 +631,17 @@ public class GridFS {
     return try GridFile(gridFS: handle, from: name)
   }//end search
 
+  /// delete a file from the server
+  /// - parameters:
+  ///   - name: name of the file to delete
+  /// - throws:
+  /// MongoClientError if failed or not found
+  public func delete(name: String) throws {
+    // find the file first
+    let file = try search(name: name)
+    try file.delete()
+  }//end delete
+
   /// Requests that an entire GridFS be dropped, including all files associated with
   /// - throws:
   /// MongoClientError if failed
