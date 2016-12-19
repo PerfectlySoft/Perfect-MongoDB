@@ -135,6 +135,11 @@ public class GridFile {
     _fp = from
   }//end init
 
+  /// deconstructor of GridFile class object
+  deinit {
+    close()
+  }//end deinit
+
   /// constructor of a GridFile class object
   /// - parameters:
   ///   - gridFS: mongo_gridfs_t for gridfs handle, not nullable
@@ -154,7 +159,11 @@ public class GridFile {
   /// destructor of a GridFile class object
   /// defer it as the most preferable practice
   public func close() {
-    mongoc_gridfs_file_destroy(_fp);
+    if _fp == nil {
+      return
+    }//end if
+    mongoc_gridfs_file_destroy(_fp)
+    _fp = nil
   }//end close
 
   /// id (oid) property of GridFile, readonly.
@@ -424,9 +433,18 @@ public class GridFS {
     }//end guard
   }//end init
 
+  /// destructor of gridfs
+  deinit {
+    close()
+  }//end deinit
+
   /// destuctor of gridfs, a defer is suggested to use this method.
   public func close() {
+    if handle == nil {
+      return
+    }//end if
     mongoc_gridfs_destroy(handle)
+    handle = nil
   }//end close
 
   /// list all files on the gridfs
@@ -574,6 +592,33 @@ public class GridFS {
     // run the thread
     let _ = pthread_create(&th, nil, uploader, pRaw)
   }//end upload
+
+  /// download a file in a non-blocking fashion
+  /// - parameters:
+  ///   - from: file name on server
+  ///   - to: local path to save the downloaded file
+  ///   - completion: callback once done, with a parameter of total bytes
+  /// - throws:
+  /// MongoClientError if not file found or failed to download
+  public func download(from: String, to: String, completion:@escaping (Int)->()) throws {
+    // find the file first
+    let file = try search(name: from)
+    // download it then
+    file.download(to: to, completion: completion)
+  }//end download
+
+  /// download a file in blocking mode
+  /// - parameters:
+  ///   - from: file name on server
+  ///   - to: local path to save the downloaded file
+  /// - throws:
+  /// MongoClientError if not file found or failed to download
+  public func download(from: String, to: String) throws -> Int {
+    // find the file first
+    let file = try search(name: from)
+    // download it then
+    return file.download(to: to)
+  }//end download
 
   /// search for a file on the gridfs
   /// - parameters:
