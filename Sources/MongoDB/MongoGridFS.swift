@@ -203,6 +203,7 @@ public class GridFile {
       let a = unsafeBitCast(mongoc_gridfs_file_get_aliases(_fp), to:UnsafeMutablePointer<bson_t>.self)
       return BSON(rawBson: a)
     }//end get
+    // set { mongoc_gridfs_file_set_aliases(_fp, aliases.doc }
   }//end aliases
 
   /// content type property of GridFile, readonly.
@@ -228,6 +229,7 @@ public class GridFile {
   /// name of the grid file object, readonly
   public var fileName: String {
     get { return _STR(mongoc_gridfs_file_get_filename(_fp)) }
+    // set { mongoc_gridfs_file_set_filename(_fp, fileName) }
   }//end fileName
 
   /// meta data of the grid file object, in bson format, readonly
@@ -564,6 +566,10 @@ public class GridFS {
       completion(false)
       return
     }//end guard
+    #if os(Linux)
+      print("================ try to set file name =======================")
+      mongoc_gridfs_file_set_filename(file, to)
+    #endif
     // upload the file
     let save = mongoc_gridfs_file_save(file)
     // release resources
