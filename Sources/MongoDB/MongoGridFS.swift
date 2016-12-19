@@ -296,7 +296,11 @@ public class GridFile {
     // convert the paramter pointer to a thread param pointer
     let pRaw = unsafeBitCast(pParam, to: UnsafeMutableRawPointer.self)
     // load the thread execution function
-    let downloader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_DOWNLOAD
+    #if os(Linux)
+      let downloader: @convention(c) (UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? = _EXEC_DOWNLOAD
+    #else
+      let downloader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_DOWNLOAD
+    #endif
     // prepare the thread handler
     var th = pthread_t.init(bitPattern: 0)
     // call the thread
@@ -590,7 +594,11 @@ public class GridFS {
     // cast the structure pointer to a thread parameter pointer
     let pRaw = unsafeBitCast(pParam, to: UnsafeMutableRawPointer.self)
     // prepare the thread routine
-    let uploader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_UPLOAD
+    #if os(Linux)
+      let uploader: @convention(c) (UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? = _EXEC_UPLOAD
+    #else
+      let uploader: @convention(c) (UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? = _EXEC_UPLOAD
+    #endif
     // prepare the thread handler
     var th = pthread_t.init(bitPattern: 0)
     // run the thread
