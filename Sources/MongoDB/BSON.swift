@@ -580,7 +580,7 @@ extension BSON {
 		
 		// these *bson_value_t are not to be saved or modified
 		// the data is saved off into 1 or more base types depending on the value's type
-		init?(value: UnsafePointer<bson_value_t>) {
+		init?(value: UnsafePointer<bson_value_t>, iter: UnsafePointer<bson_iter_t>) {
 			guard let type = BSONType(rawValue: value.pointee.value_type.rawValue) else {
 				return nil
 			}
@@ -610,10 +610,11 @@ extension BSON {
 				oid = nil
 				doc = nil
 			case .document:
-				let doc = value.pointee.value.v_doc
-				var bson = bson_t()
-				bson_init_static(&bson, doc.data, Int(doc.data_len))
-				self.doc = BSON(rawBson: bson_copy(&bson))
+				var data = UnsafePointer<UInt8>(bitPattern: 0)
+				var len = 0 as UInt32
+				bson_iter_document(iter, &len, &data)
+				let bson = bson_new_from_data(data, Int(len))
+				self.doc = BSON(rawBson: bson)
 				bytes = nil
 				string = nil
 				double = 0.0
@@ -735,7 +736,7 @@ extension BSON {
 			guard let b = bson_iter_value(&cpy) else {
 				return nil
 			}
-			return BSONValue(value: b)
+			return BSONValue(value: b, iter: &cpy)
 		}
 		
 		private init() {}

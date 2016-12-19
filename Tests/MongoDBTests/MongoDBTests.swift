@@ -156,8 +156,10 @@ class MongoDBTests: XCTestCase {
 					
 					XCTAssert(subIt.next())
 					XCTAssert(subIt.currentKey == "0")
+					XCTAssert(subIt.currentValue?.string == "String Value 1")
 					XCTAssert(subIt.next())
 					XCTAssert(subIt.currentKey == "1")
+					XCTAssert(subIt.currentValue?.string == "String Value 2")
 					
 				} else {
 					guard let value = iterator.currentValue else {
@@ -186,6 +188,59 @@ class MongoDBTests: XCTestCase {
 				return XCTAssert(false, "nil iterator")
 			}
 			XCTAssert(newIt.currentValue?.string == "String Value 2")
+		}
+	}
+	
+	func testBSONIterate2() {
+		let src = "{\"name\": \"TestName\", \"cars\":[{\"brand\": \"BMW\", \"model\": \"320d\"},{\"brand\": \"Volvo\", \"model\": \"XC90\"}]}"
+		do {
+			let bson = try BSON(json: src)
+			
+			guard var iter = bson.iterator() else {
+				return XCTAssert(false)
+			}
+			
+			while iter.next() {
+				guard let key = iter.currentKey else {
+					return XCTAssert(false)
+				}
+				guard let type = iter.currentType else {
+					return XCTAssert(false)
+				}
+				if case .array = type {
+					guard key == "cars" else {
+						return XCTAssert(false)
+					}
+					guard var subIt = iter.currentChildIterator else {
+						return XCTAssert(false)
+					}
+					while subIt.next() {
+						guard let type = subIt.currentType else {
+							return XCTAssert(false)
+						}
+						guard case .document = type else {
+							return XCTAssert(false)
+						}
+						guard let value = subIt.currentValue else {
+							return XCTAssert(false)
+						}
+						guard let _ = value.doc else {
+							return XCTAssert(false)
+						}
+						guard var subSubIt = subIt.currentChildIterator else {
+							return XCTAssert(false)
+						}
+						while subSubIt.next() {
+							guard let _ = subSubIt.currentKey,
+								let _ = subSubIt.currentValue else {
+									return XCTAssert(false)
+							}
+						}
+					}
+				}
+			}
+		} catch {
+			return XCTAssert(false)
 		}
 	}
 	
