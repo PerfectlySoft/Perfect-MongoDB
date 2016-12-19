@@ -653,11 +653,16 @@ class MongoDBTests: XCTestCase {
       try f.delete()
     }catch(let err) {
       XCTFail("gridfs.sync.upload.delete failed = \(err)")
-    }
+    }//end do
+    print("uploaded file delete successfully")
 
     let exp1 = self.expectation(description: "async uploading")
     gridfs.upload(from: local, to: remote) { success in
-      unlink(local)
+      if success {
+        print("async uploading succeed")
+      }else{
+        print("async uploading failed")
+      }//end if
       XCTAssertTrue(success)
       exp1.fulfill()
     }//end upload
@@ -669,9 +674,19 @@ class MongoDBTests: XCTestCase {
       }//end if
     }//end wait
     
+    unlink(local)
     do {
       let a = try gridfs.list()
-      print(a)
+      print("------------------ listing -------------------")
+      a.forEach { f in
+        print(f.id)
+        print(f.fileName)
+        print(f.contentType)
+        print(f.md5)
+        print(f.metaData)
+        print(f.uploadDate)
+      }//next a
+      print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
       XCTAssertGreaterThan(a.count, 0)
     }catch (let err) {
       XCTFail("gridfs list: \(err)")

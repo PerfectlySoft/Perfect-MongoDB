@@ -559,16 +559,17 @@ public class GridFS {
     var opt = mongoc_gridfs_file_opt_t()
     opt.filename = _PTR(to)
     // create remote file handler
-    guard let file = mongoc_gridfs_create_file_from_stream(fsHandle, stream, &opt) else {
+    let file = mongoc_gridfs_create_file_from_stream(fsHandle, stream, &opt)
+    guard file != nil else {
       completion(false)
       return
     }//end guard
     // upload the file
-    mongoc_gridfs_file_save(file)
+    let save = mongoc_gridfs_file_save(file)
     // release resources
     mongoc_gridfs_file_destroy(file)
     // call the callback once uploaded
-    completion(true)
+    completion(save)
   }//end _upload
 
   /// upload a file from local drive to server directly. *NOT SUGGESTED* because it will block the thread.
