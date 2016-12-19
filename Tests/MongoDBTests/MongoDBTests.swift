@@ -622,7 +622,9 @@ class MongoDBTests: XCTestCase {
 
     do {
       let a = try gridfs.list()
-      print(a)
+      a.forEach { file in
+        try! file.delete()
+      }//next
       XCTAssertGreaterThanOrEqual(a.count, 0)
     }catch (let err) {
       XCTFail("gridfs list: \(err)")
@@ -632,17 +634,26 @@ class MongoDBTests: XCTestCase {
     let local = "/tmp/gridfsTest\(now).dat"
     let sz = 134217728 // 128MB
     let buffer = malloc(sz)
-    #if os(Linux)
-      memset(buffer!, Int32(time(nil)), sz)
-    #else
-      memset(buffer, Int32(time(nil)), sz)
-    #endif
     let fd = fopen(local, "wb")
     fwrite(buffer, sz, 1, fd)
     fclose(fd)
     free(buffer)
     let remote = "uploadTest\(now).dat"
 
+    let bol = gridfs.upload(from: local, to: remote)
+    if bol {
+      print("sync uploading succeed")
+    }else{
+      print("sync uploading failed")
+    }//end if
+    XCTAssertTrue(bol)
+
+    do {
+      let f = try gridfs.search(name: remote)
+      try f.delete()
+    }catch(let err) {
+      XCTFail("gridfs.sync.upload.delete failed = \(err)")
+    }
 
     let exp1 = self.expectation(description: "async uploading")
     gridfs.upload(from: local, to: remote) { success in

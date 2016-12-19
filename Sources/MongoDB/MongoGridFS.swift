@@ -497,7 +497,7 @@ public class GridFS {
     bson_destroy(&child)
     bson_destroy(&query)
 
-    guard let list = plist else {
+    guard plist != nil else {
       throw MongoClientError.initError("gridfs.list()")
     }//end guard
 
@@ -511,7 +511,7 @@ public class GridFS {
     // iterate the query result
     repeat {
       // retrieve the next element from the query list
-      file = mongoc_gridfs_file_list_next(list)
+      file = mongoc_gridfs_file_list_next(plist)
       if (file == nil) {
         break
       }//end if
@@ -520,8 +520,6 @@ public class GridFS {
         let f = try GridFile(file)
         // add the new file object to the array
         ret.append(f)
-        // notify the system to flush the garbage once discarded.
-        defer { f.close() }
       }catch (let e){
         // if anything wrong, terminate the loop by setting the next element to a nil pointer
         file = nil
@@ -531,7 +529,7 @@ public class GridFS {
       // loop until out of elements
     }while(file != nil)
     // release the mongoc_gridfs_file_list
-    mongoc_gridfs_file_list_destroy(list)
+    mongoc_gridfs_file_list_destroy(plist)
     // if there is an error, throw it out.
     if err != nil {
       throw err!
@@ -603,7 +601,11 @@ public class GridFS {
     // prepare the thread routine
     let uploader: THREADPROC = _EXEC_UPLOAD
     // prepare the thread handler
-    var th = pthread_t.init(bitPattern: 0)
+    #if os(Linux)
+      var th = pthread_t()
+    #else
+      var th = pthread_t.init(bitPattern: 0)
+    #endif
     // run the thread
     let _ = pthread_create(&th, nil, uploader, pRaw)
   }//end upload
