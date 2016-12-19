@@ -567,7 +567,6 @@ public class GridFS {
       return
     }//end guard
     #if os(Linux)
-      print("================ try to set file name =======================")
       mongoc_gridfs_file_set_filename(file, to)
     #endif
     // upload the file
