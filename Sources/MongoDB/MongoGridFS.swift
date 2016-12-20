@@ -38,7 +38,7 @@ struct _UPPARAM{
   /// remote file name
   var to: String
   /// callback once upload with reporting whether succeed as bool
-  var completion: (Bool)->()
+  var completion: (GridFile?)->()
 }//end UPPARAM
 
 #if os(Linux)
@@ -546,15 +546,15 @@ public class GridFS {
   ///   - from: local file name to upload
   ///   - to: remote file name as expected
   ///   - completion: callback once uploaded with a bool hint for success
-  static func _upload(fsHandle: OpaquePointer?, from: String, to: String, completion:@escaping (Bool)->()) {
+  static func _upload(fsHandle: OpaquePointer?, from: String, to: String, completion:@escaping (GridFile?)->()) {
     // validate the gridfs_t
     guard fsHandle != nil else {
-      completion(false)
+      completion(nil)
       return
     }//end guard
     // open a stream for reading
     guard let stream = mongoc_stream_file_new_for_path(from, O_RDONLY, 0) else {
-      completion(false)
+      completion(nil)
       return
     }//end guard
     // set the reading option with local file name to upload
@@ -563,7 +563,7 @@ public class GridFS {
     // create remote file handler
     let file = mongoc_gridfs_create_file_from_stream(fsHandle, stream, &opt)
     guard file != nil else {
-      completion(false)
+      completion(nil)
       return
     }//end guard
     #if os(Linux)
@@ -571,10 +571,19 @@ public class GridFS {
     #endif
     // upload the file
     let save = mongoc_gridfs_file_save(file)
+    if save {
+      do {
+        // call the callback once uploaded
+        let f = try GridFile.init(file)
+        completion(f)
+      } catch {
+        completion(nil)
+      }
+    }else{
+      completion(nil)
+    }//end
     // release resources
-    mongoc_gridfs_file_destroy(file)
-    // call the callback once uploaded
-    completion(save)
+    // mongoc_gridfs_file_destroy(file)
   }//end _upload
 
   /// upload a file from local drive to server directly. *NOT SUGGESTED* because it will block the thread.
@@ -583,11 +592,12 @@ public class GridFS {
   ///   - to: destinated file name on server
   /// - returns:
   /// true for a successful upload
-  public func upload(from: String, to: String) -> Bool {
-    var success = false
+  public func upload(from: String, to: String) -> GridFile? {
+    var file: GridFile?
     // call the static internal upload method
-    GridFS._upload(fsHandle: handle, from: from, to: to) { success = $0 }
-    return success
+    GridFS._upload(fsHandle: handle, from: from, to: to) { file = $0 }
+    // return the file handle
+    return file
   }//end upload
 
   /// upload a file in a non-blocking fashion.
@@ -595,7 +605,7 @@ public class GridFS {
   ///   - from: local file name to upload
   ///   - to: destinated file name on server
   ///   - completion: callback for upload with indicating whether success or not
-  public func upload(from: String, to: String, completion:@escaping (Bool)->()) {
+  public func upload(from: String, to: String, completion:@escaping (GridFile?)->()) {
     // setup a structure to pass the parameters for internal static calling
     let param = _UPPARAM(fs: handle!, from: from, to: to, completion: completion)
     // prepare a pointer to hold these parameters

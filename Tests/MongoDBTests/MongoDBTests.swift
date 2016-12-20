@@ -640,30 +640,20 @@ class MongoDBTests: XCTestCase {
     free(buffer)
     let remote = "uploadTest\(now).dat"
 
-    let bol = gridfs.upload(from: local, to: remote)
-    if bol {
-      print("sync uploading succeed")
-    }else{
-      print("sync uploading failed")
-    }//end if
-    XCTAssertTrue(bol)
+    let gfile = gridfs.upload(from: local, to: remote)
+    XCTAssertNotNil(gfile)
 
     do {
-      let f = try gridfs.search(name: remote)
-      try f.delete()
+      try gfile?.delete()
     }catch(let err) {
       XCTFail("gridfs.sync.upload.delete failed = \(err)")
     }//end do
     print("uploaded file delete successfully")
 
     let exp1 = self.expectation(description: "async uploading")
-    gridfs.upload(from: local, to: remote) { success in
-      if success {
-        print("async uploading succeed")
-      }else{
-        print("async uploading failed")
-      }//end if
-      XCTAssertTrue(success)
+    gridfs.upload(from: local, to: remote) { file in
+      XCTAssertNotNil(file)
+      print(file?.length ?? 0)
       exp1.fulfill()
     }//end upload
 
