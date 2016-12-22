@@ -606,7 +606,7 @@ class MongoDBTests: XCTestCase {
 		
 	}
 
-  func testGridfs() {
+  func testGridFS() {
     let client = try! MongoClient(uri: "mongodb://localhost")
     var gridfs: GridFS
     do {
@@ -620,117 +620,127 @@ class MongoDBTests: XCTestCase {
       gridfs.close()
     }//end defer
 
+    // test list / delete
     do {
       let a = try gridfs.list()
-      a.forEach { file in
-        try! file.delete()
-      }//next
       XCTAssertGreaterThanOrEqual(a.count, 0)
+      try a.forEach { try $0.delete() }
     }catch (let err) {
-      XCTFail("gridfs list: \(err)")
-    }
+      XCTFail("gridfs list / delete: \(err)")
+    }//end list
 
-    let now = String(format:"%2X", time(nil))
-    let local = "/tmp/gridfsTest\(now).dat"
-    let sz = 134217728 // 128MB
-    let buffer = malloc(sz)
-    let fd = fopen(local, "wb")
-    fwrite(buffer, sz, 1, fd)
-    fclose(fd)
-    free(buffer)
-    let remote = "uploadTest\(now).dat"
+    let secret:[UInt8] = [65, 66, 67, 68, 0] // "ABCD\0"
+    var fp = fopen("/tmp/secret.txt", "wb")
+    fwrite(secret, 1, secret.count, fp)
+    fclose(fp)
 
-    let gfile = gridfs.upload(from: local, to: remote)
-    XCTAssertNotNil(gfile)
-
+    // test upload / download / properties
     do {
-      try gfile?.delete()
-    }catch(let err) {
-      XCTFail("gridfs.sync.upload.delete failed = \(err)")
+      let f = try gridfs.upload(from: "/tmp/secret.txt", to: "secret.txt", md5: "abcd1234")
+      XCTAssertNotNil(f)
+      print(f.id)
+      print(f.fileName)
+      print(f.contentType)
+      print(f.md5)
+      print(f.metaData)
+      print(f.uploadDate)
+      print(f.length)
+      XCTAssertEqual(f.contentType, "text/plain")
+      XCTAssertEqual(f.md5, "abcd1234")
+      XCTAssertEqual(f.length, Int64(secret.count))
+      let dl = try f.download(to: "/tmp/secret2.txt")
+      XCTAssertEqual(dl, secret.count)
+    }catch (let err) {
+      XCTFail("gridfs.upload / download mismatched = \(err)")
     }//end do
-    print("uploaded file delete successfully")
 
-    let exp1 = self.expectation(description: "async uploading")
-    gridfs.upload(from: local, to: remote) { file in
-      XCTAssertNotNil(file)
-      print(file?.length ?? 0)
-      exp1.fulfill()
-    }//end upload
+    var secret2:[UInt8] = [0, 0, 0, 0, 0]
+    fp = fopen("/tmp/secret2.txt", "rb")
+    let _ = secret2.withUnsafeMutableBufferPointer{ p in
+      fread(p.baseAddress, 1, 5, fp)
+      print(p.baseAddress!)
+    }//end assign
+    fclose(fp)
+    print(secret)
+    print(secret2)
+    for i in 0...4 {
+      XCTAssertEqual(secret[i], secret2[i])
+    }//next i
 
-    self.waitForExpectations(timeout: 10) {
-      error in
-      if let error = error {
-        XCTFail("gridfs async upload: \(error.localizedDescription)")
-      }//end if
-    }//end wait
-    
+    unlink("/tmp/secret.txt")
+    unlink("/tmp/secret2.txt")
+
+
+    // test big file upload
+    let local = "/tmp/base128.dat"
+    let sz = 134217728 // 128MB
+    let buffer = [UInt8](repeating: 66, count:sz)
+    fp = fopen(local, "wb")
+    fwrite(buffer, 1, sz, fp)
+    fclose(fp)
+    let remote = "base128.dat"
+
+    do {
+      let f = try gridfs.upload(from: local, to: remote)
+      XCTAssertNotNil(f)
+      f.close()
+    }catch(let err) {
+      XCTFail("gridfs.upload failed = \(err)")
+    }//end do
     unlink(local)
+
+    // test search partially read / write
     do {
-      let a = try gridfs.list()
-      print("------------------ listing -------------------")
-      a.forEach { f in
-        print(f.id)
-        print(f.fileName)
-        print(f.contentType)
-        print(f.md5)
-        print(f.metaData)
-        print(f.uploadDate)
-      }//next a
-      print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-      XCTAssertGreaterThan(a.count, 0)
-    }catch (let err) {
-      XCTFail("gridfs list: \(err)")
-    }
-
-
-    var f: GridFile? = nil
-    do {
-      f = try gridfs.search(name: remote)
-      print(f?.id ?? "")
-      print(f?.fileName ?? "")
-      print(f?.contentType ?? "")
-      print(f?.md5 ?? "")
-      print(f?.metaData ?? "")
-      print(f?.uploadDate ?? 0)
-      XCTAssertEqual(f?.fileName, remote)
-      XCTAssertEqual(f?.length, Int64(sz))
-
-      let pos = f?.tell()
-      print(pos ?? 0)
+      let f = try gridfs.search(name: remote)
+      let pos = f.tell()
+      print(pos)
       let mb = 1048576
-      try f?.seek(cursor: Int64(mb))
-      let bytes = try f?.partiallyRead(amount: UInt32(mb))
-      XCTAssertEqual(bytes?.count, mb)
-      let sz = try f?.partiallyWrite(bytes: bytes!)
+      try f.seek(cursor: Int64(mb))
+      let bytes = try f.partiallyRead(amount: UInt32(mb))
+      XCTAssertEqual(bytes.count, mb)
+      bytes.forEach { XCTAssertEqual($0, 66) }
+      try f.seek(cursor: Int64(mb * 10))
+      let buf = [UInt8](repeating: 67, count: mb)
+      let sz = try f.partiallyWrite(bytes: buf)
       XCTAssertEqual(sz, mb)
-      try f?.seek(cursor: 0)
+      try f.seek(cursor: Int64(mb * 10))
+      let buf2 = try f.partiallyRead(amount: UInt32(mb))
+      buf2.forEach{ XCTAssertEqual($0, 67) }
+      try f.delete()
     }catch(let err){
-      XCTFail("gridfs search: \(err)")
+      XCTFail("gridfs partially read / write: \(err)")
     }//end f
 
-    let downloaded = "/tmp/gridfsdownload.bin"
-
-    let exp2 = self.expectation(description: "async downloading")
-    f?.download(to: downloaded) { total in
-      unlink(downloaded)
-      XCTAssertEqual(total, sz)
-      exp2.fulfill()
-    }//end download
-
-    self.waitForExpectations(timeout: 10) {
-      error in
-      if let error = error {
-        XCTFail("gridfs async download: \(error.localizedDescription)")
-      }//end if
-    }//end wait
-    
+    // test leaky
     do {
-      try f?.delete()
+      print("----------------- 20 loops leaky testing -----------------------")
+      for i in 0...20 {
+        let toUpload = "upload\(i).bin"
+        fp = fopen("/tmp/\(toUpload)", "wb")
+        fwrite(buffer, 1, sz, fp)
+        fclose(fp)
+        let fx = try gridfs.upload(from: "/tmp/\(toUpload)", to: toUpload)
+        XCTAssertNotNil(fx)
+        let dl = try fx.download(to: "/tmp/download\(i).bin")
+        XCTAssertEqual(dl, sz)
+        print("testing #\(i)")
+      }//next i
+      print("----------------- leaky testing over -----------------------")
     }catch(let err){
-      XCTFail("gridfs delete: \(err)")
-    }
-    f?.close()
-  }
+      XCTFail("gridfs leaky: \(err)")
+    }//end 
+
+    // clean up
+    do {
+      let a = try gridfs.list()
+      try a.forEach { file in
+        try file.delete()
+      }//next
+    }catch (let err) {
+      XCTFail("gridfs list: \(err)")
+    }//end do
+  }//end testGridFS
+
 
 }
 
@@ -751,7 +761,7 @@ extension MongoDBTests {
             ("testDeleteDoc", testDeleteDoc),
             ("testCollectionFind", testCollectionFind),
             ("testCollectionDistinct", testCollectionDistinct),
-            ("testGridfs", testGridfs)
+            ("testGridFS", testGridFS)
         ]
     }
 }
