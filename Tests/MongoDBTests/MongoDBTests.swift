@@ -569,7 +569,7 @@ class MongoDBTests: XCTestCase {
  */
         }
     }
-	
+
 	func testUpdate() {
 		let client = try! MongoClient(uri: "mongodb://localhost")
 		let db = client.getDatabase(name: "test")
@@ -662,6 +662,113 @@ class MongoDBTests: XCTestCase {
 		}
 		
 	}
+
+  func testGridfs() {
+    let client = try! MongoClient(uri: "mongodb://localhost")
+    var gridfs: GridFS
+    do {
+      gridfs = try client.gridFS(database: "test")
+    }catch(let err) {
+      XCTFail("gridfs open: \(err)")
+      return
+    }
+
+    defer {
+      gridfs.close()
+    }//end defer
+
+    do {
+      let a = try gridfs.list()
+      print(a)
+      XCTAssertGreaterThanOrEqual(a.count, 0)
+    }catch (let err) {
+      XCTFail("gridfs list: \(err)")
+    }
+
+    let now = String(format:"%2X", time(nil))
+    let local = "/tmp/gridfsTest\(now).dat"
+    let sz = 134217728 // 128MB
+    let buffer = malloc(sz)
+    memset(buffer, Int32(time(nil)), sz)
+    let fd = fopen(local, "wb")
+    fwrite(buffer, sz, 1, fd)
+    fclose(fd)
+    free(buffer)
+    let remote = "uploadTest\(now).dat"
+
+
+    let exp1 = self.expectation(description: "async uploading")
+    gridfs.upload(from: local, to: remote) { success in
+      unlink(local)
+      XCTAssertTrue(success)
+      exp1.fulfill()
+    }//end upload
+
+    self.waitForExpectations(timeout: 10) {
+      error in
+      if let error = error {
+        XCTFail("gridfs async upload: \(error.localizedDescription)")
+      }//end if
+    }//end wait
+    
+    do {
+      let a = try gridfs.list()
+      print(a)
+      XCTAssertGreaterThan(a.count, 0)
+    }catch (let err) {
+      XCTFail("gridfs list: \(err)")
+    }
+
+
+    var f: GridFile? = nil
+    do {
+      f = try gridfs.search(name: remote)
+      print(f?.id ?? "")
+      print(f?.fileName ?? "")
+      print(f?.contentType ?? "")
+      print(f?.md5 ?? "")
+      print(f?.metaData ?? "")
+      print(f?.uploadDate ?? 0)
+      XCTAssertEqual(f?.fileName, remote)
+      XCTAssertEqual(f?.length, Int64(sz))
+
+      let pos = f?.tell()
+      print(pos ?? 0)
+      let mb = 1048576
+      try f?.seek(cursor: Int64(mb))
+      let bytes = try f?.partiallyRead(amount: UInt32(mb))
+      XCTAssertEqual(bytes?.count, mb)
+      let sz = try f?.partiallyWrite(bytes: bytes!)
+      XCTAssertEqual(sz, mb)
+      try f?.seek(cursor: 0)
+    }catch(let err){
+      XCTFail("gridfs search: \(err)")
+    }//end f
+
+    let downloaded = "/tmp/gridfsdownload.bin"
+
+    let exp2 = self.expectation(description: "async downloading")
+    f?.download(to: downloaded) { total in
+      unlink(downloaded)
+      XCTAssertEqual(total, sz)
+      exp2.fulfill()
+    }//end download
+
+    self.waitForExpectations(timeout: 10) {
+      error in
+      if let error = error {
+        XCTFail("gridfs async download: \(error.localizedDescription)")
+      }//end if
+    }//end wait
+    
+    do {
+      try f?.delete()
+    }catch(let err){
+      XCTFail("gridfs delete: \(err)")
+    }
+    f?.close()
+  }
+
 }
 
 extension MongoDBTests {
@@ -680,7 +787,8 @@ extension MongoDBTests {
             ("testGetCollection", testGetCollection),
             ("testDeleteDoc", testDeleteDoc),
             ("testCollectionFind", testCollectionFind),
-            ("testCollectionDistinct", testCollectionDistinct)
+            ("testCollectionDistinct", testCollectionDistinct),
+            ("testGridfs", testGridfs)
         ]
     }
 }
