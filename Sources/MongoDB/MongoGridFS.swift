@@ -85,8 +85,10 @@ public class GridFile {
       let p = mongoc_gridfs_file_get_id(_fp)
       // validate the pointer
       guard p != nil else { return "" }
+
+      var iter = bson_iter_t()
       // get the value structure
-      let ID = BSON.BSONValue.init(value: p!)
+      let ID = BSON.BSONValue(value: p!, iter: &iter)
       // return the final value
       return ID?.string ?? ""
     }//end get
@@ -497,7 +499,7 @@ public class GridFS {
     // upload the file
     let save = mongoc_gridfs_file_save(file)
     if save {
-      return try GridFile.init(file)
+      return try GridFile(file)
     }else{
       mongoc_gridfs_file_destroy(file)
       throw MongoClientError.initError("gridfs.upload(\(from)): destination \(to) failed to save")
