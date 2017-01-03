@@ -243,7 +243,7 @@ func mongoHandler(request: WebRequest, _ response: WebResponse) {
 
     // Return the JSON string
     response.appendBody(string: returning)
-    response.requestCompleted()
+    response.completed()
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
