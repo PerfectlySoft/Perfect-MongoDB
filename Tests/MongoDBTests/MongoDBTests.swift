@@ -798,6 +798,112 @@ class MongoDBTests: XCTestCase {
     }//end do
   }//end testGridFS
 
+    
+    func testAggregate() {
+        let groupsCollectionName = "testaggregate.groups"
+        let usersCollectionName = "testaggregate.users"
+        
+        let client = try! MongoClient(uri: "mongodb://localhost")
+        let db = client.getDatabase(name: "test")
+        XCTAssert(db.name() == "test")
+        
+        guard let groupsCollection = db.getCollection(name: groupsCollectionName) else {
+            XCTAssert(false, "Collection was nil")
+            return
+        }
+        
+        guard let usersCollection = db.getCollection(name: usersCollectionName) else {
+            XCTAssert(false, "Collection was nil")
+            return
+        }
+        
+        defer {
+            groupsCollection.close()
+            usersCollection.close()
+            db.close()
+            client.close()
+        }
+        
+        func saveObjects(collection: MongoCollection, jsons: [String]) throws {
+            for json in jsons {
+                let doc = try BSON(json: json)
+                defer {
+                    doc.close()
+                }
+                
+                let result = collection.save(document: doc)
+                switch result {
+                case .success:
+                    XCTAssert(true)
+                default:
+                    XCTAssert(false, "Bad result \(result)")
+                    return
+                }
+            }
+        }
+        
+        func removeTestData() {
+            let query = BSON()
+            defer {
+                query.close()
+            }
+            
+            _ = groupsCollection.remove(selector: query)
+            _ = usersCollection.remove(selector: query)
+        }
+        
+        removeTestData()
+        
+        do {
+            let groupsJSONs = ["{\"_id\": {\"$oid\": \"587caeae7fe1c5580570ed71\"}, \"name\": \"First\"}",
+                               "{\"_id\": {\"$oid\": \"587caeae7fe1c5580570ed72\"}, \"name\": \"Second\"}",
+                               "{\"_id\": {\"$oid\": \"587caeae7fe1c5580570ed73\"}, \"name\": \"Third\"}",]
+            
+            let usersJSONs = ["{\"groupId\": {\"$oid\": \"587caeae7fe1c5580570ed71\"}, \"name\": \"John\"}",
+                                "{\"groupId\": {\"$oid\": \"587caeae7fe1c5580570ed71\"}, \"name\": \"Peter\"}",
+                                "{\"groupId\": {\"$oid\": \"587caeae7fe1c5580570ed72\"}, \"name\": \"Dmitry\"}",]
+            
+
+            try saveObjects(collection: groupsCollection, jsons: groupsJSONs)
+            try saveObjects(collection: usersCollection, jsons: usersJSONs)
+            
+            let piplineJSON = "[{ \"$lookup\": { \"from\": \"\(usersCollectionName)\", \"localField\": \"_id\", \"foreignField\": \"groupId\", \"as\": \"users\" }}, {\"$project\": { \"id\" : true, \"count\": { \"$size\": \"$users\" }}}]"
+            
+            let pipline = try BSON(json: piplineJSON)
+            defer { pipline.close() }
+            
+            let res = groupsCollection.aggregate(pipeline: pipline, flags: MongoQueryFlag.none, options: nil)
+            
+            guard let safeRes = res else {
+                XCTAssertNotNil(res)
+                return
+            }
+            
+            let expectations = ["587caeae7fe1c5580570ed71": 2,
+                                "587caeae7fe1c5580570ed72": 1,
+                                "587caeae7fe1c5580570ed73": 0]
+        
+            while let doc = safeRes.next(){
+                guard let oid = doc.oid else {
+                    XCTFail("OID not found")
+                    return
+                }
+                
+                guard var it = doc.iterator(), it.find(key: "count") else {
+                    XCTFail("Count not found")
+                    return
+                }
+                
+                let count = it.currentValue?.int
+                
+                XCTAssertEqual(expectations[oid.description], count)
+            }
+            
+            removeTestData()
+        } catch {
+            XCTAssertNil(error)
+        }
+    }
 
 }
 
