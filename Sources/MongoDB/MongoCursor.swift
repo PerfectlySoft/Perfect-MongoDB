@@ -23,6 +23,18 @@ import libmongoc
 public class MongoCursor: Sequence, IteratorProtocol {
     
 	var ptr = OpaquePointer(bitPattern: 0)
+    
+    /// JSON string representation.
+    public var jsonString: String {
+        
+        var results = [String]()
+        
+        for object in self {
+            results.append(object.asString)
+        }
+        
+        return "{\"data\":[\(results.joined(separator: ","))]}"
+    }
 
 	init(rawPtr: OpaquePointer?) {
 		self.ptr = rawPtr
@@ -51,16 +63,4 @@ public class MongoCursor: Sequence, IteratorProtocol {
 		}
 		return nil
 	}
-    
-    /// - returns: JSON string representation of MongoCursor instance, or MongoCollection.find() result.
-    func jsonString() -> String {
-        
-        var results = [String]()
-        
-        for object in self {
-            results.append(object.asString)
-        }
-        
-        return "{\"data\":[\(results.joined(separator: ","))]}"
-    }
 }
