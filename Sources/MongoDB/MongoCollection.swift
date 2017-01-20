@@ -792,4 +792,30 @@ public class MongoCollection {
         }
         return MongoCursor(rawPtr: cursor)
     }
+    
+    /**
+     *  Calculates aggregate values for the data in a collection.
+     *
+     *  - parameter pipeline:    A sequence of data aggregation operations or stages.
+     *  - parameter flags:   Optional. set queryFlags for the current aggregation.
+     *  - parameter options:    Optional. Additional options that aggregate() passes to the aggregate command.
+     *
+     *  - returns:	A cursor to the command execution result documents.
+     */
+    public func aggregate(pipeline: BSON, flags: MongoQueryFlag = MongoQueryFlag.none, options: BSON? = nil) -> MongoCursor? {
+        guard let ptr = self.ptr else {
+            return nil
+        }
+        guard let piplineDoc = pipeline.doc else {
+            return nil
+        }
+        
+        let cursor = mongoc_collection_aggregate(ptr, flags.queryFlags, piplineDoc, options?.doc, nil)
+        
+        guard cursor != nil else {
+            return nil
+        }
+        
+        return MongoCursor(rawPtr: cursor)
+    }
 }
