@@ -33,7 +33,7 @@ public class MongoCursor: Sequence, IteratorProtocol {
             results.append(object.asString)
         }
         
-        return "{\"data\":[\(results.joined(separator: ","))]}"
+        return "[\(results.joined(separator: ","))]"
     }
 
 	init(rawPtr: OpaquePointer?) {
