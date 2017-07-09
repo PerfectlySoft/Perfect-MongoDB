@@ -18,6 +18,7 @@
 //
 
 import libmongoc
+import Foundation
 
 /// BSON error enum
 public enum BSONError: Error {
@@ -75,6 +76,28 @@ public class BSON: CustomStringConvertible {
      */
 	public init(document: BSON) {
 		self.doc = bson_copy(document.doc!)
+	}
+	
+	public init(map: [String: Any]) {
+		self.doc = bson_new()
+		
+		for (key, val) in map {
+			if val is Int {
+				append(key: key, int: val as! Int)
+			} else if val is Double {
+				append(key: key, double: val as! Double)
+			} else if val is Bool {
+				append(key: key, bool: val as! Bool)
+			} else if val is [Int8] {
+				append(key: key, bytes: val as! [UInt8])
+			} else if val is [String: Any] {
+				append(key: key, document: BSON(map: val as! [String: Any]))
+			} else if val is Date {
+				append(key: key, date: val as! Date)
+			} else {
+				append(key: key, string: "\(val)")
+			}
+		}
 	}
 
 	init(rawBson: UnsafeMutablePointer<bson_t>?) {
@@ -225,7 +248,23 @@ public class BSON: CustomStringConvertible {
 			}
 			return bson_append_int32(doc, k, -1, int32)
 		}
-
+	
+	/**
+	* Appends a new field to self.doc of type BSON_TYPE_DATE_TIME.
+	* This is simply a wrapper for append(key:, dateTime:)
+	*
+	* - parameter key: The key for the field.
+	* - parameter date: The date to append.
+	*
+	*
+	* - returns: true if sucessful; otherwise false.
+	*/
+	@discardableResult
+	public func append(key k: String, date: Date) -> Bool {
+		let ms = date.timeIntervalSince1970 * 1000
+		return append(key: k, dateTime: Int64(ms))
+	}
+	
     /**
      * Appends a new field to self.doc of type BSON_TYPE_DATE_TIME.
      *
