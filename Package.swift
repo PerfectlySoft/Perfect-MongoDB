@@ -24,8 +24,8 @@ let package = Package(
     name: "MongoDB",
     targets: [],
     dependencies: [
-        .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c.git", majorVersion: 2, minor: 0)
-        .Package(url: "https://github.com/PerfectlySoft/Perfect", majorVersion: 2, minor: 0)
+        .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c.git", majorVersion: 2)
+        .Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 2)
     ],
     exclude: ["Sources/libmongoc"]
 )
@@ -34,8 +34,8 @@ let package = Package(
     name: "MongoDB",
     targets: [],
     dependencies: [
-        .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c-linux.git", majorVersion: 2, minor: 0)
-        .Package(url: "https://github.com/PerfectlySoft/Perfect", majorVersion: 2, minor: 0)
+        .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c-linux.git", majorVersion: 2)
+        .Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 2)
     ],
     exclude: ["Sources/libmongoc"]
 )
