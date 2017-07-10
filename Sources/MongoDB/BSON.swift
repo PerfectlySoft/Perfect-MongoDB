@@ -78,7 +78,7 @@ public class BSON: CustomStringConvertible {
 		self.doc = bson_copy(document.doc!)
 	}
 	
-	public init(map: [String: Any]) {
+	public init(map: [String: Any?]) {
 		self.doc = bson_new()
 		
 		for (key, val) in map {
@@ -94,8 +94,10 @@ public class BSON: CustomStringConvertible {
 				append(key: key, document: BSON(map: val as! [String: Any]))
 			} else if val is Date {
 				append(key: key, date: val as! Date)
+			} else if val == nil {
+				append(key: key)
 			} else {
-				append(key: key, string: "\(val)")
+				append(key: key, string: "\(val!)")
 			}
 		}
 	}
