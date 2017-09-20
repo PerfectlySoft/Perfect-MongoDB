@@ -19,9 +19,9 @@
 
 import Foundation
 import XCTest
-@testable import MongoDB
+@testable import PerfectMongoDB
 
-class MongoDBTests: XCTestCase {
+class PerfectMongoDBTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
@@ -907,8 +907,8 @@ class MongoDBTests: XCTestCase {
 
 }
 
-extension MongoDBTests {
-    static var allTests : [(String, (MongoDBTests) -> () throws -> ())] {
+extension PerfectMongoDBTests {
+    static var allTests : [(String, (PerfectMongoDBTests) -> () throws -> ())] {
         return [
             ("testBSONFromJSON", testBSONFromJSON),
             ("testBSONAppend", testBSONAppend),

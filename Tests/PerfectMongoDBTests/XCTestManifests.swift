@@ -21,7 +21,7 @@ import XCTest
 #if !os(OSX)
 public func allTests() -> [XCTestCaseEntry] {
 	return [
-			testCase(MongoDBTests.allTests)
+			testCase(PerfectMongoDBTests.allTests)
 	]
 }
 #endif

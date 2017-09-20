@@ -21,21 +21,21 @@ import PackageDescription
 
 #if os(OSX)
 let package = Package(
-    name: "MongoDB",
+    name: "PerfectMongoDB",
     targets: [],
     dependencies: [
         .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c.git", majorVersion: 2),
-        .Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 2)
+        .Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 3)
     ],
     exclude: ["Sources/libmongoc"]
 )
 #else
 let package = Package(
-    name: "MongoDB",
+    name: "PerfectMongoDB",
     targets: [],
     dependencies: [
         .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c-linux.git", majorVersion: 2),
-        .Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 2)
+        .Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 3)
     ],
     exclude: ["Sources/libmongoc"]
 )

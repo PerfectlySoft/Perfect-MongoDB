@@ -1,6 +1,6 @@
 import XCTest
-@testable import MongoDBTests
+@testable import PerfectMongoDBTests
 
 XCTMain([
-	testCase(MongoDBTests.allTests),
+	testCase(PerfectMongoDBTests.allTests),
 ])
