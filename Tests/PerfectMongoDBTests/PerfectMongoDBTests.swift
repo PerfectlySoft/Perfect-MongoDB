@@ -905,6 +905,10 @@ class PerfectMongoDBTests: XCTestCase {
         }
     }
 
+    func testNewObjectIdGeneration() {
+        let objectId = BSON.OID.newObjectId()
+        XCTAssertTrue(objectId.characters.count == 24, "Should generate valid ObjectId")
+    }
 }
 
 extension PerfectMongoDBTests {
@@ -924,7 +928,8 @@ extension PerfectMongoDBTests {
             ("testDeleteDoc", testDeleteDoc),
             ("testCollectionFind", testCollectionFind),
             ("testCollectionDistinct", testCollectionDistinct),
-            ("testGridFS", testGridFS)
+            ("testGridFS", testGridFS),
+            ("testNewObjectIdGeneration", testNewObjectIdGeneration)
         ]
     }
 }
