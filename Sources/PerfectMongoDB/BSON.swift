@@ -512,6 +512,14 @@ public class BSON: CustomStringConvertible {
 			bson_oid_init_from_string(&oid, string)
 			self.oid = oid
 		}
+        public init() {
+            var oid = bson_oid_t()
+            bson_oid_init(&oid, nil)
+            self.oid = oid
+        }
+        public static func newObjectId() -> String {
+            return self.init().description
+        }
 	}
 	
 	/// Add the OID with the given key.
