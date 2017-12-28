@@ -22,21 +22,10 @@ import XCTest
 @testable import PerfectMongoDB
 
 class PerfectMongoDBTests: XCTestCase {
-    
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-    
     func testBSONFromJSON() {
 		let json = "{\"id\":1,\"first_name\":\"Kimberly\",\"last_name\":\"Gonzales\",\"email\":\"kgonzales0@usnews.com\",\"country\":\"France\",\"ip_address\":\"164.55.182.176\",\"ip_address0\":\"Turquoise\",\"ip_address1\":\"Euro\",\"ip_address2\":\"1qttm1nWiNDfpwuaYuoj7S7TXxUWxauBt\",\"ip_address3\":\"Demivee\",\"ip_address4\":false,\"ip_address5\":\"6/27/2015\"}"
 		// it adds spaces
-		let jsonResult = "{ \"id\" : 1, \"first_name\" : \"Kimberly\", \"last_name\" : \"Gonzales\", \"email\" : \"kgonzales0@usnews.com\", \"country\" : \"France\", \"ip_address\" : \"164.55.182.176\", \"ip_address0\" : \"Turquoise\", \"ip_address1\" : \"Euro\", \"ip_address2\" : \"1qttm1nWiNDfpwuaYuoj7S7TXxUWxauBt\", \"ip_address3\" : \"Demivee\", \"ip_address4\" : false, \"ip_address5\" : \"6\\/27\\/2015\" }"
+		let jsonResult = "{ \"id\" : 1, \"first_name\" : \"Kimberly\", \"last_name\" : \"Gonzales\", \"email\" : \"kgonzales0@usnews.com\", \"country\" : \"France\", \"ip_address\" : \"164.55.182.176\", \"ip_address0\" : \"Turquoise\", \"ip_address1\" : \"Euro\", \"ip_address2\" : \"1qttm1nWiNDfpwuaYuoj7S7TXxUWxauBt\", \"ip_address3\" : \"Demivee\", \"ip_address4\" : false, \"ip_address5\" : \"6/27/2015\" }"
 		do {
 			let bson = try BSON(json: json)
 			defer {
@@ -60,7 +49,7 @@ class PerfectMongoDBTests: XCTestCase {
 		XCTAssert(bson.append(key: "intKey", int: 42))
 		XCTAssert(bson.append(key: "nullKey"))
 		XCTAssert(bson.append(key: "int32Key", int32: 42))
-		XCTAssert(bson.append(key: "doubleKey", double: 4.2))
+		XCTAssert(bson.append(key: "doubleKey", double: 4.0))
 		
 		XCTAssert(bson.append(key: "boolKey", bool: true))
 		
@@ -69,7 +58,7 @@ class PerfectMongoDBTests: XCTestCase {
 		XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
 		
 		let str = bson.asString
-		let expectedJson = "{ \"stringKey\" : \"String Value\", \"intKey\" : 42, \"nullKey\" : null, \"int32Key\" : 42, \"doubleKey\" : 4.2, " +
+		let expectedJson = "{ \"stringKey\" : \"String Value\", \"intKey\" : 42, \"nullKey\" : null, \"int32Key\" : 42, \"doubleKey\" : 4.0, " +
 			"\"boolKey\" : true, \"timeKey\" : { \"$date\" : \(t * 1000) }, \"dateTimeKey\" : { \"$date\" : 4200102 } }"
 		
 		XCTAssert(str == expectedJson, "\n\(str)\n\(expectedJson)\n")
@@ -85,7 +74,7 @@ class PerfectMongoDBTests: XCTestCase {
 		XCTAssert(bson.append(key: "intKey", int: 42))
 		XCTAssert(bson.append(key: "nullKey"))
 		XCTAssert(bson.append(key: "int32Key", int32: 42))
-		XCTAssert(bson.append(key: "doubleKey", double: 4.2))
+		XCTAssert(bson.append(key: "doubleKey", double: 4.0))
 		
 		XCTAssert(bson.append(key: "boolKey", bool: true))
 		
@@ -94,7 +83,7 @@ class PerfectMongoDBTests: XCTestCase {
 		XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
 		
 		let str = bson.asString
-		let expectedJson = "{ \"stringKey\" : \"String Value\", \"intKey\" : 42, \"nullKey\" : null, \"int32Key\" : 42, \"doubleKey\" : 4.2, " +
+		let expectedJson = "{ \"stringKey\" : \"String Value\", \"intKey\" : 42, \"nullKey\" : null, \"int32Key\" : 42, \"doubleKey\" : 4.0, " +
 		"\"boolKey\" : true, \"timeKey\" : { \"$date\" : \(t * 1000) }, \"dateTimeKey\" : { \"$date\" : 4200102 } }"
 		
 		XCTAssert(str == expectedJson, "\n\(str)\n\(expectedJson)\n")
@@ -267,8 +256,7 @@ class PerfectMongoDBTests: XCTestCase {
 		switch status {
 		case .error(let domain, let code, let message):
 			XCTAssert(false, "Error: \(domain) \(code) \(message)")
-		case .replyDoc(let doc):
-			print("Status doc: \(doc)")
+		case .replyDoc(_):
 			XCTAssert(true)
 		default:
 			XCTAssert(false, "Strange reply type \(status)")
@@ -695,13 +683,6 @@ class PerfectMongoDBTests: XCTestCase {
     do {
       let f = try gridfs.upload(from: "/tmp/secret.txt", to: "secret.txt", md5: "abcd1234")
       XCTAssertNotNil(f)
-      print(f.id)
-      print(f.fileName)
-      print(f.contentType)
-      print(f.md5)
-      print(f.metaData)
-      print(f.uploadDate)
-      print(f.length)
       XCTAssertEqual(f.contentType, "text/plain")
       XCTAssertEqual(f.md5, "abcd1234")
       XCTAssertEqual(f.length, Int64(secret.count))
@@ -715,11 +696,8 @@ class PerfectMongoDBTests: XCTestCase {
     fp = fopen("/tmp/secret2.txt", "rb")
     let _ = secret2.withUnsafeMutableBufferPointer{ p in
       fread(p.baseAddress, 1, 5, fp)
-      print(p.baseAddress!)
     }//end assign
     fclose(fp)
-    print(secret)
-    print(secret2)
     for i in 0...4 {
       XCTAssertEqual(secret[i], secret2[i])
     }//next i
@@ -749,8 +727,6 @@ class PerfectMongoDBTests: XCTestCase {
     // test search partially read / write
     do {
       let f = try gridfs.search(name: remote)
-      let pos = f.tell()
-      print(pos)
       let mb = 1048576
       try f.seek(cursor: Int64(mb))
       let bytes = try f.partiallyRead(amount: UInt32(mb))
@@ -770,7 +746,6 @@ class PerfectMongoDBTests: XCTestCase {
 
     // test leaky
     do {
-      print("----------------- 20 loops leaky testing -----------------------")
       for i in 0...20 {
         let toUpload = "upload\(i).bin"
         fp = fopen("/tmp/\(toUpload)", "wb")
@@ -780,9 +755,7 @@ class PerfectMongoDBTests: XCTestCase {
         XCTAssertNotNil(fx)
         let dl = try fx.download(to: "/tmp/download\(i).bin")
         XCTAssertEqual(dl, sz)
-        print("testing #\(i)")
       }//next i
-      print("----------------- leaky testing over -----------------------")
     }catch(let err){
       XCTFail("gridfs leaky: \(err)")
     }//end 
@@ -907,7 +880,7 @@ class PerfectMongoDBTests: XCTestCase {
 
     func testNewObjectIdGeneration() {
         let objectId = BSON.OID.newObjectId()
-        XCTAssertTrue(objectId.characters.count == 24, "Should generate valid ObjectId")
+        XCTAssertTrue(objectId.count == 24, "Should generate valid ObjectId")
     }
 }
 
