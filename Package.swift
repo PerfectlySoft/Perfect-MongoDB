@@ -30,11 +30,7 @@ let package = Package(
 		.package(url: "https://github.com/PerfectlySoft/PerfectLib.git", from: "3.0.0")
 	],
 	targets: [
-		.target(name: "PerfectMongoDB",
-				dependencies: [
-					"PerfectLib"
-			]
-		),
+		.target(name: "PerfectMongoDB", dependencies: ["PerfectLib"]),
 		.testTarget(name: "PerfectMongoDBTests", dependencies: ["PerfectMongoDB"])
 	]
 )
