@@ -17,7 +17,7 @@
 //===----------------------------------------------------------------------===//
 //
 
-import libmongoc
+import PerfectCMongo
 /// Enum of flags for insertion options
 public enum MongoInsertFlag: Int {
 	case none

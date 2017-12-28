@@ -1,4 +1,4 @@
-//
+// swift-tools-version:4.0
 //  Package.swift
 //  Perfect-MongoDB
 //
@@ -19,24 +19,32 @@
 
 import PackageDescription
 
-#if os(OSX)
 let package = Package(
     name: "PerfectMongoDB",
-    targets: [],
+	products: [
+		.library(name: "PerfectMongoDB",
+				 targets: [
+					"PerfectMongoDB"
+			]
+		)
+	],
     dependencies: [
-        .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c.git", majorVersion: 3),
-        .Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 3)
-    ],
-    exclude: ["Sources/libmongoc"]
+		.package(url: "https://github.com/PerfectSideRepos/Perfect-CMongo.git", from: "0.0.0"),
+		.package(url: "https://github.com/PerfectSideRepos/Perfect-CBSON.git", from: "0.0.0"),
+		.package(url: "https://github.com/PerfectlySoft/PerfectLib.git", from: "3.0.0")
+	],
+	targets: [
+		.target(name: "PerfectMongoDB",
+				dependencies: [
+					"PerfectCMongo",
+					"PerfectCBSON",
+					"PerfectLib"
+			]
+		),
+		.testTarget(name: "PerfectMongoDBTests",
+					dependencies: [
+						"PerfectMongoDB"
+			]
+		)
+	]
 )
-#else
-let package = Package(
-    name: "PerfectMongoDB",
-    targets: [],
-    dependencies: [
-        .Package(url: "https://github.com/PerfectlySoft/Perfect-mongo-c-linux.git", majorVersion: 3),
-        .Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 3)
-    ],
-    exclude: ["Sources/libmongoc"]
-)
-#endif

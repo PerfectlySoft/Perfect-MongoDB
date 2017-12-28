@@ -17,7 +17,7 @@
 //===----------------------------------------------------------------------===//
 //
 
-import libmongoc
+import PerfectCBSON
 import Foundation
 
 /// BSON error enum

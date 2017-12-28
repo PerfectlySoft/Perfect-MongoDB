@@ -17,7 +17,7 @@
 //===----------------------------------------------------------------------===//
 //
 
-import libmongoc
+import PerfectCMongo
 
 /**
  *  Result Status for a MongoDB event

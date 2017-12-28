@@ -17,7 +17,7 @@
 //===----------------------------------------------------------------------===//
 //
 
-import libmongoc
+import PerfectCMongo
 
 /// Allows connection pooling. This class is thread-safe.
 public class MongoClientPool {

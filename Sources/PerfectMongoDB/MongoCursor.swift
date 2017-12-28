@@ -17,7 +17,7 @@
 //===----------------------------------------------------------------------===//
 //
 
-import libmongoc
+import PerfectCMongo
 
 /// The Mongo Cursor interface
 public class MongoCursor: Sequence, IteratorProtocol {

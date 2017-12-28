@@ -17,7 +17,7 @@
 //===----------------------------------------------------------------------===//
 //
 
-import libmongoc
+import PerfectCMongo
 
 /// MongoDatabase is an open-source document database that provides high performance, high availability, and automatic scaling.
 public class MongoDatabase {
