@@ -18,6 +18,7 @@
 //
 
 import PerfectCMongo
+import PerfectCBSON
 
 /// File class of GridFS
 /// - Author:

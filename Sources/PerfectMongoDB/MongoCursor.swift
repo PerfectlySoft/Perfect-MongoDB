@@ -18,6 +18,7 @@
 //
 
 import PerfectCMongo
+import PerfectCBSON
 
 /// The Mongo Cursor interface
 public class MongoCursor: Sequence, IteratorProtocol {

@@ -18,6 +18,8 @@
 //
 
 import PerfectCMongo
+import PerfectCBSON
+
 /// Enum of flags for insertion options
 public enum MongoInsertFlag: Int {
 	case none
