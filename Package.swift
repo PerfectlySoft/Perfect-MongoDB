@@ -22,11 +22,7 @@ import PackageDescription
 let package = Package(
     name: "PerfectMongoDB",
 	products: [
-		.library(name: "PerfectMongoDB",
-				 targets: [
-					"PerfectMongoDB"
-			]
-		)
+		.library(name: "PerfectMongoDB", targets: ["PerfectMongoDB"])
 	],
     dependencies: [
 		.package(url: "https://github.com/PerfectSideRepos/Perfect-CMongo.git", from: "0.0.0"),
@@ -36,15 +32,9 @@ let package = Package(
 	targets: [
 		.target(name: "PerfectMongoDB",
 				dependencies: [
-					"PerfectCMongo",
-					"PerfectCBSON",
 					"PerfectLib"
 			]
 		),
-		.testTarget(name: "PerfectMongoDBTests",
-					dependencies: [
-						"PerfectMongoDB"
-			]
-		)
+		.testTarget(name: "PerfectMongoDBTests", dependencies: ["PerfectMongoDB"])
 	]
 )
