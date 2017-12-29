@@ -32,14 +32,14 @@ public class BSON: CustomStringConvertible {
 
     /// Return JSON representation of current BSON contents as a String
 	public var description: String {
-		return self.asString
+		return asString
 	}
 
     /**
     *   Allocates a new doc structure. Call the various append() functions to add fields to the bson. You can iterate the doc at any time using a bson_iter_t and bson_iter_init().
     */
 	public init() {
-		self.doc = bson_new()
+		doc = bson_new()
 	}
     
     /** Creates a new doc structure using the data provided. bytes should contain bytes that can be copied into the new doc structure.
@@ -47,7 +47,7 @@ public class BSON: CustomStringConvertible {
      *- parameter bytes: A byte array containing a serialized bson document.
     */
 	public init(bytes: [UInt8]) {
-		self.doc = bson_new_from_data(bytes, bytes.count)
+		doc = bson_new_from_data(bytes, bytes.count)
 	}
 
     /**
@@ -75,12 +75,11 @@ public class BSON: CustomStringConvertible {
      *
      */
 	public init(document: BSON) {
-		self.doc = bson_copy(document.doc!)
+		doc = bson_copy(document.doc!)
 	}
 	
 	public init(map: [String: Any?]) {
-		self.doc = bson_new()
-		
+		doc = bson_new()
 		for (key, val) in map {
 			if val is Int {
 				append(key: key, int: val as! Int)
@@ -94,16 +93,16 @@ public class BSON: CustomStringConvertible {
 				append(key: key, document: BSON(map: val as! [String: Any]))
 			} else if val is Date {
 				append(key: key, date: val as! Date)
-			} else if val == nil {
-				append(key: key)
+			} else if let val = val {
+				append(key: key, string: "\(val)")
 			} else {
-				append(key: key, string: "\(val!)")
+				append(key: key)
 			}
 		}
 	}
 
 	init(rawBson: UnsafeMutablePointer<bson_t>?) {
-		self.doc = rawBson
+		doc = rawBson
 	}
     
     deinit {
@@ -161,7 +160,6 @@ public class BSON: CustomStringConvertible {
 			return ret
 		}
 		let length = Int(doc.pointee.len)
-		
 		for i in 0..<length {
 			ret.append(data[i])
 		}
@@ -177,12 +175,12 @@ public class BSON: CustomStringConvertible {
      *
      */
 	@discardableResult
-		public func append(key k: String, document: BSON) -> Bool {
-			guard let sDoc = self.doc, let dDoc = document.doc else {
-				return false
-			}
-			return bson_append_document(sDoc, k, -1, dDoc)
+	public func append(key k: String, document: BSON) -> Bool {
+		guard let sDoc = self.doc, let dDoc = document.doc else {
+			return false
 		}
+		return bson_append_document(sDoc, k, -1, dDoc)
+	}
 
     /**
      * Appends a new field to self.doc with NULL for the value.
@@ -192,12 +190,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_null(doc, k, -1)
+	public func append(key k: String) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_null(doc, k, -1)
+	}
 
     /**
      * Appends a new field to the self.doc of type BSON_TYPE_OID using the contents of
@@ -209,13 +207,13 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, oid: bson_oid_t) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			var cpy = oid
-			return bson_append_oid(doc, k, -1, &cpy)
+	public func append(key k: String, oid: bson_oid_t) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		var cpy = oid
+		return bson_append_oid(doc, k, -1, &cpy)
+	}
 
     /**
      * Appends a new field of type BSON_TYPE_INT64 to self.doc .
@@ -227,12 +225,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, int: Int) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_int64(doc, k, -1, Int64(int))
+	public func append(key k: String, int: Int) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_int64(doc, k, -1, Int64(int))
+	}
 
     /**
      * Appends a new field of type BSON_TYPE_INT32 to self.doc .
@@ -244,13 +242,13 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, int32: Int32) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_int32(doc, k, -1, int32)
+	public func append(key k: String, int32: Int32) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
-	
+		return bson_append_int32(doc, k, -1, int32)
+	}
+
 	/**
 	* Appends a new field to self.doc of type BSON_TYPE_DATE_TIME.
 	* This is simply a wrapper for append(key:, dateTime:)
@@ -277,12 +275,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if sucessful; otherwise false.
      */
 	@discardableResult
-		public func append(key k: String, dateTime: Int64) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_date_time(doc, k, -1, dateTime)
+	public func append(key k: String, dateTime: Int64) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_date_time(doc, k, -1, dateTime)
+	}
 
     /**
      * Appends a BSON_TYPE_DATE_TIME field to self.doc using the time_t @value for the
@@ -295,12 +293,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, time: time_t) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_time_t(doc, k, -1, time)
+	public func append(key k: String, time: time_t) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_time_t(doc, k, -1, time)
+	}
 
     /**
      * Appends a new field to self.doc of the type BSON_TYPE_DOUBLE.
@@ -311,12 +309,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, double: Double) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_double(doc, k, -1, double)
+	public func append(key k: String, double: Double) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_double(doc, k, -1, double)
+	}
 
     /**
      * Appends a new field to self.doc of type BSON_TYPE_BOOL.
@@ -327,12 +325,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, bool: Bool) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_bool(doc, k, -1, bool)
+	public func append(key k: String, bool: Bool) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_bool(doc, k, -1, bool)
+	}
 
     /**
      * Appends a new field to self.doc using @key as the key and @string as the UTF-8
@@ -344,12 +342,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, string: String) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_utf8(doc, k, -1, string, -1)
+	public func append(key k: String, string: String) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_utf8(doc, k, -1, string, -1)
+	}
     
     /**
      * Appends a bytes buffer to the BSON document.
@@ -360,12 +358,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, bytes: [UInt8]) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_binary(doc, k, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
+	public func append(key k: String, bytes: [UInt8]) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_binary(doc, k, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
+	}
 
     /**
      * Appends a new field to self.doc of type BSON_TYPE_REGEX. @regex should
@@ -389,12 +387,12 @@ public class BSON: CustomStringConvertible {
      * - returns: true if successful; false if append would overflow max size.
      */
 	@discardableResult
-		public func append(key k: String, regex: String, options: String) -> Bool {
-			guard let doc = self.doc else {
-				return false
-			}
-			return bson_append_regex(doc, k, -1, regex, options)
+	public func append(key k: String, regex: String, options: String) -> Bool {
+		guard let doc = self.doc else {
+			return false
 		}
+		return bson_append_regex(doc, k, -1, regex, options)
+	}
 
     /**
      * Counts the number of elements found in self.doc.
@@ -461,6 +459,20 @@ public class BSON: CustomStringConvertible {
 		return bson_append_array_end(doc, cdoc)
 	}
 
+	public func appendDocumentBegin(key k: String, child: BSON) -> Bool {
+		guard let doc = self.doc, let cdoc = child.doc else {
+			return false
+		}
+		return bson_append_document_begin(doc, k, -1, cdoc)
+	}
+	
+	public func appendDocumentEnd(child: BSON) -> Bool {
+		guard let doc = self.doc, let cdoc = child.doc else {
+			return false
+		}
+		return bson_append_document_end(doc, cdoc)
+	}
+	
     /**
      * Appends a BSON array to self.doc. BSON arrays are like documents where the
      * key is the string version of the index. For example, the first item of the
@@ -535,33 +547,40 @@ public class BSON: CustomStringConvertible {
 	}
 }
 
-/**
- * compare two BSON documents for equality
- *
- * - returns: BOOL.
- */
-public func ==(lhs: BSON, rhs: BSON) -> Bool {
-    guard let ldoc = lhs.doc, let rdoc = rhs.doc else {
-        return false
-    }
-	let cmp = bson_compare(ldoc, rdoc)
-	return cmp == 0
+extension BSON: Equatable {
+	static public func ==(lhs: BSON, rhs: BSON) -> Bool {
+		guard let ldoc = lhs.doc, let rdoc = rhs.doc else {
+			return false
+		}
+		let cmp = bson_compare(ldoc, rdoc)
+		return cmp == 0
+	}
 }
 
-/**
- * compare two BSON documents for sort priority
- *
- * - returns: true if lhs sorts above rhs, false otherwise.
- */
-public func <(lhs: BSON, rhs: BSON) -> Bool {
-    guard let ldoc = lhs.doc, let rdoc = rhs.doc else {
-        return false
-    }
-    let cmp = bson_compare(ldoc, rdoc)
-	return cmp < 0
+extension BSON: Comparable {
+	static public func <(lhs: BSON, rhs: BSON) -> Bool {
+		guard let ldoc = lhs.doc, let rdoc = rhs.doc else {
+			return false
+		}
+		let cmp = bson_compare(ldoc, rdoc)
+		return cmp < 0
+	}
 }
 
-extension BSON: Comparable {}
+public extension BSON {
+	func appendDocument(key: String, closure: (BSON) throws -> ()) rethrows {
+		let child = BSON()
+		_ = appendDocumentBegin(key: key, child: child)
+		try closure(child)
+		_ = appendDocumentEnd(child: child)
+	}
+	func appendArray(key: String, closure: (BSON) throws -> ()) rethrows {
+		let child = BSON()
+		_ = appendArrayBegin(key: key, child: child)
+		try closure(child)
+		_ = appendArrayEnd(child: child)
+	}
+}
 
 class NoDestroyBSON: BSON {
 	override func close() {
@@ -791,7 +810,7 @@ extension BSON {
 		private init() {}
 		
 		init?(bson: BSON) {
-			guard bson_iter_init(&self.iter, bson.doc) else {
+			guard bson_iter_init(&iter, bson.doc) else {
 				return nil
 			}
 		}
@@ -816,11 +835,30 @@ extension BSON {
 		/// Follow standard MongoDB dot notation to recurse into subdocuments.
 		/// Returns nil if the descendant is not found.
 		public mutating func findDescendant(key: String) -> Iterator? {
-			var subit = Iterator()
-			guard bson_iter_find_descendant(&iter, key, &subit.iter) else {
+			// NOTE:
+			// the mongo-c function bson_iter_find_descendant was crashing on macOS
+			guard !key.isEmpty else {
+				return self
+			}
+			var keys = key.split(separator: ".").makeIterator()
+			guard let subKey = keys.next() else {
 				return nil
 			}
-			return subit
+			return findDescendant(key: String(subKey), keyIt: keys)
+		}
+		
+		private mutating func findDescendant(key: String, keyIt: IndexingIterator<[String.SubSequence]>) -> Iterator? {
+			guard find(key: String(key)) else {
+				return nil
+			}
+			var it = keyIt
+			if let subKey = it.next() {
+				guard var sub = currentChildIterator else {
+					return nil
+				}
+				return sub.findDescendant(key: String(subKey), keyIt: it)
+			}
+			return self
 		}
 	}
 	/// Return a new iterator for this document.

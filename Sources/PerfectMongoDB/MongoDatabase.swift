@@ -18,7 +18,6 @@
 //
 
 import PerfectCMongo
-import PerfectCBSON
 
 /// MongoDatabase is an open-source document database that provides high performance, high availability, and automatic scaling.
 public class MongoDatabase {

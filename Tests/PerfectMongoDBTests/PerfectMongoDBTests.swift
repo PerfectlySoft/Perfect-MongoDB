@@ -96,31 +96,26 @@ class PerfectMongoDBTests: XCTestCase {
 	}
 	
 	func testBSONIterate() {
+		let t = time(nil)
 		let bson = BSON()
 		defer {
 			bson.close()
 		}
-		
 		XCTAssert(bson.append(key: "stringKey", string: "String Value"))
 		XCTAssert(bson.append(key: "intKey", int: 42))
 		XCTAssert(bson.append(key: "nullKey"))
 		XCTAssert(bson.append(key: "int32Key", int32: 42))
 		XCTAssert(bson.append(key: "doubleKey", double: 4.2))
-		
 		XCTAssert(bson.append(key: "boolKey", bool: true))
-		
-		let t = time(nil)
-		XCTAssert(bson.append(key: "timeKey", time: t))
-		XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
-		
-		let bsonAry = BSON()
-		bsonAry.append(key: "0", string: "String Value 1")
-		bsonAry.append(key: "1", string: "String Value 2")
-		
-		XCTAssert(bson.appendArray(key: "arrayKey", array: bsonAry))
-		
+		do {
+			XCTAssert(bson.append(key: "timeKey", time: t))
+			XCTAssert(bson.append(key: "dateTimeKey", dateTime: 4200102))
+			let bsonAry = BSON()
+			bsonAry.append(key: "0", string: "String Value 1")
+			bsonAry.append(key: "1", string: "String Value 2")
+			XCTAssert(bson.appendArray(key: "arrayKey", array: bsonAry))
+		}
 		bson.append(key: "regexKey", regex: "/[^ ]/c", options: "")
-		
 		let expectedKeys = ["stringKey", "intKey", "nullKey", "int32Key", "doubleKey",
 		                    "boolKey", "timeKey", "dateTimeKey", "arrayKey", "regexKey"]
 		do {
@@ -142,14 +137,12 @@ class PerfectMongoDBTests: XCTestCase {
 					guard var subIt = iterator.currentChildIterator else {
 						return XCTAssert(false)
 					}
-					
 					XCTAssert(subIt.next())
 					XCTAssert(subIt.currentKey == "0")
 					XCTAssert(subIt.currentValue?.string == "String Value 1")
 					XCTAssert(subIt.next())
 					XCTAssert(subIt.currentKey == "1")
 					XCTAssert(subIt.currentValue?.string == "String Value 2")
-					
 				} else {
 					guard let value = iterator.currentValue else {
 						return XCTAssert(false, "No value")
@@ -157,7 +150,6 @@ class PerfectMongoDBTests: XCTestCase {
 					valuesDict[currentKey] = value
 				}
 			}
-			
 			XCTAssert(valuesDict["stringKey"]!.string! == "String Value")
 			XCTAssert(valuesDict["intKey"]!.int! == 42)
 			XCTAssert(valuesDict["int32Key"]!.int! == 42)
@@ -165,7 +157,6 @@ class PerfectMongoDBTests: XCTestCase {
 			XCTAssert(valuesDict["boolKey"]!.bool)
 			XCTAssert(time_t(valuesDict["timeKey"]!.int!) == t * 1000)
 			XCTAssert(valuesDict["dateTimeKey"]!.int! == 4200102)
-			
 			XCTAssert(nil == keysGen.next())
 		}
 		
@@ -651,127 +642,126 @@ class PerfectMongoDBTests: XCTestCase {
 		
 	}
 
-  func testGridFS() {
-    let client = try! MongoClient(uri: "mongodb://localhost")
-    var gridfs: GridFS
-    do {
-      gridfs = try client.gridFS(database: "test")
-    }catch(let err) {
-      XCTFail("gridfs open: \(err)")
-      return
-    }
+	func testGridFS() {
+		let client = try! MongoClient(uri: "mongodb://localhost")
+		var gridfs: GridFS
+		do {
+			gridfs = try client.gridFS(database: "test")
+		} catch {
+			XCTFail("gridfs open: \(error)")
+			return
+		}
+		
+		defer {
+			gridfs.close()
+		}
+		
+		// test list / delete
+		do {
+			let a = try gridfs.list()
+			XCTAssertGreaterThanOrEqual(a.count, 0)
+			try a.forEach { try $0.delete() }
+		} catch {
+			XCTFail("gridfs list / delete: \(error)")
+		}
+		
+		let secret:[UInt8] = [65, 66, 67, 68, 0] // "ABCD\0"
+		var fp = fopen("/tmp/secret.txt", "wb")
+		fwrite(secret, 1, secret.count, fp)
+		fclose(fp)
+		
+		// test upload / download / properties
+		do {
+			let f = try gridfs.upload(from: "/tmp/secret.txt", to: "secret.txt", md5: "abcd1234")
+			XCTAssertNotNil(f)
+			XCTAssertEqual(f.contentType, "text/plain")
+			XCTAssertEqual(f.md5, "abcd1234")
+			XCTAssertEqual(f.length, Int64(secret.count))
+			let dl = try f.download(to: "/tmp/secret2.txt")
+			XCTAssertEqual(dl, secret.count)
+		} catch {
+			XCTFail("gridfs.upload / download mismatched = \(error)")
+		}
+		
+		var secret2:[UInt8] = [0, 0, 0, 0, 0]
+		fp = fopen("/tmp/secret2.txt", "rb")
+		let _ = secret2.withUnsafeMutableBufferPointer{ p in
+			fread(p.baseAddress, 1, 5, fp)
+		}
+		fclose(fp)
+		for i in 0...4 {
+			XCTAssertEqual(secret[i], secret2[i])
+		}//next i
+		
+		unlink("/tmp/secret.txt")
+		unlink("/tmp/secret2.txt")
+		
+		
+		// test big file upload
+		let local = "/tmp/base128.dat"
+		let sz = 134217728 / 3 // 128MB / 3
+		let buffer = [UInt8](repeating: 66, count:sz)
+		fp = fopen(local, "wb")
+		fwrite(buffer, 1, sz, fp)
+		fclose(fp)
+		let remote = "base128.dat"
+		
+		do {
+			let f = try gridfs.upload(from: local, to: remote)
+			XCTAssertNotNil(f)
+			f.close()
+		} catch {
+			XCTFail("gridfs.upload failed = \(error)")
+		}
+		unlink(local)
+		
+		// test search partially read / write
+		do {
+			let f = try gridfs.search(name: remote)
+			let mb = 1048576 / 3
+			try f.seek(cursor: Int64(mb))
+			let bytes = try f.partiallyRead(amount: UInt32(mb))
+			XCTAssertEqual(bytes.count, mb)
+			bytes.forEach { XCTAssertEqual($0, 66) }
+			try f.seek(cursor: Int64(mb * 10))
+			let buf = [UInt8](repeating: 67, count: mb)
+			let sz = try f.partiallyWrite(bytes: buf)
+			XCTAssertEqual(sz, mb)
+			try f.seek(cursor: Int64(mb * 10))
+			let buf2 = try f.partiallyRead(amount: UInt32(mb))
+			buf2.forEach{ XCTAssertEqual($0, 67) }
+			try f.delete()
+		} catch {
+			XCTFail("gridfs partially read / write: \(error)")
+		}
+		
+		// test leaky
+		do {
+			for i in 0...20 {
+				let toUpload = "upload\(i).bin"
+				fp = fopen("/tmp/\(toUpload)", "wb")
+				fwrite(buffer, 1, sz, fp)
+				fclose(fp)
+				let fx = try gridfs.upload(from: "/tmp/\(toUpload)", to: toUpload)
+				XCTAssertNotNil(fx)
+				let dl = try fx.download(to: "/tmp/download\(i).bin")
+				XCTAssertEqual(dl, sz)
+			}
+		} catch {
+			XCTFail("gridfs leaky: \(error)")
+		}
+		
+		// clean up
+		do {
+			let a = try gridfs.list()
+			try a.forEach { file in
+				try file.delete()
+			}
+		} catch {
+			XCTFail("gridfs list: \(error)")
+		}
+	}
 
-    defer {
-      gridfs.close()
-    }//end defer
-
-    // test list / delete
-    do {
-      let a = try gridfs.list()
-      XCTAssertGreaterThanOrEqual(a.count, 0)
-      try a.forEach { try $0.delete() }
-    }catch (let err) {
-      XCTFail("gridfs list / delete: \(err)")
-    }//end list
-
-    let secret:[UInt8] = [65, 66, 67, 68, 0] // "ABCD\0"
-    var fp = fopen("/tmp/secret.txt", "wb")
-    fwrite(secret, 1, secret.count, fp)
-    fclose(fp)
-
-    // test upload / download / properties
-    do {
-      let f = try gridfs.upload(from: "/tmp/secret.txt", to: "secret.txt", md5: "abcd1234")
-      XCTAssertNotNil(f)
-      XCTAssertEqual(f.contentType, "text/plain")
-      XCTAssertEqual(f.md5, "abcd1234")
-      XCTAssertEqual(f.length, Int64(secret.count))
-      let dl = try f.download(to: "/tmp/secret2.txt")
-      XCTAssertEqual(dl, secret.count)
-    }catch (let err) {
-      XCTFail("gridfs.upload / download mismatched = \(err)")
-    }//end do
-
-    var secret2:[UInt8] = [0, 0, 0, 0, 0]
-    fp = fopen("/tmp/secret2.txt", "rb")
-    let _ = secret2.withUnsafeMutableBufferPointer{ p in
-      fread(p.baseAddress, 1, 5, fp)
-    }//end assign
-    fclose(fp)
-    for i in 0...4 {
-      XCTAssertEqual(secret[i], secret2[i])
-    }//next i
-
-    unlink("/tmp/secret.txt")
-    unlink("/tmp/secret2.txt")
-
-
-    // test big file upload
-    let local = "/tmp/base128.dat"
-    let sz = 134217728 // 128MB
-    let buffer = [UInt8](repeating: 66, count:sz)
-    fp = fopen(local, "wb")
-    fwrite(buffer, 1, sz, fp)
-    fclose(fp)
-    let remote = "base128.dat"
-
-    do {
-      let f = try gridfs.upload(from: local, to: remote)
-      XCTAssertNotNil(f)
-      f.close()
-    }catch(let err) {
-      XCTFail("gridfs.upload failed = \(err)")
-    }//end do
-    unlink(local)
-
-    // test search partially read / write
-    do {
-      let f = try gridfs.search(name: remote)
-      let mb = 1048576
-      try f.seek(cursor: Int64(mb))
-      let bytes = try f.partiallyRead(amount: UInt32(mb))
-      XCTAssertEqual(bytes.count, mb)
-      bytes.forEach { XCTAssertEqual($0, 66) }
-      try f.seek(cursor: Int64(mb * 10))
-      let buf = [UInt8](repeating: 67, count: mb)
-      let sz = try f.partiallyWrite(bytes: buf)
-      XCTAssertEqual(sz, mb)
-      try f.seek(cursor: Int64(mb * 10))
-      let buf2 = try f.partiallyRead(amount: UInt32(mb))
-      buf2.forEach{ XCTAssertEqual($0, 67) }
-      try f.delete()
-    }catch(let err){
-      XCTFail("gridfs partially read / write: \(err)")
-    }//end f
-
-    // test leaky
-    do {
-      for i in 0...20 {
-        let toUpload = "upload\(i).bin"
-        fp = fopen("/tmp/\(toUpload)", "wb")
-        fwrite(buffer, 1, sz, fp)
-        fclose(fp)
-        let fx = try gridfs.upload(from: "/tmp/\(toUpload)", to: toUpload)
-        XCTAssertNotNil(fx)
-        let dl = try fx.download(to: "/tmp/download\(i).bin")
-        XCTAssertEqual(dl, sz)
-      }//next i
-    }catch(let err){
-      XCTFail("gridfs leaky: \(err)")
-    }//end 
-
-    // clean up
-    do {
-      let a = try gridfs.list()
-      try a.forEach { file in
-        try file.delete()
-      }//next
-    }catch (let err) {
-      XCTFail("gridfs list: \(err)")
-    }//end do
-  }//end testGridFS
-
-    
     func testAggregate() {
         let groupsCollectionName = "testaggregate.groups"
         let usersCollectionName = "testaggregate.users"

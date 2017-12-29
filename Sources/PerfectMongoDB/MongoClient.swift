@@ -18,7 +18,6 @@
 //
 
 import PerfectCMongo
-import PerfectCBSON
 
 /**
  *  Result Status for a MongoDB event
