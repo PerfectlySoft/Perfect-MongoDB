@@ -58,7 +58,7 @@ Perfect - MongoDB 数据库连接器 [English](README.md)
 
 目前的问题清单请查阅 [http://jira.perfect.org:8080/projects/ISS/issues](http://jira.perfect.org:8080/projects/ISS/issues)
 
-OS X 注意事项
+macOS 注意事项
 ----------------
 
 本程序依赖于 [Homebrew](http://brew.sh) 发行的 mongo-c 函数库。 
@@ -84,19 +84,13 @@ Linux 注意事项
 apt-get install libmongoc-dev libbson-dev libssl-dev
 ```
 
-另外，Perfect 默认 libmongoc 安装在 /usr/local/include 目录下。如果不是的话，请您手工增加链接：
-
-```
-ln -s /usr/include/libmongoc-1.0/ libmongoc-1.0
-```
-
 编译
 --------
 
 请在您的 Package.swift 文件下增加以下内容：
 
 ```swift
-.Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 2, minor: 0)
+.Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 3)
 ```
 
 快速上手
@@ -116,8 +110,8 @@ let package = Package(
  name: "PerfectTemplate",
  targets: [],
  dependencies: [
-     .Package(url:"https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 2, minor: 0),
-     .Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 2, minor: 0)
+     .Package(url:"https://github.com/PerfectlySoft/PerfectLib.git", majorVersion: 3),
+     .Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 3)
     ]
 )
 ```
