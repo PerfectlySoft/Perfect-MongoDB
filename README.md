@@ -61,7 +61,7 @@ If you find a mistake, bug, or any other helpful suggestion you'd like to make o
 
 A comprehensive list of open issues can be found at [http://jira.perfect.org:8080/projects/ISS/issues](http://jira.perfect.org:8080/projects/ISS/issues)
 
-OS X Build Notes
+macOS Build Notes
 ----------------
 
 This package requires the [Homebrew](http://brew.sh) build of mongo-c.
@@ -85,12 +85,6 @@ Ensure that you have installed components below:
 
 ```
 apt-get install libmongoc-dev libbson-dev libssl-dev
-```
-
-The default installation of libmongoc is /usr/local/include. If not, please correct the path manually:
-
-```
-ln -s /usr/include/libmongoc-1.0/ libmongoc-1.0
 ```
 
 Building
