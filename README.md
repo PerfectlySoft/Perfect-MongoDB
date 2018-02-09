@@ -50,17 +50,6 @@ be stand-alone and so does not require PerfectLib or any other components.
 
 Ensure you have installed and activated the latest Swift 4.0 tool chain.
 
-
-
-
-## Issues
-
-We are transitioning to using JIRA for all bugs and support related issues, therefore the GitHub issues has been disabled.
-
-If you find a mistake, bug, or any other helpful suggestion you'd like to make on the docs please head over to [http://jira.perfect.org:8080/servicedesk/customer/portal/1](http://jira.perfect.org:8080/servicedesk/customer/portal/1) and raise it.
-
-A comprehensive list of open issues can be found at [http://jira.perfect.org:8080/projects/ISS/issues](http://jira.perfect.org:8080/projects/ISS/issues)
-
 macOS Build Notes
 ----------------
 
