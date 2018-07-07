@@ -314,7 +314,7 @@ public class MongoCollection {
             // bson_destroy (doc)
         }
         
-        guard mongoc_bulk_operation_execute(bulk, &reply, &error) == 1 else {
+        guard mongoc_bulk_operation_execute(bulk, &reply, &error) != 0 else {
             return Result.fromError(error)
         }
         
