@@ -1,4 +1,4 @@
-// swift-tools-version:4.0
+// swift-tools-version:4.1
 //  Package.swift
 //  Perfect-MongoDB
 //
@@ -20,12 +20,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "PerfectMongoDB",
+	name: "PerfectMongoDB",
 	products: [
 		.library(name: "PerfectMongoDB", targets: ["PerfectMongoDB"])
 	],
-    dependencies: [
-		.package(url: "https://github.com/PerfectSideRepos/Perfect-CMongo.git", from: "0.0.0"),
+	dependencies: [
+		.package(url: "https://github.com/PerfectSideRepos/Perfect-CMongo.git", from: "0.1.0"),
 		.package(url: "https://github.com/PerfectSideRepos/Perfect-CBSON.git", from: "0.0.0"),
 		.package(url: "https://github.com/PerfectlySoft/PerfectLib.git", from: "3.0.0")
 	],

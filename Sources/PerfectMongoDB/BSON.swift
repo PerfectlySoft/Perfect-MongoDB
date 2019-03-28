@@ -26,9 +26,40 @@ public enum BSONError: Error {
 	case syntaxError(String)
 }
 
+public typealias BSONPtr = UnsafeMutablePointer<bson_t>?
+
+// --
+// Swift 5 changed how bson.h and such are imported, which threw this code into disarray.
+// These funky funcs handle most of the differences.
+func toOpaque<T>(_ i: UnsafeMutablePointer<T>?) -> OpaquePointer? {
+	return OpaquePointer(i)
+}
+func toOpaque<T>(_ i: UnsafeMutablePointer<T>?) -> UnsafePointer<T>? {
+	return UnsafePointer(i)
+}
+func toOpaque<T>(_ i: UnsafeMutablePointer<T>?) -> UnsafeMutablePointer<T>? {
+	return i
+}
+func toOpaque(_ i: UnsafePointer<bson_iter_t>?) -> OpaquePointer? {
+	return OpaquePointer(i)
+}
+func toOpaque(_ i: UnsafePointer<bson_iter_t>?) -> UnsafePointer<bson_iter_t>? {
+	return i
+}
+func fromOpaque<T>(_ i: OpaquePointer?) -> UnsafeMutablePointer<T>? {
+	return UnsafeMutablePointer<T>(i)
+}
+func fromOpaque<T>(_ i: OpaquePointer) -> UnsafeMutablePointer<T>? {
+	return UnsafeMutablePointer<T>(i)
+}
+func fromOpaque<T>(_ i: UnsafeMutablePointer<T>?) -> UnsafeMutablePointer<T>? {
+	return i
+}
+// --
+
 /// BSON class 
 public class BSON: CustomStringConvertible {
-	var doc: UnsafeMutablePointer<bson_t>?
+	var doc: BSONPtr
 
     /// Return JSON representation of current BSON contents as a String
 	public var description: String {
@@ -39,7 +70,7 @@ public class BSON: CustomStringConvertible {
     *   Allocates a new doc structure. Call the various append() functions to add fields to the bson. You can iterate the doc at any time using a bson_iter_t and bson_iter_init().
     */
 	public init() {
-		doc = bson_new()
+		doc = fromOpaque(bson_new())
 	}
     
     /** Creates a new doc structure using the data provided. bytes should contain bytes that can be copied into the new doc structure.
@@ -47,7 +78,7 @@ public class BSON: CustomStringConvertible {
      *- parameter bytes: A byte array containing a serialized bson document.
     */
 	public init(bytes: [UInt8]) {
-		doc = bson_new_from_data(bytes, bytes.count)
+		doc = fromOpaque(bson_new_from_data(bytes, bytes.count))
 	}
 
     /**
@@ -65,7 +96,7 @@ public class BSON: CustomStringConvertible {
             }
             throw BSONError.syntaxError(message)
         }
-		self.doc = doc
+		self.doc = fromOpaque(doc)
 	}
     
     /**
@@ -75,11 +106,11 @@ public class BSON: CustomStringConvertible {
      *
      */
 	public init(document: BSON) {
-		doc = bson_copy(document.doc!)
+		doc = fromOpaque(bson_copy(toOpaque(document.doc)))
 	}
 	
 	public init(map: [String: Any?]) {
-		doc = bson_new()
+		doc = fromOpaque(bson_new())
 		for (key, val) in map {
 			if val is Int {
 				append(key: key, int: val as! Int)
@@ -114,7 +145,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc else {
             return
         }
-		bson_destroy(doc)
+		bson_destroy(toOpaque(doc))
         self.doc = nil
 	}
 
@@ -128,7 +159,7 @@ public class BSON: CustomStringConvertible {
      */
 	public var asString: String {
 		var length = 0
-		guard let doc = self.doc, let data = bson_as_json(doc, &length) else {
+		guard let doc = self.doc, let data = bson_as_json(toOpaque(doc), &length) else {
 			return ""
 		}
 		defer {
@@ -140,7 +171,7 @@ public class BSON: CustomStringConvertible {
     /** like asString() but for outermost arrays. */
 	public var asArrayString: String {
 		var length = 0
-		guard let doc = self.doc, let data = bson_array_as_json(doc, &length) else {
+		guard let doc = self.doc, let data = bson_array_as_json(toOpaque(doc), &length) else {
 			return ""
 		}
 		defer {
@@ -156,7 +187,7 @@ public class BSON: CustomStringConvertible {
      */
 	public var asBytes: [UInt8] {
 		var ret = [UInt8]()
-		guard let doc = self.doc, let data = bson_get_data(doc) else {
+		guard let doc = self.doc, let data = bson_get_data(toOpaque(doc)) else {
 			return ret
 		}
 		let length = Int(doc.pointee.len)
@@ -179,7 +210,7 @@ public class BSON: CustomStringConvertible {
 		guard let sDoc = self.doc, let dDoc = document.doc else {
 			return false
 		}
-		return bson_append_document(sDoc, k, -1, dDoc)
+		return bson_append_document(toOpaque(sDoc), k, -1, toOpaque(dDoc))
 	}
 
     /**
@@ -194,7 +225,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_null(doc, k, -1)
+		return bson_append_null(toOpaque(doc), k, -1)
 	}
 
     /**
@@ -212,7 +243,7 @@ public class BSON: CustomStringConvertible {
 			return false
 		}
 		var cpy = oid
-		return bson_append_oid(doc, k, -1, &cpy)
+		return bson_append_oid(toOpaque(doc), k, -1, &cpy)
 	}
 
     /**
@@ -229,7 +260,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_int64(doc, k, -1, Int64(int))
+		return bson_append_int64(toOpaque(doc), k, -1, Int64(int))
 	}
 
     /**
@@ -246,7 +277,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_int32(doc, k, -1, int32)
+		return bson_append_int32(toOpaque(doc), k, -1, int32)
 	}
 
 	/**
@@ -279,7 +310,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_date_time(doc, k, -1, dateTime)
+		return bson_append_date_time(toOpaque(doc), k, -1, dateTime)
 	}
 
     /**
@@ -297,7 +328,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_time_t(doc, k, -1, time)
+		return bson_append_time_t(toOpaque(doc), k, -1, time)
 	}
 
     /**
@@ -313,7 +344,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_double(doc, k, -1, double)
+		return bson_append_double(toOpaque(doc), k, -1, double)
 	}
 
     /**
@@ -329,7 +360,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_bool(doc, k, -1, bool)
+		return bson_append_bool(toOpaque(doc), k, -1, bool)
 	}
 
     /**
@@ -346,7 +377,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_utf8(doc, k, -1, string, -1)
+		return bson_append_utf8(toOpaque(doc), k, -1, string, -1)
 	}
     
     /**
@@ -362,7 +393,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_binary(doc, k, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
+		return bson_append_binary(toOpaque(doc), k, -1, BSON_SUBTYPE_BINARY, bytes, UInt32(bytes.count))
 	}
 
     /**
@@ -391,7 +422,7 @@ public class BSON: CustomStringConvertible {
 		guard let doc = self.doc else {
 			return false
 		}
-		return bson_append_regex(doc, k, -1, regex, options)
+		return bson_append_regex(toOpaque(doc), k, -1, regex, options)
 	}
 
     /**
@@ -402,7 +433,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc else {
             return 0
         }
-		return Int(bson_count_keys(doc))
+		return Int(bson_count_keys(toOpaque(doc)))
 	}
     
     /**
@@ -418,7 +449,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc else {
             return false
         }
-		return bson_has_field(doc, k)
+		return bson_has_field(toOpaque(doc), k)
 	}
 
     /**
@@ -441,7 +472,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc, let cdoc = child.doc else {
             return false
         }
-		return bson_append_array_begin(doc, k, -1, cdoc)
+		return bson_append_array_begin(toOpaque(doc), k, -1, toOpaque(cdoc))
 	}
 
     /**
@@ -456,21 +487,21 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc, let cdoc = child.doc else {
             return false
         }
-		return bson_append_array_end(doc, cdoc)
+		return bson_append_array_end(toOpaque(doc), toOpaque(cdoc))
 	}
 
 	public func appendDocumentBegin(key k: String, child: BSON) -> Bool {
 		guard let doc = self.doc, let cdoc = child.doc else {
 			return false
 		}
-		return bson_append_document_begin(doc, k, -1, cdoc)
+		return bson_append_document_begin(toOpaque(doc), k, -1, toOpaque(cdoc))
 	}
 	
 	public func appendDocumentEnd(child: BSON) -> Bool {
 		guard let doc = self.doc, let cdoc = child.doc else {
 			return false
 		}
-		return bson_append_document_end(doc, cdoc)
+		return bson_append_document_end(toOpaque(doc), toOpaque(cdoc))
 	}
 	
     /**
@@ -487,7 +518,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc, let adoc = array.doc else {
             return false
         }
-		return bson_append_array(doc, k, -1, adoc)
+		return bson_append_array(toOpaque(doc), k, -1, toOpaque(adoc))
 	}
 
     /**
@@ -501,7 +532,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc, let sdoc = src.doc else {
             return false
         }
-		return bson_concat(doc, sdoc)
+		return bson_concat(toOpaque(doc), toOpaque(sdoc))
 	}
 	
 	/// Represents a BSON OID.
@@ -510,7 +541,7 @@ public class BSON: CustomStringConvertible {
 		public var description: String {
 			let up = UnsafeMutablePointer<Int8>.allocate(capacity: 25)
 			defer {
-				up.deallocate(capacity: 25)
+				up.deallocate()
 			}
 			var oid = self.oid
 			bson_oid_to_string(&oid, up)
@@ -542,7 +573,7 @@ public class BSON: CustomStringConvertible {
 			return false
 		}
 		var oid = oid.oid
-		bson_append_oid(doc, key, -1, &oid)
+		bson_append_oid(toOpaque(doc), key, -1, &oid)
 		return true
 	}
 }
@@ -552,7 +583,7 @@ extension BSON: Equatable {
 		guard let ldoc = lhs.doc, let rdoc = rhs.doc else {
 			return false
 		}
-		let cmp = bson_compare(ldoc, rdoc)
+		let cmp = bson_compare(toOpaque(ldoc), toOpaque(rdoc))
 		return cmp == 0
 	}
 }
@@ -562,7 +593,7 @@ extension BSON: Comparable {
 		guard let ldoc = lhs.doc, let rdoc = rhs.doc else {
 			return false
 		}
-		let cmp = bson_compare(ldoc, rdoc)
+		let cmp = bson_compare(toOpaque(ldoc), toOpaque(rdoc))
 		return cmp < 0
 	}
 }
@@ -680,9 +711,10 @@ extension BSON {
 			case .document:
 				var data = UnsafePointer<UInt8>(bitPattern: 0)
 				var len = 0 as UInt32
-				bson_iter_document(iter, &len, &data)
+				bson_iter_document(toOpaque(iter), &len, &data)
+				//bson_iter_document(OpaquePointer(iter), &len, &data)
 				let bson = bson_new_from_data(data, Int(len))
-				self.doc = BSON(rawBson: bson)
+				self.doc = BSON(rawBson: fromOpaque(bson))
 				bytes = nil
 				string = nil
 				double = 0.0
@@ -775,12 +807,12 @@ extension BSON {
 		/// The type of the current value.
 		public var currentType: BSONType? {
 			var cpy = iter
-			return BSONType(rawValue: bson_iter_type(&cpy).rawValue)
+			return BSONType(rawValue: bson_iter_type(toOpaque(&cpy)).rawValue)
 		}
 		/// The key for the current value.
 		public var currentKey: String? {
 			var cpy = iter
-			guard let c = bson_iter_key(&cpy) else {
+			guard let c = bson_iter_key(toOpaque(&cpy)) else {
 				return nil
 			}
 			return String(validatingUTF8: c)
@@ -801,7 +833,7 @@ extension BSON {
 		/// The BSON value for the current element.
 		public var currentValue: BSONValue? {
 			var cpy = iter
-			guard let b = bson_iter_value(&cpy) else {
+			guard let b = bson_iter_value(toOpaque(&cpy)) else {
 				return nil
 			}
 			return BSONValue(value: b, iter: &cpy)
@@ -810,14 +842,14 @@ extension BSON {
 		private init() {}
 		
 		init?(bson: BSON) {
-			guard bson_iter_init(&iter, bson.doc) else {
+			guard bson_iter_init(toOpaque(&iter), toOpaque(bson.doc)) else {
 				return nil
 			}
 		}
 		
 		init?(recursing: bson_iter_t) {
 			var c1 = recursing
-			guard bson_iter_recurse(&c1, &iter) else {
+			guard bson_iter_recurse(toOpaque(&c1), toOpaque(&iter)) else {
 				return nil
 			}
 		}
@@ -825,12 +857,12 @@ extension BSON {
 		/// Advance to the next element.
 		/// Note that all iterations must begin by first calling next.
 		public mutating func next() -> Bool {
-			return bson_iter_next(&iter)
+			return bson_iter_next(toOpaque(&iter))
 		}
 		/// Located the key and advance the iterator to point at it.
 		/// If `withCase` is false then the search will be case in-sensitive.
 		public mutating func find(key: String, withCase: Bool = true) -> Bool {
-			return withCase ? bson_iter_find(&iter, key) : bson_iter_find_case(&iter, key)
+			return withCase ? bson_iter_find(toOpaque(&iter), key) : bson_iter_find_case(toOpaque(&iter), key)
 		}
 		/// Follow standard MongoDB dot notation to recurse into subdocuments.
 		/// Returns nil if the descendant is not found.

@@ -57,10 +57,19 @@ public class MongoCursor: Sequence, IteratorProtocol {
         guard let ptr = self.ptr else {
             return nil
         }
-		var bson = UnsafePointer<bson_t>(nil as OpaquePointer?)
-		if mongoc_cursor_next(ptr, &bson) {
-			return NoDestroyBSON(rawBson: UnsafeMutablePointer<bson_t>(mutating: bson))
+		
+		var bson = UnsafeRawPointer(nil as OpaquePointer?)
+		// this func is in PerfectCMongo shim.h
+		if _mongoc_cursor_next(ptr, &bson), let bson = bson?.assumingMemoryBound(to: bson_t.self) {
+			return NoDestroyBSON(rawBson: UnsafeMutablePointer(mutating: bson))
 		}
+		
+// the code before swift 5
+//		var bson = UnsafePointer<bson_t>(nil as OpaquePointer?)
+//		if mongoc_cursor_next(ptr, &bson) {
+//			return NoDestroyBSON(rawBson: UnsafeMutablePointer(mutating: bson))
+//		}
+		
 		return nil
 	}
 }

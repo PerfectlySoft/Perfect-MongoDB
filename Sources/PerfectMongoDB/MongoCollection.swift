@@ -19,6 +19,12 @@
 
 import PerfectCMongo
 
+private extension UnsafeMutablePointer {
+	init?(mutating: OpaquePointer?) {
+		self.init(mutating)
+	}
+}
+
 /// Enum of flags for insertion options
 public enum MongoInsertFlag: Int {
 	case none
@@ -104,27 +110,27 @@ public class MongoIndexOptionsGeo {
     var rawOpt = UnsafeMutablePointer<mongoc_index_opt_geo_t>.allocate(capacity: 1)
 
 	public init(twodSphereVersion: UInt8? = nil, twodBitsPrecision: UInt8? = nil, twodLocationMin: Double? = nil, twodLocationMax: Double? = nil, haystackBucketSize: Double? = nil) {
-		mongoc_index_opt_geo_init(self.rawOpt)
+		mongoc_index_opt_geo_init(rawOpt)
 		if let twodSphereVersion = twodSphereVersion {
-			self.rawOpt.pointee.twod_sphere_version = twodSphereVersion
+			rawOpt.pointee.twod_sphere_version = twodSphereVersion
 		}
 		if let twodBitsPrecision = twodBitsPrecision {
-			self.rawOpt.pointee.twod_bits_precision = twodBitsPrecision
+			rawOpt.pointee.twod_bits_precision = twodBitsPrecision
 		}
 		if let twodLocationMin = twodLocationMin {
-			self.rawOpt.pointee.twod_location_min = twodLocationMin
+			rawOpt.pointee.twod_location_min = twodLocationMin
 		}
 		if let twodLocationMax = twodLocationMax {
-			self.rawOpt.pointee.twod_location_max = twodLocationMax
+			rawOpt.pointee.twod_location_max = twodLocationMax
 		}
 		if let haystackBucketSize = haystackBucketSize {
-			self.rawOpt.pointee.haystack_bucket_size = haystackBucketSize
+			rawOpt.pointee.haystack_bucket_size = haystackBucketSize
 		}
 	}
 
 	deinit {
-		self.rawOpt.deinitialize(count: 1)
-		self.rawOpt.deallocate(capacity: 1)
+		rawOpt.deinitialize(count: 1)
+		rawOpt.deallocate()
 	}
 }
 
@@ -182,7 +188,7 @@ public class MongoIndexOptions {
 		}
 		if let weights = weights {
 			self.weightsDoc = weights // reference this so the ptr doesn't disappear beneath us
-			self.rawOpt.weights = UnsafePointer<bson_t>(weights.doc!)
+			self.rawOpt.weights = toOpaque(weights.doc) //UnsafePointer<bson_t>(weights.doc!)
 		}
 		if let geoOptions = geoOptions {
 			self.geoOptions = geoOptions
@@ -205,7 +211,7 @@ public class MongoIndexOptions {
 			free(UnsafeMutableRawPointer(mutating: self.rawOpt.language_override))
 		}
 		if self.storageOptions != nil {
-			self.storageOptions!.deallocate(capacity: 1)
+			self.storageOptions!.deallocate()
 		}
 	}
 }
@@ -277,7 +283,7 @@ public class MongoCollection {
             return .error(1, 1, "Invalid collection")
         }
 		var error = bson_error_t()
-		let res = mongoc_collection_insert(ptr, flag.mongoFlag, doc, nil, &error)
+		let res = mongoc_collection_insert(ptr, flag.mongoFlag, toOpaque(doc), nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -292,32 +298,27 @@ public class MongoCollection {
      *  - returns: Result object with status of insert
     */
     public func insert(documents: [BSON]) -> Result {
-        
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
         }
-        
         let bulk = mongoc_collection_create_bulk_operation(ptr, true, nil)
         var error = bson_error_t()
         var reply = bson_t()
         defer {
-            bson_destroy(&reply)
+            bson_destroy(toOpaque(&reply))
             mongoc_bulk_operation_destroy(bulk)
         }
-        
         for document in documents {
             guard let doc = document.doc else {
                 return .error(1, 1, "Invalid document")
             }
-            mongoc_bulk_operation_insert(bulk, doc)
+            mongoc_bulk_operation_insert(bulk, toOpaque(doc))
             // no need to destroy because "public func close()" does it
             // bson_destroy (doc)
         }
-        
-        guard mongoc_bulk_operation_execute(bulk, &reply, &error) != 0 else {
+        guard mongoc_bulk_operation_execute(bulk, toOpaque(&reply), &error) != 0 else {
             return Result.fromError(error)
         }
-        
         return .success
     }
 	
@@ -346,7 +347,7 @@ public class MongoCollection {
             return .error(1, 1, "Invalid collection")
         }
         var error = bson_error_t()
-        let res = mongoc_collection_update(ptr, flag.mongoFlag, sdoc, udoc, nil, &error)
+        let res = mongoc_collection_update(ptr, flag.mongoFlag, toOpaque(sdoc), toOpaque(udoc), nil, &error)
         guard res == true else {
             return Result.fromError(error)
         }
@@ -391,7 +392,7 @@ public class MongoCollection {
         var error = bson_error_t()
         var reply = bson_t()
         defer {
-            bson_destroy(&reply)
+            bson_destroy(toOpaque(&reply))
             mongoc_bulk_operation_destroy(bulk)
         }
         for update in updates {
@@ -401,7 +402,7 @@ public class MongoCollection {
             guard let udoc = update.update.doc else {
                 return .error(1, 1, "Invalid update document")
             }
-            mongoc_bulk_operation_update(bulk, sdoc, udoc, false)
+            mongoc_bulk_operation_update(bulk, toOpaque(sdoc), toOpaque(udoc), false)
             // mongoc_bulk_operation_update_one(bulk, sdoc, udoc, true)
             // mongoc_bulk_operation_update_one_with_opts(bulk, sdoc, udoc, nil, &error)
             //mongoc_bulk_operation_update_many_with_opts(bulk, sdoc, udoc, nil, &error)
@@ -411,7 +412,7 @@ public class MongoCollection {
             // bson_destroy(sdoc)
             // bson_destroy(udoc)
         }
-        guard mongoc_bulk_operation_execute(bulk, &reply, &error) == 1 else {
+        guard mongoc_bulk_operation_execute(bulk, toOpaque(&reply), &error) == 1 else {
             return Result.fromError(error)
         }
         return .success
@@ -433,7 +434,7 @@ public class MongoCollection {
             return .error(1, 1, "Invalid collection")
         }
 		var error = bson_error_t()
-		let res = mongoc_collection_remove(ptr, flag.mongoFlag, sdoc, nil, &error)
+		let res = mongoc_collection_remove(ptr, flag.mongoFlag, toOpaque(sdoc), nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -455,7 +456,7 @@ public class MongoCollection {
             return .error(1, 1, "Invalid collection")
         }
 		var error = bson_error_t()
-		let res = mongoc_collection_save(ptr, sdoc, nil, &error)
+		let res = mongoc_collection_save(ptr, toOpaque(sdoc), nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -518,7 +519,7 @@ public class MongoCollection {
         guard let rdoc = reply.doc else {
             return .error(1, 1, "Invalid reply document")
         }
-		let res = mongoc_collection_validate(ptr, odoc, rdoc, &error)
+		let res = mongoc_collection_validate(ptr, toOpaque(odoc), toOpaque(rdoc), &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -550,7 +551,7 @@ public class MongoCollection {
         guard let rdoc = reply.doc else {
             return .error(1, 1, "Invalid reply document")
         }
-		let res = mongoc_collection_stats(ptr, odoc, rdoc, &error)
+		let res = mongoc_collection_stats(ptr, toOpaque(odoc), toOpaque(rdoc), &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -578,7 +579,7 @@ public class MongoCollection {
         guard let qdoc = query.doc else {
             return nil
         }
-		let cursor = mongoc_collection_find(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), qdoc, fields?.doc, nil)
+		let cursor = mongoc_collection_find(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), toOpaque(qdoc), toOpaque(fields?.doc), nil)
 		guard cursor != nil else {
 			return nil
 		}
@@ -620,7 +621,7 @@ public class MongoCollection {
             return .error(1, 1, "Invalid keys document")
         }
 		var error = bson_error_t()
-		let res = mongoc_collection_create_index(ptr, kdoc, &options.rawOpt, &error)
+		let res = mongoc_collection_create_index(ptr, toOpaque(kdoc), &options.rawOpt, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -682,7 +683,7 @@ public class MongoCollection {
             return .error(1, 1, "Invalid query document")
         }
 		var error = bson_error_t()
-		let ires = mongoc_collection_count(ptr, flags.queryFlags, qdoc, Int64(skip), Int64(limit), nil, &error)
+		let ires = mongoc_collection_count(ptr, flags.queryFlags, toOpaque(qdoc), Int64(skip), Int64(limit), nil, &error)
 		guard ires != -1 else {
 			return Result.fromError(error)
 		}
@@ -714,7 +715,7 @@ public class MongoCollection {
         guard let rdoc = reply.doc else {
             return .error(1, 1, "Invalid reply document")
         }
-		let res = mongoc_collection_find_and_modify(ptr, query?.doc, sort?.doc, update?.doc, fields?.doc, remove, upsert, new, rdoc, &error)
+		let res = mongoc_collection_find_and_modify(ptr, toOpaque(query?.doc), toOpaque(sort?.doc), toOpaque(update?.doc), toOpaque(fields?.doc), remove, upsert, new, toOpaque(rdoc), &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -732,6 +733,7 @@ public class MongoCollection {
         }
 		let reply = mongoc_collection_get_last_error(ptr)
 		return NoDestroyBSON(rawBson: UnsafeMutablePointer(mutating: reply))
+		//return NoDestroyBSON(rawBson: fromOpaque(reply))
 	}
     
     /**
@@ -787,7 +789,7 @@ public class MongoCollection {
         guard let cdoc = command.doc else {
             return nil
         }
-        let cursor = mongoc_collection_command(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), cdoc, fields?.doc, nil)
+        let cursor = mongoc_collection_command(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), toOpaque(cdoc), toOpaque(fields?.doc), nil)
         guard cursor != nil else {
             return nil
         }
@@ -811,7 +813,7 @@ public class MongoCollection {
             return nil
         }
         
-        let cursor = mongoc_collection_aggregate(ptr, flags.queryFlags, piplineDoc, options?.doc, nil)
+        let cursor = mongoc_collection_aggregate(ptr, flags.queryFlags, toOpaque(piplineDoc), toOpaque(options?.doc), nil)
         
         guard cursor != nil else {
             return nil

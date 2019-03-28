@@ -83,7 +83,7 @@ public class MongoDatabase {
             return .error(1, 1, "Invalid database")
         }
 		var error = bson_error_t()
-		guard let col = mongoc_database_create_collection(ptr, collectionName, options?.doc, &error) else {
+		guard let col = mongoc_database_create_collection(ptr, collectionName, toOpaque(options?.doc), &error) else {
 			return Result.fromError(error)
 		}
 		return .replyCollection(MongoCollection(rawPtr: col))

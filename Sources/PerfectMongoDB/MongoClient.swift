@@ -125,7 +125,7 @@ public class MongoClient {
         guard let doc = bson.doc else {
             return .error(1, 1, "Invalid BSON doc")
         }
-		guard mongoc_client_get_server_status(self.ptr, readPrefs, doc, &error) else {
+		guard mongoc_client_get_server_status(self.ptr, readPrefs, toOpaque(doc), &error) else {
 			return Result.fromError(error)
 		}
 		return .replyDoc(bson)

@@ -393,9 +393,9 @@ public class GridFS {
 		// perform actually query
 		var plist: OpaquePointer?
 		if filter == nil {
-			plist = mongoc_gridfs_find(handle, &query.doc!.pointee)
+			plist = mongoc_gridfs_find(handle, toOpaque(query.doc))
 		} else {
-			plist = mongoc_gridfs_find(handle, filter?.doc)
+			plist = mongoc_gridfs_find(handle, toOpaque(filter?.doc))
 		}
 		
 		guard plist != nil else {
@@ -476,10 +476,10 @@ public class GridFS {
 		}
 		
 		if metaData != nil {
-			opt.metadata = unsafeBitCast(metaData?.doc, to: UnsafePointer<bson_t>.self)
+			opt.metadata = toOpaque(metaData?.doc)
 		}
 		if aliases != nil {
-			opt.aliases = unsafeBitCast(aliases?.doc, to: UnsafePointer<bson_t>.self)
+			opt.aliases = toOpaque(aliases?.doc)
 		}
 		
 		// create remote file handler
@@ -495,10 +495,10 @@ public class GridFS {
 			mongoc_gridfs_file_set_md5(file, md5)
 		}
 		if metaData != nil {
-			mongoc_gridfs_file_set_metadata(file, metaData?.doc ?? nil)
+			mongoc_gridfs_file_set_metadata(file, toOpaque(metaData?.doc))
 		}
 		if aliases != nil {
-			mongoc_gridfs_file_set_aliases(file, aliases?.doc ?? nil)
+			mongoc_gridfs_file_set_aliases(file, toOpaque(aliases?.doc))
 		}
 		// upload the file
 		let save = mongoc_gridfs_file_save(file)
