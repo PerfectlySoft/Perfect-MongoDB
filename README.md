@@ -40,6 +40,9 @@ Perfect - MongoDB Connector [简体中文](README.zh_CN.md)
     </a>
 </p>
 
+NOTE: This package is deprecated in favour of the official [Mongo Swift Driver](https://github.com/mongodb/mongo-swift-driver). We advise users to switch to that package if possible. 
+
+--
 
 This project provides a Swift wrapper around the mongo-c client library,
 enabling access to MongoDB servers.
@@ -82,7 +85,7 @@ Building
 Add this project as a dependency in your Package.swift file.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", from: "3.0.0")
+.package(url: "https://github.com/PerfectlySoft/Perfect-MongoDB.git", from: "3.0.0")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Documentation
