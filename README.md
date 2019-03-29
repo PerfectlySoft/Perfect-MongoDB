@@ -82,7 +82,7 @@ Building
 Add this project as a dependency in your Package.swift file.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 3)
+.package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", from: "3.0.0")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Documentation
