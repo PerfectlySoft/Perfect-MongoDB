@@ -24,7 +24,7 @@ Perfect - MongoDB 数据库连接器 [English](README.md)
 
 <p align="center">
     <a href="https://developer.apple.com/swift/" target="_blank">
-        <img src="https://img.shields.io/badge/Swift-3.0-orange.svg?style=flat" alt="Swift 3.0">
+        <img src="https://img.shields.io/badge/Swift-5.0-orange.svg?style=flat" alt="Swift 5.0">
     </a>
     <a href="https://developer.apple.com/swift/" target="_blank">
         <img src="https://img.shields.io/badge/Platforms-OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat" alt="Platforms OS X | Linux">
@@ -50,13 +50,6 @@ Perfect - MongoDB 数据库连接器 [English](README.md)
 
 
 
-## 问题报告
-
-我们正在过渡到 JIRA 程序错误管理系统，因此 GitHub 的问题报告功能就被禁用了。
-
-如果您发现任何问题，或有任何意见和建议，请在我们的 JIRA 工作台指出 [http://jira.perfect.org:8080/servicedesk/customer/portal/1](http://jira.perfect.org:8080/servicedesk/customer/portal/1)。
-
-目前的问题清单请查阅 [http://jira.perfect.org:8080/projects/ISS/issues](http://jira.perfect.org:8080/projects/ISS/issues)
 
 macOS 注意事项
 ----------------
@@ -90,7 +83,7 @@ apt-get install libmongoc-dev libbson-dev libssl-dev
 请在您的 Package.swift 文件下增加以下内容：
 
 ```swift
-.Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 3)
+.package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", .branch("master"))
 ```
 
 ## 更多信息

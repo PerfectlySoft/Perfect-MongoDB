@@ -1,0 +1,5 @@
+module PerfectCBSON [system] {
+    header "shim.h"
+    link "bson-1.0"
+    export *
+}
