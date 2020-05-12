@@ -412,7 +412,7 @@ public class MongoCollection {
             // bson_destroy(sdoc)
             // bson_destroy(udoc)
         }
-        guard mongoc_bulk_operation_execute(bulk, toOpaque(&reply), &error) == 1 else {
+        guard mongoc_bulk_operation_execute(bulk, toOpaque(&reply), &error) != 0 else {
             return Result.fromError(error)
         }
         return .success
