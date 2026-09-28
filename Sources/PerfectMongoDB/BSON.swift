@@ -159,7 +159,7 @@ public class BSON: CustomStringConvertible {
      */
 	public var asString: String {
 		var length = 0
-		guard let doc = self.doc, let data = bson_as_json(toOpaque(doc), &length) else {
+		guard let doc = self.doc, let data = bson_as_legacy_extended_json(toOpaque(doc), &length) else {
 			return ""
 		}
 		defer {
@@ -171,7 +171,7 @@ public class BSON: CustomStringConvertible {
     /** like asString() but for outermost arrays. */
 	public var asArrayString: String {
 		var length = 0
-		guard let doc = self.doc, let data = bson_array_as_json(toOpaque(doc), &length) else {
+		guard let doc = self.doc, let data = bson_array_as_legacy_extended_json(toOpaque(doc), &length) else {
 			return ""
 		}
 		defer {

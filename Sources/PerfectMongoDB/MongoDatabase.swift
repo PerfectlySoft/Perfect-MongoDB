@@ -110,7 +110,7 @@ public class MongoDatabase {
         guard let ptr = self.ptr else {
             return ret
         }
-		guard let names = mongoc_database_get_collection_names(ptr, nil) else {
+		guard let names = mongoc_database_get_collection_names_with_opts(ptr, nil, nil) else {
 			return ret
 		}
 		var curr = names

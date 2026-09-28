@@ -393,9 +393,9 @@ public class GridFS {
 		// perform actually query
 		var plist: OpaquePointer?
 		if filter == nil {
-			plist = mongoc_gridfs_find(handle, toOpaque(query.doc))
+			plist = _perfect_gridfs_find(handle, toOpaque(query.doc))
 		} else {
-			plist = mongoc_gridfs_find(handle, toOpaque(filter?.doc))
+			plist = _perfect_gridfs_find(handle, toOpaque(filter?.doc))
 		}
 		
 		guard plist != nil else {

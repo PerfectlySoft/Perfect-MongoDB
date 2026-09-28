@@ -36,8 +36,15 @@ public class MongoCursor: Sequence, IteratorProtocol {
         return "[\(results.joined(separator: ","))]"
     }
 
+	/// Documents served in place of a libmongoc cursor, for command replies.
+	var documents: [BSON] = []
+
 	init(rawPtr: OpaquePointer?) {
 		self.ptr = rawPtr
+	}
+
+	init(documents: [BSON]) {
+		self.documents = documents
 	}
     
     deinit {
@@ -50,12 +57,13 @@ public class MongoCursor: Sequence, IteratorProtocol {
 			mongoc_cursor_destroy(self.ptr!)
 			self.ptr = nil
 		}
+		documents.removeAll()
 	}
     
     /// - returns: next document if available, else nil
 	public func next() -> BSON? {
         guard let ptr = self.ptr else {
-            return nil
+            return documents.isEmpty ? nil : documents.removeFirst()
         }
 		
 		var bson = UnsafeRawPointer(nil as OpaquePointer?)

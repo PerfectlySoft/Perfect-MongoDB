@@ -874,29 +874,6 @@ class PerfectMongoDBTests: XCTestCase {
     }
 }
 
-extension PerfectMongoDBTests {
-    static var allTests : [(String, (PerfectMongoDBTests) -> () throws -> ())] {
-        return [
-            ("testBSONFromJSON", testBSONFromJSON),
-            ("testBSONAppend", testBSONAppend),
-            ("testBSONHasFields", testBSONHasFields),
-            ("testBSONIterate", testBSONIterate),
-            ("testBSONCompare", testBSONCompare),
-            ("testClientConnect", testClientConnect),
-            ("testClientConnectFail", testClientConnectFail),
-            ("testClientGetDatabase", testClientGetDatabase),
-            ("testDBCreateCollection", testDBCreateCollection),
-            ("testClientGetDatabaseNames", testClientGetDatabaseNames),
-            ("testGetCollection", testGetCollection),
-            ("testDeleteDoc", testDeleteDoc),
-            ("testCollectionFind", testCollectionFind),
-            ("testCollectionDistinct", testCollectionDistinct),
-            ("testGridFS", testGridFS),
-            ("testNewObjectIdGeneration", testNewObjectIdGeneration)
-        ]
-    }
-}
-
 extension BSON {
 	var oid: OID? {
 		guard var it = self.iterator(),

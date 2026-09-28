@@ -1,6 +1,8 @@
 # Perfect-MongoDB modernization plan
 
-Status: **Draft — not started.** Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
+Status: **Phase 1 done (2026-09-27), server-backed tests not yet run.** Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
+
+Decision on 2026-09-27: **target libmongoc 2.x only.** Homebrew's `mongo-c-driver` is now 2.x; 1.x survives only as the deprecated, keg-only `mongo-c-driver@1`, which Homebrew disables on 2027-04-01. Phase 3's 2.x work was therefore folded into Phase 1. The catch: Linux distributions that still ship 1.x (Ubuntu's `libmongoc-dev` is 1.26) need libmongoc 2 built from source until they package it.
 
 The work belongs in [`PerfectlySoft/Perfect-MongoDB`](https://github.com/PerfectlySoft/Perfect-MongoDB) (or a new repo, if you decide that), not in Perfect-CRUD.
 
@@ -42,6 +44,8 @@ These have been deprecated since the 1.x releases. I believe 2.x removes them, b
 
 All replacements exist in libmongoc 1.x (Ubuntu ships 1.26), so this step needs no 2.x dependency.
 
+**Checked against the 2.5.5 headers (Phase 1):** 2.x removed `find`, `count`, `save`, `create_index` (and the `mongoc_index_opt_*` structs), `get_last_error`, `get_server_status`, `get_collection_names`, plus `mongoc_collection_command`, `_stats`, `_validate`, `_create_bulk_operation`, `mongoc_gridfs_find`, `bson_as_json` / `bson_array_as_json` and `MONGOC_QUERY_SLAVE_OK`. Those are replaced. 2.x **still ships** `mongoc_collection_insert` / `_update` / `_remove` / `_find_and_modify`, `mongoc_client_get_database_names` and the GridFS MD5 accessors, so those remain for Phase 2.
+
 ## Bugs noticed on a first read
 
 1. `MongoClientPool.tryPopClient()` calls `mongoc_client_pool_try_pop`, then passes the returned **client** into `mongoc_client_pool_pop`, which expects the **pool**. It should just wrap the client from `try_pop`.
@@ -50,23 +54,33 @@ All replacements exist in libmongoc 1.x (Ubuntu ships 1.26), so this step needs 
 ## Plan
 
 ### Phase 1: builds on Swift 6, API unchanged
-- [ ] `swift-tools-version: 6.x`; set supported platforms (macOS 12+ like Perfect-CRUD, plus Linux).
-- [ ] Move the C wrappers into this repo as system-library targets (`CMongoc`, `CBSON`). Drop the `PerfectSideRepos` dependencies.
-- [ ] Remove the PerfectLib dependency: replace `JSONConvertible` with a local helper.
-- [ ] Delete the checked-in jazzy `docs/` and `LinuxMain.swift` / `XCTestManifests.swift`.
-- [ ] Get it compiling in Swift 5 language mode first, then turn on Swift 6 mode.
-- [ ] Keep all public type and method names so existing users' code still compiles.
+- [x] `swift-tools-version: 6.0`; macOS 12+.
+- [x] Move the C wrappers into this repo as system-library targets. They keep their old module names, `PerfectCMongo` and `PerfectCBSON`, so direct imports still work. Drop the `PerfectSideRepos` dependencies.
+- [x] Remove the PerfectLib dependency. `Date.jsonEncodedString()` stays public; code that needs the `JSONConvertible` conformance can add `extension Date: JSONConvertible {}`.
+- [x] Delete the checked-in jazzy `docs/`, `.jazzy.yaml` and `LinuxMain.swift` / `XCTestManifests.swift`.
+- [x] Compiled in Swift 5 language mode first, then turned on Swift 6 mode.
+- [x] Keep all public type and method names so existing users' code still compiles.
+- [x] (From Phase 3) Build against libmongoc 2.x (`mongoc2` / `bson2`) and replace the removed calls. The legacy translation lives in `Sources/PerfectCMongo/shim.h`: `$query`/`$orderby` unwrapping, query flags to find options, save as insert or upsert-replace.
+- [ ] Run the server-backed tests against a local `mongod`. Only the 7 BSON tests have run so far.
+
+Phase 1 behaviour changes:
+- `getLastError()` is deprecated and returns an empty document, because libmongoc 2 no longer tracks it.
+- `command()` returns the command's reply as a one-document cursor. Its `fields`/`skip`/`limit`/`batchSize` parameters never applied to commands.
+- `count()` now uses `countDocuments`, which gives an exact count instead of the old metadata estimate.
+- `MongoIndexOptions` ignores `dropDups` (removed in MongoDB 3.0) and `storageOptions` (it was never actually sent before).
+- `MongoQueryFlag.slaveOk` is deprecated in favour of `secondaryOk`, which maps to a `secondaryPreferred` read preference.
 
 ### Phase 2: current C APIs, bug fixes, CI
-- [ ] Replace every deprecated call in the table above.
+- [ ] Replace every deprecated call still in use: `insert`/`update`/`remove`/`find_and_modify`, `get_database_names`, `bson_append_array_begin`, GridFS MD5.
 - [ ] Fix the two bugs listed above.
+- [ ] `BSON` leak: `distinct()` returns `NoDestroyBSON(document:)`, which copies the document and never frees the copy.
+- [ ] README: remove the "deprecated in favour of the official driver" note and the Swift 4 install steps.
 - [ ] Add GitHub Actions: Ubuntu + `libmongoc-dev`, `mongo` service container, `swift test`. Optionally a macOS job with Homebrew `mongo-c-driver`.
 - [ ] Test against current MongoDB server versions (7.x/8.x). Test `mongodb+srv://` and TLS connection strings for Atlas.
 
 ### Phase 3: libmongoc 2.x
-- [ ] Support both pkg-config names: `libmongoc-1.0`/`libbson-1.0` and `mongoc2`/`bson2`.
-- [ ] Check 2.x header changes and update the Swift code to match.
-- [ ] Add a 2.x build to the CI matrix.
+Folded into Phase 1: the package now targets 2.x only. Remaining work:
+- [ ] Linux CI has to build libmongoc 2 from source, or use a distribution that packages it.
 
 ### Phase 4: Swift-native API (added alongside the old one)
 - [ ] Ownership and `Sendable`: the pool is the only object shared across threads; clients, collections and cursors belong to one task.

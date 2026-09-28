@@ -65,7 +65,7 @@ public enum MongoUpdateFlag: Int {
 }
 
 /// Struct used to access Mongo Query options
-public struct MongoQueryFlag: OptionSet {
+public struct MongoQueryFlag: OptionSet, Sendable {
 	public let rawValue: Int
 
 	var queryFlags: mongoc_query_flags_t {
@@ -82,7 +82,9 @@ public struct MongoQueryFlag: OptionSet {
 
 	public static let none				= MongoQueryFlag(MONGOC_QUERY_NONE)
 	public static let tailableCursor	= MongoQueryFlag(MONGOC_QUERY_TAILABLE_CURSOR)
-	public static let slaveOk			= MongoQueryFlag(MONGOC_QUERY_SLAVE_OK)
+	public static let secondaryOk		= MongoQueryFlag(MONGOC_QUERY_SECONDARY_OK)
+	@available(*, deprecated, renamed: "secondaryOk")
+	public static let slaveOk			= secondaryOk
 	public static let opLogReplay       = MongoQueryFlag(MONGOC_QUERY_OPLOG_REPLAY)
 	public static let noCursorTimeout   = MongoQueryFlag(MONGOC_QUERY_NO_CURSOR_TIMEOUT)
 	public static let awaitData         = MongoQueryFlag(MONGOC_QUERY_AWAIT_DATA)
@@ -107,127 +109,111 @@ public enum MongoRemoveFlag: Int {
 
 /// class to manage Mongo Geospatial indexing options
 public class MongoIndexOptionsGeo {
-    var rawOpt = UnsafeMutablePointer<mongoc_index_opt_geo_t>.allocate(capacity: 1)
+	let twodSphereVersion: UInt8?
+	let twodBitsPrecision: UInt8?
+	let twodLocationMin: Double?
+	let twodLocationMax: Double?
+	let haystackBucketSize: Double?
 
 	public init(twodSphereVersion: UInt8? = nil, twodBitsPrecision: UInt8? = nil, twodLocationMin: Double? = nil, twodLocationMax: Double? = nil, haystackBucketSize: Double? = nil) {
-		mongoc_index_opt_geo_init(rawOpt)
-		if let twodSphereVersion = twodSphereVersion {
-			rawOpt.pointee.twod_sphere_version = twodSphereVersion
-		}
-		if let twodBitsPrecision = twodBitsPrecision {
-			rawOpt.pointee.twod_bits_precision = twodBitsPrecision
-		}
-		if let twodLocationMin = twodLocationMin {
-			rawOpt.pointee.twod_location_min = twodLocationMin
-		}
-		if let twodLocationMax = twodLocationMax {
-			rawOpt.pointee.twod_location_max = twodLocationMax
-		}
-		if let haystackBucketSize = haystackBucketSize {
-			rawOpt.pointee.haystack_bucket_size = haystackBucketSize
-		}
+		self.twodSphereVersion = twodSphereVersion
+		self.twodBitsPrecision = twodBitsPrecision
+		self.twodLocationMin = twodLocationMin
+		self.twodLocationMax = twodLocationMax
+		self.haystackBucketSize = haystackBucketSize
 	}
 
-	deinit {
-		rawOpt.deinitialize(count: 1)
-		rawOpt.deallocate()
+	func append(to opts: BSON) {
+		if let twodSphereVersion = twodSphereVersion {
+			opts.append(key: "2dsphereIndexVersion", int32: Int32(twodSphereVersion))
+		}
+		if let twodBitsPrecision = twodBitsPrecision {
+			opts.append(key: "bits", int32: Int32(twodBitsPrecision))
+		}
+		if let twodLocationMin = twodLocationMin {
+			opts.append(key: "min", double: twodLocationMin)
+		}
+		if let twodLocationMax = twodLocationMax {
+			opts.append(key: "max", double: twodLocationMax)
+		}
+		if let haystackBucketSize = haystackBucketSize {
+			opts.append(key: "bucketSize", double: haystackBucketSize)
+		}
 	}
 }
 
 /// class to manage Mongo indexing options
+///
+/// `dropDups` and `storageOptions` are accepted for source compatibility but ignored:
+/// MongoDB 3.0 removed `dropDups`, and the storage options were never sent to the server.
 public class MongoIndexOptions {
-
-	var rawOpt = mongoc_index_opt_t()
-
-	// who knows what the default options are.
-	// guard against the case where these values were set to something in the defaults.
-	// we don't want to free a pointer which isn't ours
-	var nameNil: Bool, defLangNil: Bool, langOverNil: Bool
-	var weightsDoc: BSON?
-	var geoOptions: MongoIndexOptionsGeo?
-	var storageOptions: UnsafeMutablePointer<mongoc_index_opt_storage_t>?
+	let name: String?
+	let background: Bool?
+	let unique: Bool?
+	let sparse: Bool?
+	let expireAfterSeconds: Int32?
+	let v: Int32?
+	let defaultLanguage: String?
+	let languageOverride: String?
+	let weights: BSON?
+	let geoOptions: MongoIndexOptionsGeo?
 
 	public init(name: String? = nil, background: Bool? = nil, unique: Bool? = nil, dropDups: Bool? = nil, sparse: Bool? = nil,
 				expireAfterSeconds: Int32? = nil, v: Int32? = nil, defaultLanguage: String? = nil, languageOverride: String? = nil,
 		weights: BSON? = nil, geoOptions: MongoIndexOptionsGeo? = nil, storageOptions: MongoIndexStorageOptionType? = nil) {
-		mongoc_index_opt_init(&self.rawOpt)
-
-		self.nameNil = self.rawOpt.name == nil
-		self.defLangNil = self.rawOpt.default_language == nil
-		self.langOverNil = self.rawOpt.language_override == nil
-
-		if let name = name {
-			self.nameNil = true
-			self.rawOpt.name = UnsafePointer<Int8>(strdup(name))
-		}
-		if let background = background {
-			self.rawOpt.background = background
-		}
-		if let unique = unique {
-			self.rawOpt.unique = unique
-		}
-		if let dropDups = dropDups {
-			self.rawOpt.drop_dups = dropDups
-		}
-		if let sparse = sparse {
-			self.rawOpt.sparse = sparse
-		}
-		if let expireAfterSeconds = expireAfterSeconds {
-			self.rawOpt.expire_after_seconds = expireAfterSeconds
-		}
-		if let v = v {
-			self.rawOpt.v = v
-		}
-		if let defaultLanguage = defaultLanguage {
-			self.defLangNil = true
-			self.rawOpt.default_language = UnsafePointer<Int8>(strdup(defaultLanguage))
-		}
-		if let languageOverride = languageOverride {
-			self.langOverNil = true
-			self.rawOpt.language_override = UnsafePointer<Int8>(strdup(languageOverride))
-		}
-		if let weights = weights {
-			self.weightsDoc = weights // reference this so the ptr doesn't disappear beneath us
-			self.rawOpt.weights = toOpaque(weights.doc) //UnsafePointer<bson_t>(weights.doc!)
-		}
-		if let geoOptions = geoOptions {
-			self.geoOptions = geoOptions
-			self.rawOpt.geo_options = geoOptions.rawOpt
-		}
-		if let storageOptions = storageOptions {
-            self.storageOptions = UnsafeMutablePointer<mongoc_index_opt_storage_t>.allocate(capacity: 1)
-			self.storageOptions!.pointee.type = Int32(storageOptions.rawValue)
-		}
+		self.name = name
+		self.background = background
+		self.unique = unique
+		self.sparse = sparse
+		self.expireAfterSeconds = expireAfterSeconds
+		self.v = v
+		self.defaultLanguage = defaultLanguage
+		self.languageOverride = languageOverride
+		self.weights = weights
+		self.geoOptions = geoOptions
 	}
 
-	deinit {
-		if self.nameNil && self.rawOpt.name != nil {
-			free(UnsafeMutableRawPointer(mutating: self.rawOpt.name))
+	/// The index model options document for mongoc_index_model_new.
+	func optionsDocument(keys: BSON) -> BSON {
+		let opts = BSON()
+		if let name = name {
+			opts.append(key: "name", string: name)
+		} else if let kdoc = keys.doc, let generated = mongoc_collection_keys_to_index_string(toOpaque(kdoc)) {
+			opts.append(key: "name", string: String(cString: generated))
+			bson_free(generated)
 		}
-		if self.defLangNil && self.rawOpt.default_language != nil {
-			free(UnsafeMutableRawPointer(mutating: self.rawOpt.default_language))
+		if let background = background {
+			opts.append(key: "background", bool: background)
 		}
-		if self.langOverNil && self.rawOpt.language_override != nil {
-			free(UnsafeMutableRawPointer(mutating: self.rawOpt.language_override))
+		if let unique = unique {
+			opts.append(key: "unique", bool: unique)
 		}
-		if self.storageOptions != nil {
-			self.storageOptions!.deallocate()
+		if let sparse = sparse {
+			opts.append(key: "sparse", bool: sparse)
 		}
+		if let expireAfterSeconds = expireAfterSeconds {
+			opts.append(key: "expireAfterSeconds", int32: expireAfterSeconds)
+		}
+		if let v = v {
+			opts.append(key: "v", int32: v)
+		}
+		if let defaultLanguage = defaultLanguage {
+			opts.append(key: "default_language", string: defaultLanguage)
+		}
+		if let languageOverride = languageOverride {
+			opts.append(key: "language_override", string: languageOverride)
+		}
+		if let weights = weights {
+			opts.append(key: "weights", document: weights)
+		}
+		geoOptions?.append(to: opts)
+		return opts
 	}
 }
 
 /// Enum for storage options
 public enum MongoIndexStorageOptionType: UInt32 {
 	case mmapV1, wiredTiger
-
-	var mongoType: UInt32 {
-		switch self {
-		case .mmapV1:
-			return MONGOC_INDEX_STORAGE_OPT_MMAPV1.rawValue
-		case .wiredTiger:
-			return MONGOC_INDEX_STORAGE_OPT_WIREDTIGER.rawValue
-		}
-	}
 }
 
 /// The MongoCollection class
@@ -301,7 +287,7 @@ public class MongoCollection {
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
         }
-        let bulk = mongoc_collection_create_bulk_operation(ptr, true, nil)
+        let bulk = mongoc_collection_create_bulk_operation_with_opts(ptr, nil)
         var error = bson_error_t()
         var reply = bson_t()
         defer {
@@ -388,7 +374,7 @@ public class MongoCollection {
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
         }
-        let bulk = mongoc_collection_create_bulk_operation(ptr, true, nil)
+        let bulk = mongoc_collection_create_bulk_operation_with_opts(ptr, nil)
         var error = bson_error_t()
         var reply = bson_t()
         defer {
@@ -456,7 +442,7 @@ public class MongoCollection {
             return .error(1, 1, "Invalid collection")
         }
 		var error = bson_error_t()
-		let res = mongoc_collection_save(ptr, toOpaque(sdoc), nil, &error)
+		let res = _perfect_collection_save(ptr, toOpaque(sdoc), &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -504,22 +490,29 @@ public class MongoCollection {
      *  - returns: BSON document describing the relationship between the collection and its physical representation
     */
     public func validate(full: Bool = false) -> Result {
-		let bson = BSON()
+		let command = BSON()
 		defer {
-			bson.close()
+			command.close()
 		}
-		bson.append(key: "full", bool: full)
-		let odoc = bson.doc
-		
+		command.append(key: "validate", string: self.name())
+		command.append(key: "full", bool: full)
+		return runCommand(command)
+	}
+
+	/// Runs **command** against this collection's database and returns the reply document.
+	func runCommand(_ command: BSON) -> Result {
         guard let ptr = self.ptr else {
             return .error(1, 1, "Invalid collection")
+        }
+        guard let cdoc = command.doc else {
+            return .error(1, 1, "Invalid command document")
         }
 		var error = bson_error_t()
         let reply = BSON()
         guard let rdoc = reply.doc else {
             return .error(1, 1, "Invalid reply document")
         }
-		let res = mongoc_collection_validate(ptr, toOpaque(odoc), toOpaque(rdoc), &error)
+		let res = mongoc_collection_command_simple(ptr, toOpaque(cdoc), nil, toOpaque(rdoc), &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -543,19 +536,15 @@ public class MongoCollection {
         guard let odoc = options.doc else {
             return .error(1, 1, "Invalid options document")
         }
-        guard let ptr = self.ptr else {
-            return .error(1, 1, "Invalid collection")
-        }
-		var error = bson_error_t()
-        let reply = BSON()
-        guard let rdoc = reply.doc else {
-            return .error(1, 1, "Invalid reply document")
-        }
-		let res = mongoc_collection_stats(ptr, toOpaque(odoc), toOpaque(rdoc), &error)
-		guard res == true else {
-			return Result.fromError(error)
+		let command = BSON()
+		defer {
+			command.close()
 		}
-		return .replyDoc(reply)
+		command.append(key: "collStats", string: self.name())
+		guard let cdoc = command.doc, bson_concat(toOpaque(cdoc), toOpaque(odoc)) else {
+			return .error(1, 1, "Invalid options document")
+		}
+		return runCommand(command)
 	}
 
     /**
@@ -579,7 +568,7 @@ public class MongoCollection {
         guard let qdoc = query.doc else {
             return nil
         }
-		let cursor = mongoc_collection_find(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), toOpaque(qdoc), toOpaque(fields?.doc), nil)
+		let cursor = _perfect_collection_find(ptr, flags.queryFlags, UInt32(skip), Int32(limit), UInt32(batchSize), toOpaque(qdoc), toOpaque(fields?.doc))
 		guard cursor != nil else {
 			return nil
 		}
@@ -620,8 +609,19 @@ public class MongoCollection {
         guard let kdoc = keys.doc else {
             return .error(1, 1, "Invalid keys document")
         }
+		let opts = options.optionsDocument(keys: keys)
+		defer {
+			opts.close()
+		}
+		guard let model = mongoc_index_model_new(toOpaque(kdoc), toOpaque(opts.doc)) else {
+			return .error(1, 1, "Invalid index options")
+		}
+		defer {
+			mongoc_index_model_destroy(model)
+		}
+		var models: [OpaquePointer?] = [model]
 		var error = bson_error_t()
-		let res = mongoc_collection_create_index(ptr, toOpaque(kdoc), &options.rawOpt, &error)
+		let res = mongoc_collection_create_indexes_with_opts(ptr, &models, 1, nil, nil, &error)
 		guard res == true else {
 			return Result.fromError(error)
 		}
@@ -683,7 +683,7 @@ public class MongoCollection {
             return .error(1, 1, "Invalid query document")
         }
 		var error = bson_error_t()
-		let ires = mongoc_collection_count(ptr, flags.queryFlags, toOpaque(qdoc), Int64(skip), Int64(limit), nil, &error)
+		let ires = _perfect_collection_count(ptr, flags.queryFlags, toOpaque(qdoc), Int64(skip), Int64(limit), &error)
 		guard ires != -1 else {
 			return Result.fromError(error)
 		}
@@ -727,13 +727,9 @@ public class MongoCollection {
      *
      *  - returns: BSON document with description of last transaction status
     */
+	@available(*, deprecated, message: "libmongoc 2 no longer records the last error on the collection; this always returns an empty document. Check the Result returned by each operation instead.")
 	public func getLastError() -> BSON {
-        guard let ptr = self.ptr else {
-            return BSON()
-        }
-		let reply = mongoc_collection_get_last_error(ptr)
-		return NoDestroyBSON(rawBson: UnsafeMutablePointer(mutating: reply))
-		//return NoDestroyBSON(rawBson: fromOpaque(reply))
+		return BSON()
 	}
     
     /**
@@ -783,17 +779,15 @@ public class MongoCollection {
      *  - returns:	A cursor to the command execution result documents.
      */
     public func command(command: BSON, fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
-        guard let ptr = self.ptr else {
+        // libmongoc 2 has no cursor-returning command API. The command's reply is returned
+        // as a one-document cursor; fields, skip, limit and batchSize never applied to commands.
+        guard self.ptr != nil, command.doc != nil else {
             return nil
         }
-        guard let cdoc = command.doc else {
-            return nil
+        guard case .replyDoc(let reply) = runCommand(command) else {
+            return MongoCursor(documents: [])
         }
-        let cursor = mongoc_collection_command(ptr, flags.queryFlags, UInt32(skip), UInt32(limit), UInt32(batchSize), toOpaque(cdoc), toOpaque(fields?.doc), nil)
-        guard cursor != nil else {
-            return nil
-        }
-        return MongoCursor(rawPtr: cursor)
+        return MongoCursor(documents: [reply])
     }
     
     /**
