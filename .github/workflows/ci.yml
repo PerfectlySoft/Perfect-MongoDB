@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  MONGOC_VERSION: 2.5.5
+
+jobs:
+  linux:
+    name: Linux (Swift 6.4, MongoDB 8)
+    runs-on: ubuntu-24.04
+    container: swift:6.4-noble
+    services:
+      mongo:
+        image: mongo:8
+    env:
+      MONGODB_URI: mongodb://mongo:27017
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends cmake curl pkg-config libssl-dev libsasl2-dev libzstd-dev
+
+      - name: Cache libmongoc
+        id: mongoc-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/mongoc
+          key: mongoc-${{ env.MONGOC_VERSION }}-noble
+
+      - name: Build libmongoc
+        if: steps.mongoc-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL https://github.com/mongodb/mongo-c-driver/releases/download/$MONGOC_VERSION/mongo-c-driver-$MONGOC_VERSION.tar.gz | tar xz
+          cmake -S mongo-c-driver-$MONGOC_VERSION -B mongoc-build \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/mongoc \
+            -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF
+          cmake --build mongoc-build --parallel
+          cmake --install mongoc-build
+
+      - name: Test
+        run: |
+          export PKG_CONFIG_PATH=$(dirname $(find /opt/mongoc -name mongoc2.pc))
+          export LD_LIBRARY_PATH=$(dirname $(find /opt/mongoc -name 'libmongoc2.so' | head -1))
+          swift test
+
+  macos:
+    name: macOS (build + BSON tests)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install libmongoc
+        run: brew install mongo-c-driver
+
+      - name: Build and run server-independent tests
+        run: swift test --filter "testBSON|testNewObjectId"

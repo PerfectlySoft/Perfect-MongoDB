@@ -26,6 +26,9 @@ public class GridFile {
 	
 	/// inner pointer of gridfs file handle
 	private var _fp: OpaquePointer?
+
+	/// The GridFS this file came from, kept alive while the file is in use.
+	var owner: AnyObject?
 	
 	/// error info for internal usage
 	var error = bson_error_t()
@@ -339,6 +342,9 @@ public class GridFS {
 	
 	/// mongoc_gridfs_t for handle the api
 	private var handle: OpaquePointer?
+
+	/// The client this GridFS came from, kept alive while the GridFS is in use.
+	private let client: MongoClient
 	
 	/// error structure for internal usage
 	var error = bson_error_t()
@@ -351,6 +357,7 @@ public class GridFS {
 	/// - throws:
 	///	MongoClientError, if failed to get the expected handle
 	public init(client: MongoClient, database: String, prefix: String? = nil) throws {
+		self.client = client
 		/// get gridfs handle from a mongo client
 		handle = mongoc_client_get_gridfs(client.ptr, database, prefix, &error)
 		guard handle != nil else {
@@ -419,6 +426,7 @@ public class GridFS {
 			// construct a grid file object from the mongoc_grid_file_t pointer
 			do {
 				let f = try GridFile(file)
+				f.owner = self
 				// add the new file object to the array
 				ret.append(f)
 			} catch (let e) {
@@ -503,7 +511,9 @@ public class GridFS {
 		// upload the file
 		let save = mongoc_gridfs_file_save(file)
 		if save {
-			return try GridFile(file)
+			let f = try GridFile(file)
+			f.owner = self
+			return f
 		} else {
 			mongoc_gridfs_file_destroy(file)
 			throw MongoClientError.initError("gridfs.upload(\(from)): destination \(to) failed to save")
@@ -535,7 +545,9 @@ public class GridFS {
 	/// MongoClientError if failed or not found
 	@discardableResult
 	public func search(name: String) throws -> GridFile {
-		return try GridFile(gridFS: handle, from: name)
+		let f = try GridFile(gridFS: handle, from: name)
+		f.owner = self
+		return f
 	}
 	
 	/// delete a file from the server

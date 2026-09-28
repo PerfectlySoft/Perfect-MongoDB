@@ -160,6 +160,121 @@ static mongoc_gridfs_file_list_t *_perfect_gridfs_find(mongoc_gridfs_t *gridfs, 
 	return list;
 }
 
+// True when the first key starts with '$', i.e. an update-operator document like { $set: ... }
+// rather than a replacement document.
+static bool _perfect_is_update_document(const bson_t *update)
+{
+	bson_iter_t iter;
+	return bson_iter_init(&iter, update) && bson_iter_next(&iter) && bson_iter_key(&iter)[0] == '$';
+}
+
+static bool _perfect_collection_insert(mongoc_collection_t *collection,
+									   mongoc_insert_flags_t flags,
+									   const bson_t *document,
+									   bson_error_t *error)
+{
+	bson_t opts = BSON_INITIALIZER;
+	bool ret;
+
+	if (flags & MONGOC_INSERT_NO_VALIDATE) {
+		BSON_APPEND_BOOL(&opts, "validate", false);
+	}
+	ret = mongoc_collection_insert_one(collection, document, &opts, NULL, error);
+	bson_destroy(&opts);
+	return ret;
+}
+
+// Legacy update accepted either an update-operator document or a replacement document.
+static bool _perfect_collection_update(mongoc_collection_t *collection,
+									   mongoc_update_flags_t flags,
+									   const bson_t *selector,
+									   const bson_t *update,
+									   bson_error_t *error)
+{
+	bson_t opts = BSON_INITIALIZER;
+	bool ret;
+
+	if (flags & MONGOC_UPDATE_UPSERT) {
+		BSON_APPEND_BOOL(&opts, "upsert", true);
+	}
+	if (flags & MONGOC_UPDATE_NO_VALIDATE) {
+		BSON_APPEND_BOOL(&opts, "validate", false);
+	}
+	if (!_perfect_is_update_document(update)) {
+		ret = mongoc_collection_replace_one(collection, selector, update, &opts, NULL, error);
+	} else if (flags & MONGOC_UPDATE_MULTI_UPDATE) {
+		ret = mongoc_collection_update_many(collection, selector, update, &opts, NULL, error);
+	} else {
+		ret = mongoc_collection_update_one(collection, selector, update, &opts, NULL, error);
+	}
+	bson_destroy(&opts);
+	return ret;
+}
+
+static bool _perfect_collection_remove(mongoc_collection_t *collection,
+									   mongoc_remove_flags_t flags,
+									   const bson_t *selector,
+									   bson_error_t *error)
+{
+	if (flags & MONGOC_REMOVE_SINGLE_REMOVE) {
+		return mongoc_collection_delete_one(collection, selector, NULL, NULL, error);
+	}
+	return mongoc_collection_delete_many(collection, selector, NULL, NULL, error);
+}
+
+// Legacy bulk update: updates every matching document, or replaces one for a replacement document.
+static bool _perfect_bulk_operation_update(mongoc_bulk_operation_t *bulk,
+										   const bson_t *selector,
+										   const bson_t *update,
+										   bson_error_t *error)
+{
+	if (!_perfect_is_update_document(update)) {
+		return mongoc_bulk_operation_replace_one_with_opts(bulk, selector, update, NULL, error);
+	}
+	return mongoc_bulk_operation_update_many_with_opts(bulk, selector, update, NULL, error);
+}
+
+static bool _perfect_collection_find_and_modify(mongoc_collection_t *collection,
+												const bson_t *query,
+												const bson_t *sort,
+												const bson_t *update,
+												const bson_t *fields,
+												bool _remove,
+												bool upsert,
+												bool _new,
+												bson_t *reply,
+												bson_error_t *error)
+{
+	bson_t empty = BSON_INITIALIZER;
+	mongoc_find_and_modify_opts_t *opts = mongoc_find_and_modify_opts_new();
+	int flags = MONGOC_FIND_AND_MODIFY_NONE;
+	bool ret;
+
+	if (sort) {
+		mongoc_find_and_modify_opts_set_sort(opts, sort);
+	}
+	if (update) {
+		mongoc_find_and_modify_opts_set_update(opts, update);
+	}
+	if (fields) {
+		mongoc_find_and_modify_opts_set_fields(opts, fields);
+	}
+	if (_remove) {
+		flags |= MONGOC_FIND_AND_MODIFY_REMOVE;
+	}
+	if (upsert) {
+		flags |= MONGOC_FIND_AND_MODIFY_UPSERT;
+	}
+	if (_new) {
+		flags |= MONGOC_FIND_AND_MODIFY_RETURN_NEW;
+	}
+	mongoc_find_and_modify_opts_set_flags(opts, (mongoc_find_and_modify_flags_t)flags);
+	ret = mongoc_collection_find_and_modify_with_opts(collection, query ? query : &empty, opts, reply, error);
+	mongoc_find_and_modify_opts_destroy(opts);
+	bson_destroy(&empty);
+	return ret;
+}
+
 // Legacy save: insert when the document has no _id, otherwise replace (upserting) by _id.
 static bool _perfect_collection_save(mongoc_collection_t *collection, const bson_t *document, bson_error_t *error)
 {

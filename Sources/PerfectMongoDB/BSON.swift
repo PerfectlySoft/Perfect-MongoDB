@@ -91,7 +91,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = bson_new_from_json(json, json.utf8.count, &error) else {
 			let message = withUnsafePointer(to: &error.message) {
 				$0.withMemoryRebound(to: CChar.self, capacity: 0) {
-					String(validatingUTF8: $0) ?? "Unknown error while parsing JSON"
+					String(validatingCString: $0) ?? "Unknown error while parsing JSON"
 				}
             }
             throw BSONError.syntaxError(message)
@@ -165,7 +165,7 @@ public class BSON: CustomStringConvertible {
 		defer {
 			bson_free(data)
 		}
-		return String(validatingUTF8: data) ?? ""
+		return String(validatingCString: data) ?? ""
 	}
     
     /** like asString() but for outermost arrays. */
@@ -177,7 +177,7 @@ public class BSON: CustomStringConvertible {
 		defer {
 			bson_free(data)
 		}
-		return String(validatingUTF8: data) ?? ""
+		return String(validatingCString: data) ?? ""
 	}
 
     /**
@@ -472,7 +472,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc, let cdoc = child.doc else {
             return false
         }
-		return bson_append_array_begin(toOpaque(doc), k, -1, toOpaque(cdoc))
+		return bson_append_array_unsafe_begin(toOpaque(doc), k, -1, toOpaque(cdoc))
 	}
 
     /**
@@ -622,7 +622,7 @@ class NoDestroyBSON: BSON {
 private func ptr2Str(_ ptr: UnsafeMutablePointer<Int8>!, length: Int) -> String? {
 	var ary = Array(UnsafeBufferPointer(start: ptr, count: Int(length)))
 	ary.append(0)
-	return String(validatingUTF8: ary)
+	return ary.withUnsafeBufferPointer { String(validatingCString: $0.baseAddress!) }
 }
 
 extension BSON {
@@ -751,8 +751,8 @@ extension BSON {
 			case .regex:
 				let regex = value.pointee.value.v_regex
 				
-				let rstr = String(validatingUTF8: regex.regex)
-				let ostr = String(validatingUTF8: regex.options)
+				let rstr = String(validatingCString: regex.regex)
+				let ostr = String(validatingCString: regex.options)
 				
 				double = 0.0
 				string = "/\(rstr ?? "")/\(ostr ?? "")"
@@ -815,7 +815,7 @@ extension BSON {
 			guard let c = bson_iter_key(toOpaque(&cpy)) else {
 				return nil
 			}
-			return String(validatingUTF8: c)
+			return String(validatingCString: c)
 		}
 		/// If the current value is an narray or document, this returns an iterator
 		/// which can be used to walk it.

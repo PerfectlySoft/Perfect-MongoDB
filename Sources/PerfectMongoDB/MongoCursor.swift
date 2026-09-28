@@ -39,8 +39,12 @@ public class MongoCursor: Sequence, IteratorProtocol {
 	/// Documents served in place of a libmongoc cursor, for command replies.
 	var documents: [BSON] = []
 
-	init(rawPtr: OpaquePointer?) {
+	/// The collection this cursor came from, kept alive while the cursor is in use.
+	var owner: AnyObject?
+
+	init(rawPtr: OpaquePointer?, owner: AnyObject? = nil) {
 		self.ptr = rawPtr
+		self.owner = owner
 	}
 
 	init(documents: [BSON]) {

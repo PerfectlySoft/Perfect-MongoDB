@@ -1,6 +1,6 @@
 # Perfect-MongoDB modernization plan
 
-Status: **Phase 1 done (2026-09-27).** All 21 tests pass against MongoDB 8.3 with libmongoc 2.5.5. Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
+Status: **Phases 1 and 2 done (2026-09-27), except the Atlas/TLS check and a first CI run.** All 26 tests pass against MongoDB 8.3 with libmongoc 2.5.5. Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
 
 Decision on 2026-09-27: **target libmongoc 2.x only.** Homebrew's `mongo-c-driver` is now 2.x; 1.x survives only as the deprecated, keg-only `mongo-c-driver@1`, which Homebrew disables on 2027-04-01. Phase 3's 2.x work was therefore folded into Phase 1. The catch: Linux distributions that still ship 1.x (Ubuntu's `libmongoc-dev` is 1.26) need libmongoc 2 built from source until they package it.
 
@@ -72,17 +72,19 @@ Phase 1 behaviour changes:
 - `MongoQueryFlag.slaveOk` is deprecated in favour of `secondaryOk`, which maps to a `secondaryPreferred` read preference.
 
 ### Phase 2: current C APIs, bug fixes, CI
-- [ ] Replace every deprecated call still in use: `insert`/`update`/`remove`/`find_and_modify`, `get_database_names`, `bson_append_array_begin`, GridFS MD5.
-- [ ] Fix the two bugs listed above.
-- [ ] `BSON` leak: `distinct()` returns `NoDestroyBSON(document:)`, which copies the document and never frees the copy.
-- [ ] `MongoCollection` and `MongoDatabase` don't keep their `MongoClient` alive. If the client is released first, the next call crashes inside libmongoc. They should hold a strong reference.
-- [ ] README: remove the "deprecated in favour of the official driver" note and the Swift 4 install steps.
-- [ ] Add GitHub Actions: Ubuntu + `libmongoc-dev`, `mongo` service container, `swift test`. Optionally a macOS job with Homebrew `mongo-c-driver`.
-- [ ] Test against current MongoDB server versions (7.x/8.x). Test `mongodb+srv://` and TLS connection strings for Atlas.
+- [x] Move writes to the current APIs: `insert` → `insert_one`; `update` → `update_one` / `update_many`, or `replace_one` when given a replacement document (legacy update accepted both); `remove` → `delete_one` / `delete_many`; `findAndModify` → `find_and_modify_with_opts`; bulk insert/update → `*_with_opts`. The `noValidate` flags map to `validate: false`. Also moved: `get_database_names` → `_with_opts`, `bson_append_array_begin` → `bson_append_array_unsafe_begin`, and Swift's deprecated `String(validatingUTF8:)`. The build now has no deprecation warnings.
+- [x] Fix the two pool bugs. `tryPopClient()` wraps the client from `try_pop`. `init(uri:)` frees its URI and traps with the parse error on an invalid URI; before, libmongoc crashed on a failed assertion instead.
+- [x] Pooled clients go back to the pool when they're released, instead of being destroyed. Each popped client keeps its pool alive.
+- [x] `distinct()` leak fixed.
+- [x] Ownership: databases keep their client alive; collections keep their client or database; cursors keep their collection; `GridFS` keeps its client; `GridFile`s from `list`/`search`/`upload` keep their `GridFS`.
+- [x] README rewritten: current requirements, building libmongoc 2 on Linux, example. `README.zh_CN.md` is still the old text.
+- [x] GitHub Actions (`.github/workflows/ci.yml`): Linux job in the `swift:6.4-noble` container builds libmongoc 2.5.5 from source (cached), runs the full suite against a `mongo:8` service (tests read `MONGODB_URI`). The macOS job does a Homebrew build plus the BSON tests. **Not yet run on GitHub.**
+- [x] Tests added for every update form, bulk writes, `findAndModify`, the pool, and a collection outliving its client variable.
+- [ ] Test `mongodb+srv://` and TLS connection strings against Atlas. Needs an Atlas cluster.
+- [ ] GridFS MD5: libmongoc 2 still supports it and it isn't deprecated there, so it's unchanged. Revisit if moving to `mongoc_gridfs_bucket_t`.
 
 ### Phase 3: libmongoc 2.x
-Folded into Phase 1: the package now targets 2.x only. Remaining work:
-- [ ] Linux CI has to build libmongoc 2 from source, or use a distribution that packages it.
+Folded into Phase 1: the package now targets 2.x only. Linux CI builds libmongoc 2 from source (Phase 2).
 
 ### Phase 4: Swift-native API (added alongside the old one)
 - [ ] Ownership and `Sendable`: the pool is the only object shared across threads; clients, collections and cursors belong to one task.
