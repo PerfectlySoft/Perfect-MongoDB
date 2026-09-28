@@ -18,12 +18,12 @@ jobs:
     env:
       MONGODB_URI: mongodb://mongo:27017
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install build dependencies
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends cmake curl pkg-config libssl-dev libsasl2-dev libzstd-dev
+          apt-get install -y --no-install-recommends build-essential cmake curl pkg-config libssl-dev libsasl2-dev libzstd-dev
 
       - name: Cache libmongoc
         id: mongoc-cache
@@ -52,7 +52,7 @@ jobs:
     name: macOS (build + BSON tests)
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install libmongoc
         run: brew install mongo-c-driver
