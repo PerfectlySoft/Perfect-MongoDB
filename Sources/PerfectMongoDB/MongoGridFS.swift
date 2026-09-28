@@ -186,7 +186,9 @@ public class GridFile {
 	@discardableResult
 	public func download(to: String) throws -> Int {
 		// open the local file to write in binary
-		let fp = fopen(to, "wb")
+		guard let fp = fopen(to, "wb") else {
+			throw MongoClientError.initError("gridfs.file.write(\(to)) cannot open destination")
+		}
 		// create a new file on gridfs
 		let stream = mongoc_stream_gridfs_new(_fp)
 		// check result
@@ -195,12 +197,12 @@ public class GridFile {
 		var iov = mongoc_iovec_t()
 		// set transfer buffer to 4k, as default in network traffic
 		iov.iov_len = 4096
-		// safely alloc a well managed 4k buffer without worrying about GC
-		var bytes = [UInt8](repeating:0, count: iov.iov_len)
-		// assign the buffer to iov structur
-		let _ = bytes.withUnsafeMutableBufferPointer {
-			iov.iov_base = unsafeBitCast($0.baseAddress, to: UnsafeMutableRawPointer.self)
+		// a 4k transfer buffer that stays valid for the whole loop
+		let buffer = UnsafeMutableRawPointer.allocate(byteCount: iov.iov_len, alignment: 1)
+		defer {
+			buffer.deallocate()
 		}
+		iov.iov_base = buffer
 		// bytes to go
 		var total = 0
 		// verify the R/W operation

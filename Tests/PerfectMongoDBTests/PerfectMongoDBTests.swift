@@ -669,7 +669,7 @@ class PerfectMongoDBTests: XCTestCase {
 		}
 		
 		let secret:[UInt8] = [65, 66, 67, 68, 0] // "ABCD\0"
-		var fp = fopen("/tmp/secret.txt", "wb")
+		var fp = fopen("/tmp/secret.txt", "wb")!
 		fwrite(secret, 1, secret.count, fp)
 		fclose(fp)
 		
@@ -687,7 +687,7 @@ class PerfectMongoDBTests: XCTestCase {
 		}
 		
 		var secret2:[UInt8] = [0, 0, 0, 0, 0]
-		fp = fopen("/tmp/secret2.txt", "rb")
+		fp = fopen("/tmp/secret2.txt", "rb")!
 		let _ = secret2.withUnsafeMutableBufferPointer{ p in
 			fread(p.baseAddress, 1, 5, fp)
 		}
@@ -704,7 +704,7 @@ class PerfectMongoDBTests: XCTestCase {
 		let local = "/tmp/base128.dat"
 		let sz = 134217728 / 3 // 128MB / 3
 		let buffer = [UInt8](repeating: 66, count:sz)
-		fp = fopen(local, "wb")
+		fp = fopen(local, "wb")!
 		fwrite(buffer, 1, sz, fp)
 		fclose(fp)
 		let remote = "base128.dat"
@@ -742,7 +742,7 @@ class PerfectMongoDBTests: XCTestCase {
 		do {
 			for i in 0...20 {
 				let toUpload = "upload\(i).bin"
-				fp = fopen("/tmp/\(toUpload)", "wb")
+				fp = fopen("/tmp/\(toUpload)", "wb")!
 				fwrite(buffer, 1, sz, fp)
 				fclose(fp)
 				let fx = try gridfs.upload(from: "/tmp/\(toUpload)", to: toUpload)
