@@ -1,6 +1,6 @@
 # Perfect-MongoDB modernization plan
 
-Status: **Phases 1 and 2 done (2026-09-27), except the Atlas/TLS check and a first CI run.** All 26 tests pass against MongoDB 8.3 with libmongoc 2.5.5. Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
+Status: **Phases 1 and 2 done (2026-09-27), except the Atlas/TLS check.** All 26 tests pass against MongoDB 8.3 locally and in CI on Linux (Swift 6.4, MongoDB 8, libmongoc 2.5.5 built from source). Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
 
 Decision on 2026-09-27: **target libmongoc 2.x only.** Homebrew's `mongo-c-driver` is now 2.x; 1.x survives only as the deprecated, keg-only `mongo-c-driver@1`, which Homebrew disables on 2027-04-01. Phase 3's 2.x work was therefore folded into Phase 1. The catch: Linux distributions that still ship 1.x (Ubuntu's `libmongoc-dev` is 1.26) need libmongoc 2 built from source until they package it.
 
@@ -78,7 +78,7 @@ Phase 1 behaviour changes:
 - [x] `distinct()` leak fixed.
 - [x] Ownership: databases keep their client alive; collections keep their client or database; cursors keep their collection; `GridFS` keeps its client; `GridFile`s from `list`/`search`/`upload` keep their `GridFS`.
 - [x] README rewritten: current requirements, building libmongoc 2 on Linux, example. `README.zh_CN.md` is still the old text.
-- [x] GitHub Actions (`.github/workflows/ci.yml`): Linux job in the `swift:6.4-noble` container builds libmongoc 2.5.5 from source (cached), runs the full suite against a `mongo:8` service (tests read `MONGODB_URI`). The macOS job does a Homebrew build plus the BSON tests. **Not yet run on GitHub.**
+- [x] GitHub Actions (`.github/workflows/ci.yml`): Linux job in the `swift:6.4-noble` container builds libmongoc 2.5.5 from source (cached), runs the full suite against a `mongo:8` service (tests read `MONGODB_URI`). The macOS job does a Homebrew build plus the BSON tests. Green since run 36366712375. Getting there fixed a Linux-only build error, which means the package hadn't built on Linux under current Swift: glibc's `fwrite`/`fclose` need a non-optional `FILE*`. It also fixed a pointer that outlived its buffer in GridFS `download(to:)`.
 - [x] Tests added for every update form, bulk writes, `findAndModify`, the pool, and a collection outliving its client variable.
 - [ ] Test `mongodb+srv://` and TLS connection strings against Atlas. Needs an Atlas cluster.
 - [ ] GridFS MD5: libmongoc 2 still supports it and it isn't deprecated there, so it's unchanged. Revisit if moving to `mongoc_gridfs_bucket_t`.
