@@ -1,6 +1,6 @@
 # Perfect-MongoDB modernization plan
 
-Status: **Phase 1 done (2026-09-27), server-backed tests not yet run.** Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
+Status: **Phase 1 done (2026-09-27).** All 21 tests pass against MongoDB 8.3 with libmongoc 2.5.5. Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
 
 Decision on 2026-09-27: **target libmongoc 2.x only.** Homebrew's `mongo-c-driver` is now 2.x; 1.x survives only as the deprecated, keg-only `mongo-c-driver@1`, which Homebrew disables on 2027-04-01. Phase 3's 2.x work was therefore folded into Phase 1. The catch: Linux distributions that still ship 1.x (Ubuntu's `libmongoc-dev` is 1.26) need libmongoc 2 built from source until they package it.
 
@@ -61,7 +61,8 @@ All replacements exist in libmongoc 1.x (Ubuntu ships 1.26), so this step needs 
 - [x] Compiled in Swift 5 language mode first, then turned on Swift 6 mode.
 - [x] Keep all public type and method names so existing users' code still compiles.
 - [x] (From Phase 3) Build against libmongoc 2.x (`mongoc2` / `bson2`) and replace the removed calls. The legacy translation lives in `Sources/PerfectCMongo/shim.h`: `$query`/`$orderby` unwrapping, query flags to find options, save as insert or upsert-replace.
-- [ ] Run the server-backed tests against a local `mongod`. Only the 7 BSON tests have run so far.
+- [x] Run the full test suite against a local `mongod` (8.3.11). Added tests for `createIndex`, `stats` and legacy `$query`/`$orderby` finds.
+- [x] Call `mongoc_init()` once before creating the first client or pool. libmongoc 2 no longer initializes itself when loaded, so without it every `MongoClient(uri:)` failed with "Could not parse URI".
 
 Phase 1 behaviour changes:
 - `getLastError()` is deprecated and returns an empty document, because libmongoc 2 no longer tracks it.
@@ -74,6 +75,7 @@ Phase 1 behaviour changes:
 - [ ] Replace every deprecated call still in use: `insert`/`update`/`remove`/`find_and_modify`, `get_database_names`, `bson_append_array_begin`, GridFS MD5.
 - [ ] Fix the two bugs listed above.
 - [ ] `BSON` leak: `distinct()` returns `NoDestroyBSON(document:)`, which copies the document and never frees the copy.
+- [ ] `MongoCollection` and `MongoDatabase` don't keep their `MongoClient` alive. If the client is released first, the next call crashes inside libmongoc. They should hold a strong reference.
 - [ ] README: remove the "deprecated in favour of the official driver" note and the Swift 4 install steps.
 - [ ] Add GitHub Actions: Ubuntu + `libmongoc-dev`, `mongo` service container, `swift test`. Optionally a macOS job with Homebrew `mongo-c-driver`.
 - [ ] Test against current MongoDB server versions (7.x/8.x). Test `mongodb+srv://` and TLS connection strings for Atlas.

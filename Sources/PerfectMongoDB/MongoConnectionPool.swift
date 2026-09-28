@@ -29,7 +29,7 @@ public class MongoClientPool {
      *  - parameter uri: String uri to connect client pool
     */
     public init(uri: String) {
-        
+        mongocInitialized
         let uriPointer = mongoc_uri_new(uri)
         ptr = mongoc_client_pool_new(uriPointer)
     }

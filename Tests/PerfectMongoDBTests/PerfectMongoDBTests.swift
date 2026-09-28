@@ -872,6 +872,74 @@ class PerfectMongoDBTests: XCTestCase {
         let objectId = BSON.OID.newObjectId()
         XCTAssertTrue(objectId.count == 24, "Should generate valid ObjectId")
     }
+
+	// Returns the client too: a MongoCollection doesn't keep its client alive.
+	private func freshCollection(_ name: String) -> (MongoClient, MongoCollection) {
+		let client = try! MongoClient(uri: "mongodb://localhost")
+		let db = client.getDatabase(name: "test")
+		if let old = db.getCollection(name: name) {
+			_ = old.drop()
+		}
+		guard case .replyCollection(let collection) = db.createCollection(name: name, options: nil) else {
+			fatalError("could not create \(name)")
+		}
+		for a in 1...3 {
+			let doc = BSON()
+			doc.append(key: "a", int: a)
+			doc.append(key: "b", string: "value \(a)")
+			guard case .success = collection.insert(document: doc) else {
+				fatalError("insert failed")
+			}
+		}
+		return (client, collection)
+	}
+
+	func testFindLegacyQueryModifiers() {
+		let (client, collection) = freshCollection("testlegacyfind")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		let orderby = BSON()
+		orderby.append(key: "a", int: -1)
+		let query = BSON()
+		query.append(key: "$query", document: BSON())
+		query.append(key: "$orderby", document: orderby)
+		let fields = BSON()
+		fields.append(key: "b", int: 0)
+
+		guard let cursor = collection.find(query: query, fields: fields, skip: 1, limit: 1) else {
+			return XCTFail("find returned nil")
+		}
+		let docs = cursor.map { $0.asString }
+		XCTAssertEqual(docs.count, 1)
+		XCTAssert(docs.first?.contains("\"a\" : 2") == true, "\(docs)")
+		XCTAssert(docs.first?.contains("\"b\"") == false, "projection not applied: \(docs)")
+	}
+
+	func testCreateIndexAndStats() {
+		let (client, collection) = freshCollection("testindexstats")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		let keys = BSON()
+		keys.append(key: "a", int: 1)
+		guard case .success = collection.createIndex(keys: keys, options: MongoIndexOptions(unique: true)) else {
+			return XCTFail("createIndex failed")
+		}
+		let duplicate = BSON()
+		duplicate.append(key: "a", int: 1)
+		guard case .error = collection.insert(document: duplicate) else {
+			return XCTFail("unique index not enforced")
+		}
+		guard case .success = collection.dropIndex(name: "a_1") else {
+			return XCTFail("generated index name should be a_1")
+		}
+
+		guard case .replyDoc(let stats) = collection.stats(options: BSON()) else {
+			return XCTFail("stats failed")
+		}
+		XCTAssert(stats.asString.contains("\"count\" : 3"), stats.asString)
+	}
 }
 
 extension BSON {

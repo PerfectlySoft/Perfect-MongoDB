@@ -49,6 +49,10 @@ public enum MongoClientError: Error {
     case initError(String)
 }
 
+/// libmongoc 2 no longer initializes itself when loaded; mongoc_init() must run once
+/// before any client, pool or URI is created. Globals are initialized lazily and exactly once.
+let mongocInitialized: Void = mongoc_init()
+
 public class MongoClient {
 
 	var ptr = OpaquePointer(bitPattern: 0)
@@ -65,6 +69,7 @@ public class MongoClient {
      *
     */
 	public init(uri: String) throws {
+        mongocInitialized
         guard let ptr = mongoc_client_new(uri) else {
             throw MongoClientError.initError("Could not parse URI '\(uri)'")
         }
