@@ -536,7 +536,7 @@ public class BSON: CustomStringConvertible {
 	}
 	
 	/// Represents a BSON OID.
-	public struct OID: CustomStringConvertible {
+	public struct OID: CustomStringConvertible, Sendable {
 		var oid: bson_oid_t
 		public var description: String {
 			let up = UnsafeMutablePointer<Int8>.allocate(capacity: 25)

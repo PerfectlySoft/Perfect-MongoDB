@@ -1,6 +1,6 @@
 # Perfect-MongoDB modernization plan
 
-Status: **Phases 1 and 2 done (2026-09-27), except the Atlas/TLS check.** All 26 tests pass against MongoDB 8.3 locally and in CI on Linux (Swift 6.4, MongoDB 8, libmongoc 2.5.5 built from source). Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
+Status: **Phases 1, 2 and 4 done (Phase 4 on 2026-09-29), except the Atlas/TLS check.** 35 tests pass against MongoDB 8.3 locally. The 26 from Phases 1-2 also pass in CI on Linux (Swift 6.4, MongoDB 8, libmongoc 2.5.5 built from source). Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
 
 Decision on 2026-09-27: **target libmongoc 2.x only.** Homebrew's `mongo-c-driver` is now 2.x; 1.x survives only as the deprecated, keg-only `mongo-c-driver@1`, which Homebrew disables on 2027-04-01. Phase 3's 2.x work was therefore folded into Phase 1. The catch: Linux distributions that still ship 1.x (Ubuntu's `libmongoc-dev` is 1.26) need libmongoc 2 built from source until they package it.
 
@@ -87,11 +87,14 @@ Phase 1 behaviour changes:
 Folded into Phase 1: the package now targets 2.x only. Linux CI builds libmongoc 2 from source (Phase 2).
 
 ### Phase 4: Swift-native API (added alongside the old one)
-- [ ] Ownership and `Sendable`: the pool is the only object shared across threads; clients, collections and cursors belong to one task.
-- [ ] `async` versions of the blocking calls, running on a dedicated executor like Perfect-CRUD's `AsyncExecution.swift` / `Pool.swift`.
-- [ ] `Codable` encode/decode for `BSON`. The archived `mongo-swift-driver` (Apache-2.0) has a working implementation to adapt.
-- [ ] `AsyncSequence` cursor.
-- [ ] Deprecate, don't remove, old methods that the new ones replace.
+- [x] Ownership and `Sendable`: `MongoClientPool` is `final` and `@unchecked Sendable`, since libmongoc's pool is thread-safe. It's the only shared object. Clients, collections and cursors stay non-`Sendable` and are used by one piece of work at a time. `BSON.OID`, `BSONEncoder`, `BSONDecoder` and the new `MongoError` are `Sendable`.
+- [x] async (`MongoAsync.swift`): `pool.withClient { client in ... }` pops a client, runs the body on a dedicated concurrent `DispatchQueue` behind a checked continuation, and pushes the client back even on throw. That's the same design as Perfect-CRUD's `withCRUDExecutor`. There are no per-method `async` overloads, so nothing collides with the sync names.
+- [x] Codable (`BSONCodable.swift`): `BSONEncoder`/`BSONDecoder` read and write libbson directly through an intermediate tree. I wrote them fresh rather than porting `mongo-swift-driver`, which is built on its own pure-Swift BSON type. `Date` maps to datetime, `Data` to binary, `UUID` to binary subtype 4 and `BSON.OID` to ObjectId. `Int` and 64-bit integers become int64, smaller integers int32. Decoding accepts any BSON number that converts exactly. Unsupported BSON types (decimal128, regex, timestamp) throw a descriptive `typeMismatch`. `BSON.OID` is also `Codable` as its hex string for other coders.
+- [x] Typed collection API (`MongoCollectionCodable.swift`): `insert(_:)`, `insert(contentsOf:)`, `find(_:filter:options:)`, `findOne`, `replaceOne`, `updateOne`, `updateMany`, `deleteOne`, `deleteMany`, `countDocuments`. They throw `MongoError` or `DecodingError` and use the `*_with_opts` APIs directly.
+- [x] `AsyncSequence` cursor: `pool.find(User.self, database:collection:filter:options:batchSize:)` returns `MongoFindSequence`. One pooled client is held per iteration, documents are fetched and decoded in batches (default 100) per hop to the blocking queue, cancellation is checked between batches, and the client goes back to the pool when the loop ends, throws or breaks early. This is safe here but wasn't in Perfect-CRUD, because a libmongoc client can move between threads as long as only one uses it at a time.
+- [x] Tests (`Phase4Tests.swift`, 9 tests): Codable round trip over every supported type, native BSON types in the output, numeric conversions and errors, typed CRUD, duplicate-key `MongoError`, 20 concurrent `withClient` tasks on a 4-client pool, and the find sequence (250 docs, early break releasing clients, decoding errors). Also passes under Thread Sanitizer; only the Swift code is instrumented, not libmongoc.
+- Decision: **no deprecations yet.** The typed API is a parallel layer rather than a one-for-one replacement, and deprecating the old calls now would flood existing users with warnings before anyone has used the new ones. Revisit once the community requesters have tried it.
+- [ ] Not done, and worth doing on request: change streams (`watch`), aggregation into Codable types, transactions/sessions, and an async GridFS.
 
 ## Open questions
 

@@ -19,8 +19,10 @@
 
 import PerfectCMongo
 
-/// Allows connection pooling. This class is thread-safe.
-public class MongoClientPool {
+/// Allows connection pooling. This class is thread-safe: libmongoc's client pool
+/// synchronizes popping and pushing, so one pool can be shared across tasks and threads.
+/// The clients it hands out are not; use each from one task at a time.
+public final class MongoClientPool: @unchecked Sendable {
     
     var ptr = OpaquePointer(bitPattern: 0)
     /**

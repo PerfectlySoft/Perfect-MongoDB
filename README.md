@@ -69,7 +69,38 @@ if let cursor = users.find(query: try BSON(json: #"{"age": {"$gt": 30}}"#)) {
 }
 ```
 
-For concurrent use, pop clients from a `MongoClientPool` rather than sharing one `MongoClient`.
+### Codable and async/await
+
+`BSONEncoder` and `BSONDecoder` map `Codable` types to BSON documents, keeping dates, binary data, UUIDs and
+ObjectIds as native BSON types. Collections have typed, throwing methods built on them. For concurrency,
+share one `MongoClientPool`. `withClient` runs blocking driver work off Swift's cooperative thread pool,
+and `find` streams results as an `AsyncSequence`:
+
+```swift
+struct User: Codable, Sendable {
+    var _id: BSON.OID
+    var name: String
+    var age: Int
+    var joined: Date
+}
+
+let pool = MongoClientPool(uri: "mongodb://localhost")
+
+try await pool.withClient { client in
+    let users = client.getCollection(databaseName: "app", collectionName: "users")
+    try users.insert(User(_id: BSON.OID(), name: "Ada", age: 36, joined: Date()))
+    try users.updateOne(filter: try BSON(json: #"{"name": "Ada"}"#),
+                        update: try BSON(json: #"{"$inc": {"age": 1}}"#))
+}
+
+for try await user in pool.find(User.self, database: "app", collection: "users",
+                                filter: try BSON(json: #"{"age": {"$gt": 30}}"#)) {
+    print(user.name)
+}
+```
+
+A `MongoClient` and the collections and cursors made from it are not thread-safe: use each from one task at
+a time, which `withClient` and `find` do for you.
 
 ## Testing
 
