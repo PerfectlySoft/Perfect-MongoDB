@@ -49,7 +49,7 @@ jobs:
           swift test
 
   macos:
-    name: macOS (build + BSON tests)
+    name: macOS (build + server-independent tests)
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
@@ -58,4 +58,4 @@ jobs:
         run: brew install mongo-c-driver
 
       - name: Build and run server-independent tests
-        run: swift test --filter "testBSON|testNewObjectId"
+        run: swift test --filter "testBSON|testNewObjectId|Phase4Tests.test(Codable|Encodes|Decod|ObjectId)"

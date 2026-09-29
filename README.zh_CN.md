@@ -1,97 +1,122 @@
-Perfect - MongoDB 数据库连接器 [English](README.md)
-===========================
+# Perfect MongoDB
+
+[English](README.md)
 
 <p align="center">
-    <a href="http://perfect.org/get-involved.html" target="_blank">
-        <img src="http://perfect.org/assets/github/perfect_github_2_0_0.jpg" alt="Get Involed with Perfect!" width="854" />
-    </a>
+    <img src="https://img.shields.io/badge/Swift-6-orange.svg?style=flat" alt="Swift 6">
+    <img src="https://img.shields.io/badge/Platforms-macOS%2012%2B%20%7C%20Linux-lightgray.svg?style=flat" alt="Platforms macOS 12+ | Linux">
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg?style=flat" alt="License Apache 2.0"></a>
 </p>
 
-<p align="center">
-    <a href="https://github.com/PerfectlySoft/Perfect" target="_blank">
-        <img src="http://www.perfect.org/github/Perfect_GH_button_1_Star.jpg" alt="Star Perfect On Github" />
-    </a>  
-    <a href="http://stackoverflow.com/questions/tagged/perfect" target="_blank">
-        <img src="http://www.perfect.org/github/perfect_gh_button_2_SO.jpg" alt="Stack Overflow" />
-    </a>  
-    <a href="https://twitter.com/perfectlysoft" target="_blank">
-        <img src="http://www.perfect.org/github/Perfect_GH_button_3_twit.jpg" alt="Follow Perfect on Twitter" />
-    </a>  
-    <a href="http://perfect.ly" target="_blank">
-        <img src="http://www.perfect.org/github/Perfect_GH_button_4_slack.jpg" alt="Join the Perfect Slack" />
-    </a>
-</p>
+本项目是 MongoDB 官方 C 语言驱动 [libmongoc](https://github.com/mongodb/mongo-c-driver) 的 Swift 封装，
+涵盖客户端与连接池、数据库、集合、游标、BSON 文档以及 GridFS。
 
-<p align="center">
-    <a href="https://developer.apple.com/swift/" target="_blank">
-        <img src="https://img.shields.io/badge/Swift-3.0-orange.svg?style=flat" alt="Swift 3.0">
-    </a>
-    <a href="https://developer.apple.com/swift/" target="_blank">
-        <img src="https://img.shields.io/badge/Platforms-OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat" alt="Platforms OS X | Linux">
-    </a>
-    <a href="http://perfect.org/licensing.html" target="_blank">
-        <img src="https://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat" alt="License Apache">
-    </a>
-    <a href="http://twitter.com/PerfectlySoft" target="_blank">
-        <img src="https://img.shields.io/badge/Twitter-@PerfectlySoft-blue.svg?style=flat" alt="PerfectlySoft Twitter">
-    </a>
-    <a href="http://perfect.ly" target="_blank">
-        <img src="http://perfect.ly/badge.svg" alt="Slack Status">
-    </a>
-</p>
+MongoDB 已于 2023 年停止开发官方的服务器端 Swift 驱动。libmongoc 是 MongoDB 仍在维护、并持续符合其驱动规范
+（服务器发现、可重试写入、身份验证、TLS）的驱动，因此本项目基于它构建。
 
-
-本项目封装了 mongo-c 客户端函数库，因此可以使用 Swift 访问 MongoDB 服务器。
-
-本项目是
-[Perfect](https://github.com/PerfectlySoft/Perfect) 软件体系的一部分，但是可以独立运行，不依赖于 PerfectLib 基本库。
-请确保您已经正确安装了最新版本的 Swift 3.0 工具链。
-
-
-
-
-## 问题报告
-
-我们正在过渡到 JIRA 程序错误管理系统，因此 GitHub 的问题报告功能就被禁用了。
-
-如果您发现任何问题，或有任何意见和建议，请在我们的 JIRA 工作台指出 [http://jira.perfect.org:8080/servicedesk/customer/portal/1](http://jira.perfect.org:8080/servicedesk/customer/portal/1)。
-
-目前的问题清单请查阅 [http://jira.perfect.org:8080/projects/ISS/issues](http://jira.perfect.org:8080/projects/ISS/issues)
-
-macOS 注意事项
-----------------
-
-本程序依赖于 [Homebrew](http://brew.sh) 发行的 mongo-c 函数库。 
-
-如果您要安装 Homebrew:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-安装 mongo-c 的方法:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-brew install mongo-c-driver
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Linux 注意事项
------------------
-
-请确定以下函数库已经预装：
-
-```
-apt-get install libmongoc-dev libbson-dev libssl-dev
-```
-
-编译
---------
-
-请在您的 Package.swift 文件下增加以下内容：
+**本项目正在 `swift6-modernization` 分支上针对 Swift 6 进行现代化改造。** 目前已能在 Swift 6 语言模式下基于
+libmongoc 2.x 编译，现有公共 API 保持不变。进展情况以及少数行为变化请参阅
+[Documentation/modernization-plan.md](Documentation/modernization-plan.md)（英文）。3.x 版本（Swift 4/5、libmongoc 1.x）
+仍可通过标签获取。
 
 ```swift
-.Package(url:"https://github.com/PerfectlySoft/Perfect-MongoDB.git", majorVersion: 3)
+dependencies: [
+    .package(url: "https://github.com/PerfectlySoft/Perfect-MongoDB.git", branch: "swift6-modernization")
+],
+targets: [
+    .target(name: "MyTarget", dependencies: [
+        .product(name: "PerfectMongoDB", package: "Perfect-MongoDB")
+    ])
+]
 ```
 
-## 更多信息
-关于 Perfect 软件函数库的更多信息，请访问官网： [perfect.org](http://www.perfect.org/docs/MongoDB.html).
+## 环境要求
+
+必须安装 libmongoc **2.x**，并确保 pkg-config 能找到 `mongoc2` 和 `bson2`。
+
+**macOS**（[Homebrew](https://brew.sh)）：
+
+```sh
+brew install mongo-c-driver
+```
+
+在 Apple 芯片的 Mac 上，如果 SwiftPM 找不到该库，请设置 `PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig`。
+
+**Linux：** 大多数发行版仍只提供 libmongoc 1.x（例如 Ubuntu 的 `libmongoc-dev`），本版本不支持。请参照
+`.github/workflows/ci.yml` 中 CI 的做法，从源码编译 libmongoc 2：
+
+```sh
+apt-get install cmake libssl-dev libsasl2-dev libzstd-dev
+curl -fsSL https://github.com/mongodb/mongo-c-driver/releases/download/2.5.5/mongo-c-driver-2.5.5.tar.gz | tar xz
+cmake -S mongo-c-driver-2.5.5 -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF
+cmake --build build --parallel && sudo cmake --install build
+```
+
+## 示例
+
+```swift
+import PerfectMongoDB
+
+let client = try MongoClient(uri: "mongodb://localhost")
+let users = client.getDatabase(name: "app").getCollection(name: "users")!
+
+_ = users.insert(document: try BSON(json: #"{"name": "Ada", "age": 36}"#))
+
+if let cursor = users.find(query: try BSON(json: #"{"age": {"$gt": 30}}"#)) {
+    for user in cursor {
+        print(user.asString)
+    }
+}
+```
+
+### Codable 与 async/await
+
+`BSONEncoder` 和 `BSONDecoder` 在 `Codable` 类型与 BSON 文档之间转换，日期、二进制数据、UUID 和 ObjectId
+都保留为原生 BSON 类型。集合提供了基于它们的类型化、可抛出错误的方法。并发场景下请共享同一个
+`MongoClientPool`：`withClient` 会把阻塞的驱动调用放到 Swift 协作线程池之外执行，`find` 则以 `AsyncSequence`
+的形式流式返回结果：
+
+```swift
+struct User: Codable, Sendable {
+    var _id: BSON.OID
+    var name: String
+    var age: Int
+    var joined: Date
+}
+
+let pool = try MongoClientPool(validatingURI: "mongodb://localhost")
+
+try await pool.withClient { client in
+    let users = client.getCollection(databaseName: "app", collectionName: "users")
+    try users.insert(User(_id: BSON.OID(), name: "Ada", age: 36, joined: Date()))
+    try users.updateOne(filter: try BSON(json: #"{"name": "Ada"}"#),
+                        update: try BSON(json: #"{"$inc": {"age": 1}}"#))
+}
+
+for try await user in pool.find(User.self, database: "app", collection: "users",
+                                filter: try BSON(json: #"{"age": {"$gt": 30}}"#)) {
+    print(user.name)
+}
+```
+
+`MongoClient` 以及由它创建的集合和游标都不是线程安全的：同一时间只能在一个任务中使用，`withClient` 和
+`find` 会替你保证这一点。
+
+## 测试
+
+测试需要在 `mongodb://localhost` 上运行的 MongoDB 服务器：
+
+```sh
+mongod --dbpath /tmp/mongo-test
+swift test
+```
+
+如需像 CI 一样在本地的 Linux 环境中运行测试（Swift 6.4、libmongoc 2.5.5、MongoDB 8），请使用 Apple 的
+[`container`](https://github.com/apple/container) 工具：
+
+```sh
+container system start          # 只需执行一次
+Scripts/test-linux.sh           # 额外参数会传给 swift test，例如 --filter Phase4Tests
+```
+
+首次运行会把 libmongoc 编译到一个缓存卷中（不到一分钟），之后每次运行只需几秒钟。

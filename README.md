@@ -1,5 +1,7 @@
 # Perfect MongoDB
 
+[简体中文](README.zh_CN.md)
+
 <p align="center">
     <img src="https://img.shields.io/badge/Swift-6-orange.svg?style=flat" alt="Swift 6">
     <img src="https://img.shields.io/badge/Platforms-macOS%2012%2B%20%7C%20Linux-lightgray.svg?style=flat" alt="Platforms macOS 12+ | Linux">
@@ -84,7 +86,7 @@ struct User: Codable, Sendable {
     var joined: Date
 }
 
-let pool = MongoClientPool(uri: "mongodb://localhost")
+let pool = try MongoClientPool(validatingURI: "mongodb://localhost")
 
 try await pool.withClient { client in
     let users = client.getCollection(databaseName: "app", collectionName: "users")

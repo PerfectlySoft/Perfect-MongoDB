@@ -183,6 +183,20 @@ final class Phase4Tests: XCTestCase {
 		testURI + (testURI.contains("?") ? "&" : "/?") + "maxPoolSize=\(maxPoolSize)"
 	}
 
+	func testPoolValidatingURI() async throws {
+		XCTAssertThrowsError(try MongoClientPool(validatingURI: "mongoib//typo")) { error in
+			guard let error = error as? MongoError else { return XCTFail("\(error)") }
+			XCTAssertFalse(error.message.isEmpty, "\(error)")
+		}
+		XCTAssertThrowsError(try MongoClientPool(validatingURI: "mongodb://localhost/?tls=true&tlsInsecure=true&tlsAllowInvalidCertificates=true"),
+							 "conflicting TLS options should be rejected")
+		let pool = try MongoClientPool(validatingURI: testURI)
+		let count = try await pool.withClient { client in
+			try client.getCollection(databaseName: "test", collectionName: "phase4validating").countDocuments()
+		}
+		XCTAssertEqual(count, 0)
+	}
+
 	func testWithClientConcurrently() async throws {
 		let pool = MongoClientPool(uri: poolURI(maxPoolSize: 4))
 		try await pool.withClient { client in

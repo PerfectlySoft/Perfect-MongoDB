@@ -1,6 +1,6 @@
 # Perfect-MongoDB modernization plan
 
-Status: **Phases 1, 2 and 4 done (Phase 4 on 2026-09-29), except the Atlas/TLS check.** 35 tests pass against MongoDB 8.3 locally. The 26 from Phases 1-2 also pass in CI on Linux (Swift 6.4, MongoDB 8, libmongoc 2.5.5 built from source). Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
+Status: **Phases 1, 2 and 4 done (Phase 4 on 2026-09-29), except the Atlas/TLS check.** 36 tests pass against MongoDB 8.3 locally and on Linux (`Scripts/test-linux.sh`). The 26 from Phases 1-2 also pass in CI on Linux (Swift 6.4, MongoDB 8, libmongoc 2.5.5 built from source). Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
 
 Decision on 2026-09-27: **target libmongoc 2.x only.** Homebrew's `mongo-c-driver` is now 2.x; 1.x survives only as the deprecated, keg-only `mongo-c-driver@1`, which Homebrew disables on 2027-04-01. Phase 3's 2.x work was therefore folded into Phase 1. The catch: Linux distributions that still ship 1.x (Ubuntu's `libmongoc-dev` is 1.26) need libmongoc 2 built from source until they package it.
 
@@ -77,7 +77,7 @@ Phase 1 behaviour changes:
 - [x] Pooled clients go back to the pool when they're released, instead of being destroyed. Each popped client keeps its pool alive.
 - [x] `distinct()` leak fixed.
 - [x] Ownership: databases keep their client alive; collections keep their client or database; cursors keep their collection; `GridFS` keeps its client; `GridFile`s from `list`/`search`/`upload` keep their `GridFS`.
-- [x] README rewritten: current requirements, building libmongoc 2 on Linux, example. `README.zh_CN.md` is still the old text.
+- [x] README rewritten: current requirements, building libmongoc 2 on Linux, example. `README.zh_CN.md` is translated from it (2026-09-29), and each links to the other.
 - [x] GitHub Actions (`.github/workflows/ci.yml`): Linux job in the `swift:6.4-noble` container builds libmongoc 2.5.5 from source (cached), runs the full suite against a `mongo:8` service (tests read `MONGODB_URI`). The macOS job does a Homebrew build plus the BSON tests. Green since run 36366712375. Getting there fixed a Linux-only build error, which means the package hadn't built on Linux under current Swift: glibc's `fwrite`/`fclose` need a non-optional `FILE*`. It also fixed a pointer that outlived its buffer in GridFS `download(to:)`.
 - [x] Tests added for every update form, bulk writes, `findAndModify`, the pool, and a collection outliving its client variable.
 - [ ] Test `mongodb+srv://` and TLS connection strings against Atlas. Needs an Atlas cluster.
@@ -94,6 +94,8 @@ Folded into Phase 1: the package now targets 2.x only. Linux CI builds libmongoc
 - [x] `AsyncSequence` cursor: `pool.find(User.self, database:collection:filter:options:batchSize:)` returns `MongoFindSequence`. One pooled client is held per iteration, documents are fetched and decoded in batches (default 100) per hop to the blocking queue, cancellation is checked between batches, and the client goes back to the pool when the loop ends, throws or breaks early. This is safe here but wasn't in Perfect-CRUD, because a libmongoc client can move between threads as long as only one uses it at a time.
 - [x] Tests (`Phase4Tests.swift`, 9 tests): Codable round trip over every supported type, native BSON types in the output, numeric conversions and errors, typed CRUD, duplicate-key `MongoError`, 20 concurrent `withClient` tasks on a 4-client pool, and the find sequence (250 docs, early break releasing clients, decoding errors). Also passes under Thread Sanitizer; only the Swift code is instrumented, not libmongoc.
 - Decision: **no deprecations yet.** The typed API is a parallel layer rather than a one-for-one replacement, and deprecating the old calls now would flood existing users with warnings before anyone has used the new ones. Revisit once the community requesters have tried it.
+- [x] `MongoClientPool(validatingURI:)` throws `MongoError` for a bad URI or rejected options, using `mongoc_client_pool_new_with_error`. `init(uri:)` keeps its non-throwing signature and traps with that error.
+- [x] macOS CI also runs the server-independent Codable tests (12 tests instead of 7).
 - [ ] Not done, and worth doing on request: change streams (`watch`), aggregation into Codable types, transactions/sessions, and an async GridFS.
 
 ## Open questions

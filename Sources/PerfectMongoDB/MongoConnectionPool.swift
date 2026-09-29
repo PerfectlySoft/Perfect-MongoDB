@@ -30,20 +30,32 @@ public final class MongoClientPool: @unchecked Sendable {
      *
      *  - parameter uri: String uri to connect client pool
     */
-    /// Traps with the parse error if **uri** is not a valid MongoDB connection string.
-    public init(uri: String) {
+    /// Traps with the error if **uri** is not a valid MongoDB connection string.
+    /// Use `init(validatingURI:)` to handle that case instead.
+    public convenience init(uri: String) {
+        do {
+            try self.init(validatingURI: uri)
+        } catch {
+            fatalError("MongoClientPool: \(error)")
+        }
+    }
+
+    /// Creates a pool, throwing `MongoError` if **uri** is not a valid MongoDB connection
+    /// string or its options (for example TLS settings) are rejected. Connecting happens
+    /// later, when a client is first used.
+    public init(validatingURI uri: String) throws {
         mongocInitialized
         var error = bson_error_t()
         guard let uriPointer = mongoc_uri_new_with_error(uri, &error) else {
-            guard case .error(_, _, let message) = MongoResult.fromError(error) else {
-                fatalError("MongoClientPool: invalid URI '\(uri)'")
-            }
-            fatalError("MongoClientPool: invalid URI '\(uri)': \(message)")
+            throw MongoError(error)
         }
         defer {
             mongoc_uri_destroy(uriPointer)
         }
-        ptr = mongoc_client_pool_new(uriPointer)
+        guard let pool = mongoc_client_pool_new_with_error(uriPointer, &error) else {
+            throw MongoError(error)
+        }
+        ptr = pool
     }
     
     deinit {
