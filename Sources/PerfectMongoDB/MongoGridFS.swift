@@ -26,6 +26,9 @@ public class GridFile {
 	
 	/// inner pointer of gridfs file handle
 	private var _fp: OpaquePointer?
+
+	/// The GridFS this file came from, kept alive while the file is in use.
+	var owner: AnyObject?
 	
 	/// error info for internal usage
 	var error = bson_error_t()
@@ -183,7 +186,9 @@ public class GridFile {
 	@discardableResult
 	public func download(to: String) throws -> Int {
 		// open the local file to write in binary
-		let fp = fopen(to, "wb")
+		guard let fp = fopen(to, "wb") else {
+			throw MongoClientError.initError("gridfs.file.write(\(to)) cannot open destination")
+		}
 		// create a new file on gridfs
 		let stream = mongoc_stream_gridfs_new(_fp)
 		// check result
@@ -192,12 +197,12 @@ public class GridFile {
 		var iov = mongoc_iovec_t()
 		// set transfer buffer to 4k, as default in network traffic
 		iov.iov_len = 4096
-		// safely alloc a well managed 4k buffer without worrying about GC
-		var bytes = [UInt8](repeating:0, count: iov.iov_len)
-		// assign the buffer to iov structur
-		let _ = bytes.withUnsafeMutableBufferPointer {
-			iov.iov_base = unsafeBitCast($0.baseAddress, to: UnsafeMutableRawPointer.self)
+		// a 4k transfer buffer that stays valid for the whole loop
+		let buffer = UnsafeMutableRawPointer.allocate(byteCount: iov.iov_len, alignment: 1)
+		defer {
+			buffer.deallocate()
 		}
+		iov.iov_base = buffer
 		// bytes to go
 		var total = 0
 		// verify the R/W operation
@@ -339,6 +344,9 @@ public class GridFS {
 	
 	/// mongoc_gridfs_t for handle the api
 	private var handle: OpaquePointer?
+
+	/// The client this GridFS came from, kept alive while the GridFS is in use.
+	private let client: MongoClient
 	
 	/// error structure for internal usage
 	var error = bson_error_t()
@@ -351,6 +359,7 @@ public class GridFS {
 	/// - throws:
 	///	MongoClientError, if failed to get the expected handle
 	public init(client: MongoClient, database: String, prefix: String? = nil) throws {
+		self.client = client
 		/// get gridfs handle from a mongo client
 		handle = mongoc_client_get_gridfs(client.ptr, database, prefix, &error)
 		guard handle != nil else {
@@ -393,9 +402,9 @@ public class GridFS {
 		// perform actually query
 		var plist: OpaquePointer?
 		if filter == nil {
-			plist = mongoc_gridfs_find(handle, toOpaque(query.doc))
+			plist = _perfect_gridfs_find(handle, toOpaque(query.doc))
 		} else {
-			plist = mongoc_gridfs_find(handle, toOpaque(filter?.doc))
+			plist = _perfect_gridfs_find(handle, toOpaque(filter?.doc))
 		}
 		
 		guard plist != nil else {
@@ -419,6 +428,7 @@ public class GridFS {
 			// construct a grid file object from the mongoc_grid_file_t pointer
 			do {
 				let f = try GridFile(file)
+				f.owner = self
 				// add the new file object to the array
 				ret.append(f)
 			} catch (let e) {
@@ -503,7 +513,9 @@ public class GridFS {
 		// upload the file
 		let save = mongoc_gridfs_file_save(file)
 		if save {
-			return try GridFile(file)
+			let f = try GridFile(file)
+			f.owner = self
+			return f
 		} else {
 			mongoc_gridfs_file_destroy(file)
 			throw MongoClientError.initError("gridfs.upload(\(from)): destination \(to) failed to save")
@@ -535,7 +547,9 @@ public class GridFS {
 	/// MongoClientError if failed or not found
 	@discardableResult
 	public func search(name: String) throws -> GridFile {
-		return try GridFile(gridFS: handle, from: name)
+		let f = try GridFile(gridFS: handle, from: name)
+		f.owner = self
+		return f
 	}
 	
 	/// delete a file from the server

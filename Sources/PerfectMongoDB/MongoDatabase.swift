@@ -23,6 +23,8 @@ import PerfectCMongo
 public class MongoDatabase {
 
 	var ptr = OpaquePointer(bitPattern: 0)
+	/// The client this database came from, kept alive while the database is in use.
+	let client: MongoClient
 
 	public typealias Result = MongoResult
 
@@ -36,6 +38,7 @@ public class MongoDatabase {
     */
 	public init(client: MongoClient, databaseName: String) {
 		self.ptr = mongoc_client_get_database(client.ptr, databaseName)
+		self.client = client
 	}
     
     deinit {
@@ -67,7 +70,7 @@ public class MongoDatabase {
         guard let ptr = self.ptr else {
             return ""
         }
-		return String(validatingUTF8: mongoc_database_get_name(ptr)) ?? ""
+		return String(validatingCString: mongoc_database_get_name(ptr)) ?? ""
 	}
 
     /**
@@ -86,7 +89,7 @@ public class MongoDatabase {
 		guard let col = mongoc_database_create_collection(ptr, collectionName, toOpaque(options?.doc), &error) else {
 			return Result.fromError(error)
 		}
-		return .replyCollection(MongoCollection(rawPtr: col))
+		return .replyCollection(MongoCollection(rawPtr: col, owner: self))
 	}
 
     /**
@@ -101,7 +104,7 @@ public class MongoDatabase {
             return nil
         }
 		let col = mongoc_database_get_collection(ptr, collectionName)
-        return MongoCollection(rawPtr: col)
+        return MongoCollection(rawPtr: col, owner: self)
 	}
     
     /// - returns: String Array of current database collections' names
@@ -110,12 +113,12 @@ public class MongoDatabase {
         guard let ptr = self.ptr else {
             return ret
         }
-		guard let names = mongoc_database_get_collection_names(ptr, nil) else {
+		guard let names = mongoc_database_get_collection_names_with_opts(ptr, nil, nil) else {
 			return ret
 		}
 		var curr = names
 		while let pointee = curr.pointee {
-			ret.append(String(validatingUTF8: pointee) ?? "")
+			ret.append(String(validatingCString: pointee) ?? "")
 			curr = curr.successor()
 		}
 		bson_strfreev(names)

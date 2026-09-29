@@ -18,11 +18,14 @@
 //
 
 import Foundation
-import PerfectLib
 
-/// This file is meant for MongoDB specific JSONConvertible types
+/// MongoDB extended JSON encodings for Foundation types.
+///
+/// These used to conform to PerfectLib's `JSONConvertible`. The package no longer
+/// depends on PerfectLib; code that needs the conformance can restore it with
+/// `extension Date: JSONConvertible {}`.
 
-extension Date: JSONConvertible {
+extension Date {
 	public func jsonEncodedString() throws -> String {
 		return "{\"$date\":{\"$numberLong\":\"\(Int64(self.timeIntervalSince1970 * 1000))\"}}"
 	}

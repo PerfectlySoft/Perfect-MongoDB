@@ -21,6 +21,9 @@ import Foundation
 import XCTest
 @testable import PerfectMongoDB
 
+/// Server for the tests; set MONGODB_URI to use one other than localhost.
+let testURI = ProcessInfo.processInfo.environment["MONGODB_URI"] ?? "mongodb://localhost"
+
 class PerfectMongoDBTests: XCTestCase {
     func testBSONFromJSON() {
 		let json = "{\"id\":1,\"first_name\":\"Kimberly\",\"last_name\":\"Gonzales\",\"email\":\"kgonzales0@usnews.com\",\"country\":\"France\",\"ip_address\":\"164.55.182.176\",\"ip_address0\":\"Turquoise\",\"ip_address1\":\"Euro\",\"ip_address2\":\"1qttm1nWiNDfpwuaYuoj7S7TXxUWxauBt\",\"ip_address3\":\"Demivee\",\"ip_address4\":false,\"ip_address5\":\"6/27/2015\"}"
@@ -242,7 +245,7 @@ class PerfectMongoDBTests: XCTestCase {
 	}
 	
 	func testClientConnect() {
-		let client = try! MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: testURI)
 		let status = client.serverStatus()
 		switch status {
 		case .error(let domain, let code, let message):
@@ -261,7 +264,7 @@ class PerfectMongoDBTests: XCTestCase {
 	}
 	
 	func testClientGetDatabase() {
-		let client = try! MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: testURI)
 		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		db.close()
@@ -269,7 +272,7 @@ class PerfectMongoDBTests: XCTestCase {
 	}
 	
 	func testDBCreateCollection() {
-		let client = try! MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: testURI)
 		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
@@ -295,7 +298,7 @@ class PerfectMongoDBTests: XCTestCase {
 	}
 	
 	func testClientGetDatabaseNames() {
-		let client = try! MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: testURI)
 		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
@@ -341,7 +344,7 @@ class PerfectMongoDBTests: XCTestCase {
 	}
 	
 	func testGetCollection() {
-		let client = try! MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: testURI)
 		let db = client.getDatabase(name: "test")
         guard let col = db.getCollection(name: "testcollection") else {
             XCTAssert(false, "Collection was nil")
@@ -354,7 +357,7 @@ class PerfectMongoDBTests: XCTestCase {
 	}
 	
 	func testDeleteDoc() {
-		let client = try! MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: testURI)
 		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
@@ -402,7 +405,7 @@ class PerfectMongoDBTests: XCTestCase {
     
     
     func testCollectionFind() {
-        let client = try! MongoClient(uri: "mongodb://localhost")
+        let client = try! MongoClient(uri: testURI)
         let db = client.getDatabase(name: "test")
         XCTAssert(db.name() == "test")
         
@@ -491,7 +494,7 @@ class PerfectMongoDBTests: XCTestCase {
         let collectionName = "testdistinctcollection"
         let attributeName = "attribute"
         
-        let client = try! MongoClient(uri: "mongodb://localhost")
+        let client = try! MongoClient(uri: testURI)
         let db = client.getDatabase(name: "test")
         XCTAssert(db.name() == "test")
         
@@ -550,7 +553,7 @@ class PerfectMongoDBTests: XCTestCase {
     }
 
 	func testUpdate() {
-		let client = try! MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: testURI)
 		let db = client.getDatabase(name: "test")
 		XCTAssert(db.name() == "test")
 		
@@ -643,7 +646,7 @@ class PerfectMongoDBTests: XCTestCase {
 	}
 
 	func testGridFS() {
-		let client = try! MongoClient(uri: "mongodb://localhost")
+		let client = try! MongoClient(uri: testURI)
 		var gridfs: GridFS
 		do {
 			gridfs = try client.gridFS(database: "test")
@@ -666,7 +669,7 @@ class PerfectMongoDBTests: XCTestCase {
 		}
 		
 		let secret:[UInt8] = [65, 66, 67, 68, 0] // "ABCD\0"
-		var fp = fopen("/tmp/secret.txt", "wb")
+		var fp = fopen("/tmp/secret.txt", "wb")!
 		fwrite(secret, 1, secret.count, fp)
 		fclose(fp)
 		
@@ -684,7 +687,7 @@ class PerfectMongoDBTests: XCTestCase {
 		}
 		
 		var secret2:[UInt8] = [0, 0, 0, 0, 0]
-		fp = fopen("/tmp/secret2.txt", "rb")
+		fp = fopen("/tmp/secret2.txt", "rb")!
 		let _ = secret2.withUnsafeMutableBufferPointer{ p in
 			fread(p.baseAddress, 1, 5, fp)
 		}
@@ -701,7 +704,7 @@ class PerfectMongoDBTests: XCTestCase {
 		let local = "/tmp/base128.dat"
 		let sz = 134217728 / 3 // 128MB / 3
 		let buffer = [UInt8](repeating: 66, count:sz)
-		fp = fopen(local, "wb")
+		fp = fopen(local, "wb")!
 		fwrite(buffer, 1, sz, fp)
 		fclose(fp)
 		let remote = "base128.dat"
@@ -739,7 +742,7 @@ class PerfectMongoDBTests: XCTestCase {
 		do {
 			for i in 0...20 {
 				let toUpload = "upload\(i).bin"
-				fp = fopen("/tmp/\(toUpload)", "wb")
+				fp = fopen("/tmp/\(toUpload)", "wb")!
 				fwrite(buffer, 1, sz, fp)
 				fclose(fp)
 				let fx = try gridfs.upload(from: "/tmp/\(toUpload)", to: toUpload)
@@ -766,7 +769,7 @@ class PerfectMongoDBTests: XCTestCase {
         let groupsCollectionName = "testaggregate.groups"
         let usersCollectionName = "testaggregate.users"
         
-        let client = try! MongoClient(uri: "mongodb://localhost")
+        let client = try! MongoClient(uri: testURI)
         let db = client.getDatabase(name: "test")
         XCTAssert(db.name() == "test")
         
@@ -872,29 +875,192 @@ class PerfectMongoDBTests: XCTestCase {
         let objectId = BSON.OID.newObjectId()
         XCTAssertTrue(objectId.count == 24, "Should generate valid ObjectId")
     }
-}
 
-extension PerfectMongoDBTests {
-    static var allTests : [(String, (PerfectMongoDBTests) -> () throws -> ())] {
-        return [
-            ("testBSONFromJSON", testBSONFromJSON),
-            ("testBSONAppend", testBSONAppend),
-            ("testBSONHasFields", testBSONHasFields),
-            ("testBSONIterate", testBSONIterate),
-            ("testBSONCompare", testBSONCompare),
-            ("testClientConnect", testClientConnect),
-            ("testClientConnectFail", testClientConnectFail),
-            ("testClientGetDatabase", testClientGetDatabase),
-            ("testDBCreateCollection", testDBCreateCollection),
-            ("testClientGetDatabaseNames", testClientGetDatabaseNames),
-            ("testGetCollection", testGetCollection),
-            ("testDeleteDoc", testDeleteDoc),
-            ("testCollectionFind", testCollectionFind),
-            ("testCollectionDistinct", testCollectionDistinct),
-            ("testGridFS", testGridFS),
-            ("testNewObjectIdGeneration", testNewObjectIdGeneration)
-        ]
-    }
+	// Returns the client too: a MongoCollection doesn't keep its client alive.
+	private func freshCollection(_ name: String) -> (MongoClient, MongoCollection) {
+		let client = try! MongoClient(uri: testURI)
+		let db = client.getDatabase(name: "test")
+		if let old = db.getCollection(name: name) {
+			_ = old.drop()
+		}
+		guard case .replyCollection(let collection) = db.createCollection(name: name, options: nil) else {
+			fatalError("could not create \(name)")
+		}
+		for a in 1...3 {
+			let doc = BSON()
+			doc.append(key: "a", int: a)
+			doc.append(key: "b", string: "value \(a)")
+			guard case .success = collection.insert(document: doc) else {
+				fatalError("insert failed")
+			}
+		}
+		return (client, collection)
+	}
+
+	func testFindLegacyQueryModifiers() {
+		let (client, collection) = freshCollection("testlegacyfind")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		let orderby = BSON()
+		orderby.append(key: "a", int: -1)
+		let query = BSON()
+		query.append(key: "$query", document: BSON())
+		query.append(key: "$orderby", document: orderby)
+		let fields = BSON()
+		fields.append(key: "b", int: 0)
+
+		guard let cursor = collection.find(query: query, fields: fields, skip: 1, limit: 1) else {
+			return XCTFail("find returned nil")
+		}
+		let docs = cursor.map { $0.asString }
+		XCTAssertEqual(docs.count, 1)
+		XCTAssert(docs.first?.contains("\"a\" : 2") == true, "\(docs)")
+		XCTAssert(docs.first?.contains("\"b\"") == false, "projection not applied: \(docs)")
+	}
+
+	func testCreateIndexAndStats() {
+		let (client, collection) = freshCollection("testindexstats")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		let keys = BSON()
+		keys.append(key: "a", int: 1)
+		guard case .success = collection.createIndex(keys: keys, options: MongoIndexOptions(unique: true)) else {
+			return XCTFail("createIndex failed")
+		}
+		let duplicate = BSON()
+		duplicate.append(key: "a", int: 1)
+		guard case .error = collection.insert(document: duplicate) else {
+			return XCTFail("unique index not enforced")
+		}
+		guard case .success = collection.dropIndex(name: "a_1") else {
+			return XCTFail("generated index name should be a_1")
+		}
+
+		guard case .replyDoc(let stats) = collection.stats(options: BSON()) else {
+			return XCTFail("stats failed")
+		}
+		XCTAssert(stats.asString.contains("\"count\" : 3"), stats.asString)
+	}
+
+	private func count(_ collection: MongoCollection, _ json: String = "{}") -> Int {
+		guard case .replyInt(let n) = collection.count(query: try! BSON(json: json)) else {
+			XCTFail("count failed")
+			return -1
+		}
+		return n
+	}
+
+	func testUpdateForms() {
+		let (client, collection) = freshCollection("testupdateforms")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		// update-operator document, single
+		guard case .success = collection.update(selector: try! BSON(json: "{}"), update: try! BSON(json: "{\"$set\": {\"c\": 1}}")) else {
+			return XCTFail("update one failed")
+		}
+		XCTAssertEqual(count(collection, "{\"c\": 1}"), 1)
+		// update-operator document, multi
+		guard case .success = collection.update(selector: try! BSON(json: "{}"), update: try! BSON(json: "{\"$set\": {\"c\": 2}}"), flag: .multiUpdate) else {
+			return XCTFail("update many failed")
+		}
+		XCTAssertEqual(count(collection, "{\"c\": 2}"), 3)
+		// replacement document
+		guard case .success = collection.update(selector: try! BSON(json: "{\"a\": 1}"), update: try! BSON(json: "{\"a\": 1, \"replaced\": true}")) else {
+			return XCTFail("replace failed")
+		}
+		XCTAssertEqual(count(collection, "{\"replaced\": true, \"c\": {\"$exists\": false}}"), 1)
+		// upsert
+		guard case .success = collection.update(selector: try! BSON(json: "{\"a\": 9}"), update: try! BSON(json: "{\"$set\": {\"b\": \"new\"}}"), flag: .upsert) else {
+			return XCTFail("upsert failed")
+		}
+		XCTAssertEqual(count(collection), 4)
+		// remove single, then all matching
+		guard case .success = collection.remove(selector: try! BSON(json: "{\"c\": 2}"), flag: .singleRemove) else {
+			return XCTFail("remove one failed")
+		}
+		XCTAssertEqual(count(collection, "{\"c\": 2}"), 1)
+		guard case .success = collection.remove(selector: try! BSON(json: "{}")) else {
+			return XCTFail("remove all failed")
+		}
+		XCTAssertEqual(count(collection), 0)
+	}
+
+	func testBulkWrites() {
+		let (client, collection) = freshCollection("testbulkwrites")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		let docs = (4...6).map { try! BSON(json: "{\"a\": \($0)}") }
+		guard case .success = collection.insert(documents: docs) else {
+			return XCTFail("bulk insert failed")
+		}
+		XCTAssertEqual(count(collection), 6)
+		let updates: [(selector: BSON, update: BSON)] = [
+			(try! BSON(json: "{\"a\": {\"$gt\": 3}}"), try! BSON(json: "{\"$set\": {\"bulk\": true}}")),
+			(try! BSON(json: "{\"a\": 1}"), try! BSON(json: "{\"a\": 1, \"swapped\": true}"))
+		]
+		guard case .success = collection.update(updates: updates) else {
+			return XCTFail("bulk update failed")
+		}
+		XCTAssertEqual(count(collection, "{\"bulk\": true}"), 3)
+		XCTAssertEqual(count(collection, "{\"swapped\": true}"), 1)
+	}
+
+	func testFindAndModify() {
+		let (client, collection) = freshCollection("testfindandmodify")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		guard case .replyDoc(let updated) = collection.findAndModify(query: try! BSON(json: "{\"a\": 2}"), sort: nil, update: try! BSON(json: "{\"$inc\": {\"a\": 10}}"), fields: nil, remove: false, upsert: false, new: true) else {
+			return XCTFail("findAndModify update failed")
+		}
+		XCTAssert(updated.asString.contains("\"a\" : 12"), updated.asString)
+
+		guard case .replyDoc(let removed) = collection.findAndModify(query: nil, sort: try! BSON(json: "{\"a\": -1}"), update: nil, fields: nil, remove: true, upsert: false, new: false) else {
+			return XCTFail("findAndModify remove failed")
+		}
+		XCTAssert(removed.asString.contains("\"a\" : 12"), removed.asString)
+		XCTAssertEqual(count(collection), 2)
+	}
+
+	func testClientPool() {
+		let pool = MongoClientPool(uri: testURI)
+		guard let first = pool.tryPopClient() else {
+			return XCTFail("tryPopClient returned nil")
+		}
+		guard case .replyDoc = first.serverStatus() else {
+			return XCTFail("pooled client unusable")
+		}
+		pool.pushClient(first)
+		do {
+			// released without pushClient: goes back to the pool instead of being destroyed
+			let dropped = pool.popClient()
+			XCTAssertEqual(dropped.databaseNames().isEmpty, false)
+		}
+		var ran = false
+		pool.executeBlock { client in
+			if case .replyDoc = client.serverStatus() {
+				ran = true
+			}
+		}
+		XCTAssert(ran)
+	}
+
+	func testCollectionOutlivesClientVariable() {
+		func makeCollection() -> MongoCollection {
+			let client = try! MongoClient(uri: testURI)
+			return client.getDatabase(name: "test").getCollection(name: "testoutlives")!
+		}
+		let collection = makeCollection()
+		defer { _ = collection.drop() }
+		guard case .success = collection.insert(document: try! BSON(json: "{\"a\": 1}")) else {
+			return XCTFail("insert through orphaned collection failed")
+		}
+		XCTAssertEqual(collection.find()?.map { $0 }.count, 1)
+	}
 }
 
 extension BSON {

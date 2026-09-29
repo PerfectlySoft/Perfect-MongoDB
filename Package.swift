@@ -1,4 +1,4 @@
-// swift-tools-version:4.1
+// swift-tools-version:6.0
 //  Package.swift
 //  Perfect-MongoDB
 //
@@ -21,16 +21,38 @@ import PackageDescription
 
 let package = Package(
 	name: "PerfectMongoDB",
+	platforms: [
+		.macOS(.v12)
+	],
 	products: [
 		.library(name: "PerfectMongoDB", targets: ["PerfectMongoDB"])
 	],
-	dependencies: [
-		.package(url: "https://github.com/PerfectSideRepos/Perfect-CMongo.git", from: "0.1.0"),
-		.package(url: "https://github.com/PerfectSideRepos/Perfect-CBSON.git", from: "0.0.0"),
-		.package(url: "https://github.com/PerfectlySoft/PerfectLib.git", from: "3.0.0")
-	],
 	targets: [
-		.target(name: "PerfectMongoDB", dependencies: ["PerfectLib"]),
-		.testTarget(name: "PerfectMongoDBTests", dependencies: ["PerfectMongoDB"])
+		.systemLibrary(
+			name: "PerfectCBSON",
+			pkgConfig: "bson2",
+			providers: [
+				.brew(["mongo-c-driver"]),
+				.apt(["libbson-dev"])
+			]
+		),
+		.systemLibrary(
+			name: "PerfectCMongo",
+			pkgConfig: "mongoc2",
+			providers: [
+				.brew(["mongo-c-driver"]),
+				.apt(["libmongoc-dev"])
+			]
+		),
+		.target(
+			name: "PerfectMongoDB",
+			dependencies: ["PerfectCBSON", "PerfectCMongo"],
+			swiftSettings: [.swiftLanguageMode(.v6)]
+		),
+		.testTarget(
+			name: "PerfectMongoDBTests",
+			dependencies: ["PerfectMongoDB"],
+			swiftSettings: [.swiftLanguageMode(.v6)]
+		)
 	]
 )

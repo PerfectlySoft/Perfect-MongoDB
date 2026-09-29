@@ -33,7 +33,7 @@ public enum MongoResult {
 		var vError = error
 		let message = withUnsafePointer(to: &vError.message) {
 			return $0.withMemoryRebound(to: CChar.self, capacity: 0) {
-				String(validatingUTF8: $0) ?? "unknown error"
+				String(validatingCString: $0) ?? "unknown error"
 			}
 		}
 		return .error(error.domain, error.code, message)
@@ -48,6 +48,10 @@ public enum MongoClientError: Error {
      */
     case initError(String)
 }
+
+/// libmongoc 2 no longer initializes itself when loaded; mongoc_init() must run once
+/// before any client, pool or URI is created. Globals are initialized lazily and exactly once.
+let mongocInitialized: Void = mongoc_init()
 
 public class MongoClient {
 
@@ -65,22 +69,31 @@ public class MongoClient {
      *
     */
 	public init(uri: String) throws {
+        mongocInitialized
         guard let ptr = mongoc_client_new(uri) else {
             throw MongoClientError.initError("Could not parse URI '\(uri)'")
         }
         self.ptr = ptr
 	}
 
-    init(pointer: OpaquePointer?) {
+    /// The pool a popped client belongs to. Pooled clients go back to the pool instead of being destroyed.
+    var pool: MongoClientPool?
+
+    init(pointer: OpaquePointer?, pool: MongoClientPool? = nil) {
         ptr = pointer
+        self.pool = pool
     }
-	
+
     deinit {
         close()
     }
 
-    /// terminate current Mongo Client connection
+    /// terminate current Mongo Client connection, or return it to its pool if it was popped from one
 	public func close() {
+        if let pool = self.pool {
+            pool.pushClient(self)
+            return
+        }
         guard let ptr = self.ptr else {
             return
         }
@@ -125,7 +138,12 @@ public class MongoClient {
         guard let doc = bson.doc else {
             return .error(1, 1, "Invalid BSON doc")
         }
-		guard mongoc_client_get_server_status(self.ptr, readPrefs, toOpaque(doc), &error) else {
+		let command = BSON()
+		defer {
+			command.close()
+		}
+		command.append(key: "serverStatus", int: 1)
+		guard mongoc_client_command_simple(self.ptr, "admin", toOpaque(command.doc), readPrefs, toOpaque(doc), &error) else {
 			return Result.fromError(error)
 		}
 		return .replyDoc(bson)
@@ -138,12 +156,12 @@ public class MongoClient {
     */
 	public func databaseNames() -> [String] {
 		var ret = [String]()
-		guard let names = mongoc_client_get_database_names(self.ptr, nil) else {
+		guard let names = mongoc_client_get_database_names_with_opts(self.ptr, nil, nil) else {
 			return ret
 		}
 		var curr = names
 		while let currPtr = curr[0] {
-			ret.append(String(validatingUTF8: currPtr) ?? "")
+			ret.append(String(validatingCString: currPtr) ?? "")
 			curr = curr.successor()
 		}
 		bson_strfreev(names)
