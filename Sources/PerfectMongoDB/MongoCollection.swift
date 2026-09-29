@@ -396,7 +396,7 @@ public class MongoCollection {
                 return Result.fromError(error)
             }
         }
-        guard mongoc_bulk_operation_execute(bulk, toOpaque(&reply), &error) == 1 else {
+        guard mongoc_bulk_operation_execute(bulk, toOpaque(&reply), &error) != 0 else {
             return Result.fromError(error)
         }
         return .success
