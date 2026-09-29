@@ -15,14 +15,16 @@ MongoDB stopped developing its official server-side Swift driver in 2023. libmon
 still maintains and keeps compliant with its specifications (server discovery, retryable writes,
 authentication, TLS), so this package builds on it.
 
-**This package is being modernized for Swift 6** on the `swift6-modernization` branch. It now builds in
-Swift 6 language mode against libmongoc 2.x, with the existing public API unchanged. See
-[Documentation/modernization-plan.md](Documentation/modernization-plan.md) for progress and for the few
-behaviour changes. The 3.x releases (Swift 4/5, libmongoc 1.x) remain available by tag.
+**Version 4 modernizes this package for Swift 6.** It builds in Swift 6 language mode against libmongoc 2.x,
+keeps the existing public API, and adds Codable and async/await APIs. A few behaviour changes, forced by
+libmongoc 2, are listed in [Documentation/modernization-plan.md](Documentation/modernization-plan.md).
+
+The pre-4.0 version (Swift 4/5, libmongoc 1.x) is preserved on the [`legacy`](../../tree/legacy) branch and
+the 3.x tags.
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/PerfectlySoft/Perfect-MongoDB.git", branch: "swift6-modernization")
+    .package(url: "https://github.com/PerfectlySoft/Perfect-MongoDB.git", from: "4.0.0")
 ],
 targets: [
     .target(name: "MyTarget", dependencies: [

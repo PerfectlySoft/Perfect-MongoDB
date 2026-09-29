@@ -14,14 +14,15 @@
 MongoDB 已于 2023 年停止开发官方的服务器端 Swift 驱动。libmongoc 是 MongoDB 仍在维护、并持续符合其驱动规范
 （服务器发现、可重试写入、身份验证、TLS）的驱动，因此本项目基于它构建。
 
-**本项目正在 `swift6-modernization` 分支上针对 Swift 6 进行现代化改造。** 目前已能在 Swift 6 语言模式下基于
-libmongoc 2.x 编译，现有公共 API 保持不变。进展情况以及少数行为变化请参阅
-[Documentation/modernization-plan.md](Documentation/modernization-plan.md)（英文）。3.x 版本（Swift 4/5、libmongoc 1.x）
-仍可通过标签获取。
+**4.0 版本针对 Swift 6 对本项目进行了现代化改造。** 它在 Swift 6 语言模式下基于 libmongoc 2.x 编译，保留了
+现有公共 API，并新增了 Codable 与 async/await API。由 libmongoc 2 导致的少数行为变化列于
+[Documentation/modernization-plan.md](Documentation/modernization-plan.md)（英文）。
+
+4.0 之前的版本（Swift 4/5、libmongoc 1.x）保留在 [`legacy`](../../tree/legacy) 分支以及 3.x 标签中。
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/PerfectlySoft/Perfect-MongoDB.git", branch: "swift6-modernization")
+    .package(url: "https://github.com/PerfectlySoft/Perfect-MongoDB.git", from: "4.0.0")
 ],
 targets: [
     .target(name: "MyTarget", dependencies: [

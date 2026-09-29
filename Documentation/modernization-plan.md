@@ -1,6 +1,6 @@
 # Perfect-MongoDB modernization plan
 
-Status: **Phases 1, 2 and 4 done (Phase 4 on 2026-09-29), except the Atlas/TLS check.** 36 tests pass against MongoDB 8.3 locally and on Linux (`Scripts/test-linux.sh`). The 26 from Phases 1-2 also pass in CI on Linux (Swift 6.4, MongoDB 8, libmongoc 2.5.5 built from source). Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
+Status: **Released as 4.0.0 on 2026-09-29.** Phases 1, 2 and 4 are done; the Atlas `mongodb+srv://`/TLS check was deferred. The pre-4.0 code is on the `legacy` branch. 36 tests pass against MongoDB 8.3 locally and on Linux (`Scripts/test-linux.sh`). The 26 from Phases 1-2 also pass in CI on Linux (Swift 6.4, MongoDB 8, libmongoc 2.5.5 built from source). Captured 2026-09-27 from a research session so work can be picked up later on a laptop.
 
 Decision on 2026-09-27: **target libmongoc 2.x only.** Homebrew's `mongo-c-driver` is now 2.x; 1.x survives only as the deprecated, keg-only `mongo-c-driver@1`, which Homebrew disables on 2027-04-01. Phase 3's 2.x work was therefore folded into Phase 1. The catch: Linux distributions that still ship 1.x (Ubuntu's `libmongoc-dev` is 1.26) need libmongoc 2 built from source until they package it.
 
