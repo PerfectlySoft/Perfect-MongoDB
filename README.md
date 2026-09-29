@@ -110,3 +110,13 @@ The tests expect a MongoDB server on `mongodb://localhost`:
 mongod --dbpath /tmp/mongo-test
 swift test
 ```
+
+To run the suite on Linux locally the way CI does (Swift 6.4, libmongoc 2.5.5, MongoDB 8), use Apple's
+[`container`](https://github.com/apple/container) tool:
+
+```sh
+container system start          # once
+Scripts/test-linux.sh           # extra arguments go to swift test, e.g. --filter Phase4Tests
+```
+
+The first run compiles libmongoc into a cached volume (under a minute); later runs take seconds.
