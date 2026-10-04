@@ -219,7 +219,7 @@ public struct BSONEncoder: Sendable {
 		case .array(let storage)?:
 			let child = UnsafeMutablePointer<bson_t>.allocate(capacity: 1)
 			defer { child.deallocate() }
-			guard bson_append_array_unsafe_begin(doc, key, -1, child) else {
+			guard _perfect_bson_append_array_begin(doc, key, -1, child) else {
 				throw MongoError("could not start array '\(key)'")
 			}
 			for (index, box) in storage.boxes.enumerated() {

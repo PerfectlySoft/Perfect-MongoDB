@@ -35,7 +35,7 @@ targets: [
 
 ## Requirements
 
-libmongoc **2.x** must be installed where pkg-config can find `mongoc2` and `bson2`.
+libmongoc **2.x** must be installed where pkg-config can find `mongoc2` and `bson2`. Tested with 2.2.2 and 2.5.5.
 
 **macOS** ([Homebrew](https://brew.sh)):
 
@@ -45,9 +45,15 @@ brew install mongo-c-driver
 
 On Apple silicon, if SwiftPM can't find the library, set `PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig`.
 
-**Linux:** most distributions still package libmongoc 1.x (for example Ubuntu's `libmongoc-dev`), which
-this version doesn't support. Build libmongoc 2 from source, as the CI workflow in
-`.github/workflows/ci.yml` does:
+**Linux:** whether your distribution's package is new enough depends on the release:
+
+| Distribution | `libmongoc-dev` version | What to do |
+|---|---|---|
+| Ubuntu 26.04 LTS and later | 2.2 or later | `apt-get install libmongoc-dev libbson-dev` |
+| Debian forky / sid | 2.5 | `apt-get install libmongoc-dev libbson-dev` |
+| Ubuntu 24.04 LTS (used by the `swift:*-noble` images), Debian 13 and older | 1.x, not supported | Build from source (below) |
+
+To build libmongoc 2 from source, as the CI workflow in `.github/workflows/ci.yml` does:
 
 ```sh
 apt-get install cmake libssl-dev libsasl2-dev libzstd-dev
