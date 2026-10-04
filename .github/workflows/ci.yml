@@ -48,6 +48,28 @@ jobs:
           export LD_LIBRARY_PATH=$(dirname $(find /opt/mongoc -name 'libmongoc2.so' | head -1))
           swift test
 
+  linux-apt:
+    # The oldest libmongoc we support, from the distribution package the README recommends.
+    name: Linux (Ubuntu 26.04, apt libmongoc)
+    runs-on: ubuntu-24.04
+    container: swift:6.4-resolute
+    services:
+      mongo:
+        image: mongo:8
+    env:
+      MONGODB_URI: mongodb://mongo:27017
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install libmongoc from apt
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends pkg-config libmongoc-dev libbson-dev
+          echo "libmongoc $(pkg-config --modversion mongoc2)"
+
+      - name: Test
+        run: swift test
+
   macos:
     name: macOS (build + server-independent tests)
     runs-on: macos-15

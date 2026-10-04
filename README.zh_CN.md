@@ -33,7 +33,7 @@ targets: [
 
 ## 环境要求
 
-必须安装 libmongoc **2.x**，并确保 pkg-config 能找到 `mongoc2` 和 `bson2`。
+必须安装 libmongoc **2.x**，并确保 pkg-config 能找到 `mongoc2` 和 `bson2`。已在 2.2.2 和 2.5.5 上测试。
 
 **macOS**（[Homebrew](https://brew.sh)）：
 
@@ -43,8 +43,15 @@ brew install mongo-c-driver
 
 在 Apple 芯片的 Mac 上，如果 SwiftPM 找不到该库，请设置 `PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig`。
 
-**Linux：** 大多数发行版仍只提供 libmongoc 1.x（例如 Ubuntu 的 `libmongoc-dev`），本版本不支持。请参照
-`.github/workflows/ci.yml` 中 CI 的做法，从源码编译 libmongoc 2：
+**Linux：** 发行版自带的软件包是否够新取决于版本：
+
+| 发行版 | `libmongoc-dev` 版本 | 做法 |
+|---|---|---|
+| Ubuntu 26.04 LTS 及更新版本 | 2.2 或更新 | `apt-get install libmongoc-dev libbson-dev` |
+| Debian forky / sid | 2.5 | `apt-get install libmongoc-dev libbson-dev` |
+| Ubuntu 24.04 LTS（`swift:*-noble` 镜像所用）、Debian 13 及更早版本 | 1.x，不支持 | 从源码编译（见下文） |
+
+参照 `.github/workflows/ci.yml` 中 CI 的做法，从源码编译 libmongoc 2：
 
 ```sh
 apt-get install cmake libssl-dev libsasl2-dev libzstd-dev

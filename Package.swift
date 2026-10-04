@@ -32,16 +32,18 @@ let package = Package(
 			name: "PerfectCBSON",
 			pkgConfig: "bson2",
 			providers: [
-				.brew(["mongo-c-driver"]),
-				.apt(["libbson-dev"])
+				// No apt provider: SwiftPM can't vary it by release, and libmongoc-dev is 2.x only on
+				// Ubuntu 26.04+ / Debian forky+; on Ubuntu 24.04 it installs 1.x. See the README.
+				.brew(["mongo-c-driver"])
 			]
 		),
 		.systemLibrary(
 			name: "PerfectCMongo",
 			pkgConfig: "mongoc2",
 			providers: [
-				.brew(["mongo-c-driver"]),
-				.apt(["libmongoc-dev"])
+				// No apt provider: SwiftPM can't vary it by release, and libmongoc-dev is 2.x only on
+				// Ubuntu 26.04+ / Debian forky+; on Ubuntu 24.04 it installs 1.x. See the README.
+				.brew(["mongo-c-driver"])
 			]
 		),
 		.target(

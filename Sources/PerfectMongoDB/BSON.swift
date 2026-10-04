@@ -472,7 +472,7 @@ public class BSON: CustomStringConvertible {
         guard let doc = self.doc, let cdoc = child.doc else {
             return false
         }
-		return bson_append_array_unsafe_begin(toOpaque(doc), k, -1, toOpaque(cdoc))
+		return _perfect_bson_append_array_begin(toOpaque(doc), k, -1, toOpaque(cdoc))
 	}
 
     /**
