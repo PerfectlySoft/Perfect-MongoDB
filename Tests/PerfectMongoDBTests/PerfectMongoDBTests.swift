@@ -988,6 +988,112 @@ class PerfectMongoDBTests: XCTestCase {
 		XCTAssertEqual(count(collection), 0)
 	}
 
+	private func assertCountFails(_ collection: MongoCollection, _ json: String, containing text: String? = nil, file: StaticString = #filePath, line: UInt = #line) {
+		switch collection.count(query: try! BSON(json: json)) {
+		case .error(_, _, let message):
+			if let text {
+				XCTAssert(message.contains(text), message, file: file, line: line)
+			}
+		case let other:
+			XCTFail("count(\(json)) should fail, got \(other)", file: file, line: line)
+		}
+	}
+
+	func testInvalidLegacyQueriesAreRejected() {
+		let (client, collection) = freshCollection("testinvalidlegacy")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		// A $query that isn't a document used to match every document.
+		let notDocument = "{\"$query\": 5}"
+		XCTAssertNil(collection.find(query: try! BSON(json: notDocument)))
+		assertCountFails(collection, notDocument, containing: "$query must be a document")
+
+		// A non-$ field next to $query used to be merged into the filter.
+		let mixed = "{\"$query\": {\"a\": 1}, \"b\": \"value 1\"}"
+		XCTAssertNil(collection.find(query: try! BSON(json: mixed)))
+		assertCountFails(collection, mixed, containing: "Cannot mix $query with non-dollar field 'b'")
+
+		let gridfs = try! client.gridFS(database: "test")
+		defer { gridfs.close() }
+		XCTAssertThrowsError(try gridfs.list(filter: try! BSON(json: notDocument)))
+
+		// Well-formed legacy queries still work.
+		let valid = "{\"$query\": {\"a\": {\"$gte\": 2}}, \"$orderby\": {\"a\": 1}}"
+		XCTAssertEqual(collection.find(query: try! BSON(json: valid))?.map { $0 }.count, 2)
+		XCTAssertEqual(count(collection, valid), 2)
+	}
+
+	func testLegacyCountOptions() {
+		let (client, collection) = freshCollection("testlegacycount")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		// A negative legacy limit counts like a positive one.
+		if case .replyInt(let limited) = collection.count(query: BSON(), limit: -2) {
+			XCTAssertEqual(limited, 2)
+		} else {
+			XCTFail("count with a negative limit failed")
+		}
+
+		// hint reaches the server: an unknown index is an error.
+		assertCountFails(collection, "{\"$query\": {}, \"$hint\": \"no_such_index\"}")
+		XCTAssertEqual(count(collection, "{\"$query\": {}, \"$hint\": {\"_id\": 1}}"), 3)
+
+		// maxTimeMS reaches the server: a negative value is rejected.
+		assertCountFails(collection, "{\"$query\": {}, \"$maxTimeMS\": -1}")
+
+		// collation reaches the server: case-insensitive match.
+		XCTAssertEqual(count(collection, "{\"$query\": {\"b\": \"VALUE 1\"}}"), 0)
+		XCTAssertEqual(count(collection, "{\"$query\": {\"b\": \"VALUE 1\"}, \"$collation\": {\"locale\": \"en\", \"strength\": 2}}"), 1)
+
+		// Duplicate $query: the last one wins, as in libmongoc 1.x.
+		XCTAssertEqual(count(collection, "{\"$query\": {\"a\": 1}, \"$query\": {\"a\": 2}}"), 1)
+		XCTAssertEqual(count(collection, "{\"$query\": {\"a\": 1}, \"$query\": {\"b\": \"value 2\"}}"), 1)
+
+		// Int.min has no absolute value; it's rejected before llabs.
+		if case .error(_, _, let message) = collection.count(query: BSON(), limit: Int.min) {
+			XCTAssert(message.contains("INT64_MIN"), message)
+		} else {
+			XCTFail("count with limit Int.min should fail")
+		}
+	}
+
+	func testLegacyCountComment() throws {
+		// Checked through the profiler, in a database of its own so the test's profiling
+		// level and profile entries don't touch the shared test database.
+		let client = try MongoClient(uri: testURI)
+		let db = client.getDatabase(name: "perfect_test_count_comment")
+		defer { _ = db.drop() }
+		guard case .replyCollection(let collection) = db.createCollection(name: "c", options: nil) else {
+			return XCTFail("could not create collection")
+		}
+		guard case .success = collection.insert(document: try BSON(json: "{\"a\": 1}")) else {
+			return XCTFail("insert failed")
+		}
+		guard case .replyDoc = collection.runCommand(try BSON(json: "{\"profile\": 2}")) else {
+			throw XCTSkip("profiling isn't available on this server")
+		}
+		defer { _ = collection.runCommand(try! BSON(json: "{\"profile\": 0}")) }
+		let comment = "perfect-count-\(UUID().uuidString)"
+		XCTAssertEqual(count(collection, "{\"$query\": {}, \"$comment\": \"\(comment)\"}"), 1)
+		let profile = client.getCollection(databaseName: "perfect_test_count_comment", collectionName: "system.profile")
+		XCTAssertEqual(profile.find(query: try BSON(json: "{\"command.comment\": \"\(comment)\"}"))?.map { $0 }.count, 1)
+	}
+
+	func testMultiUpdateWithReplacementIsRejected() {
+		let (client, collection) = freshCollection("testmultireplace")
+		defer { withExtendedLifetime(client) {} }
+		defer { _ = collection.drop() }
+
+		guard case .error(_, _, let message) = collection.update(selector: try! BSON(json: "{}"), update: try! BSON(json: "{\"replaced\": true}"), flag: .multiUpdate) else {
+			return XCTFail("multi update with a replacement document succeeded")
+		}
+		XCTAssert(message.contains("replacement"), message)
+		XCTAssertEqual(count(collection, "{\"replaced\": true}"), 0)
+		XCTAssertEqual(count(collection, "{\"a\": {\"$exists\": true}}"), 3)
+	}
+
 	func testBulkWrites() {
 		let (client, collection) = freshCollection("testbulkwrites")
 		defer { withExtendedLifetime(client) {} }
