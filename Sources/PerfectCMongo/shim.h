@@ -1,4 +1,5 @@
 #include <mongoc/mongoc.h>
+#include <stdlib.h>
 #include <string.h>
 
 static bool _mongoc_cursor_next(mongoc_cursor_t *cursor, const void **bson)
@@ -16,40 +17,51 @@ static bool _mongoc_cursor_next(mongoc_cursor_t *cursor, const void **bson)
 // Split a legacy query document into a filter and find options.
 // { $query: {...}, $orderby: {...}, $hint: ... } becomes filter {...} and opts { sort: {...}, hint: ... }.
 // A query without $query is copied into filter unchanged.
-static void _perfect_split_legacy_query(const bson_t *query, bson_t *filter, bson_t *opts)
+// Like libmongoc 1.x, a $query that isn't a document, or a non-$ field next to $query, is an error.
+static bool _perfect_split_legacy_query(const bson_t *query, bson_t *filter, bson_t *opts, bson_error_t *error)
 {
 	bson_iter_t iter;
 	if (!query || !bson_iter_init_find(&iter, query, "$query")) {
 		if (query) {
 			bson_concat(filter, query);
 		}
-		return;
+		return true;
 	}
 	bson_iter_init(&iter, query);
 	while (bson_iter_next(&iter)) {
 		const char *key = bson_iter_key(&iter);
+		if (key[0] != '$') {
+			bson_set_error(error, MONGOC_ERROR_CURSOR, MONGOC_ERROR_CURSOR_INVALID_CURSOR,
+						   "Cannot mix $query with non-dollar field '%s'", key);
+			return false;
+		}
 		if (strcmp(key, "$query") == 0) {
-			if (BSON_ITER_HOLDS_DOCUMENT(&iter)) {
-				uint32_t len = 0;
-				const uint8_t *data = NULL;
-				bson_t sub;
-				bson_iter_document(&iter, &len, &data);
-				if (bson_init_static(&sub, data, len)) {
-					bson_concat(filter, &sub);
-				}
+			uint32_t len = 0;
+			const uint8_t *data = NULL;
+			bson_t sub;
+			if (!BSON_ITER_HOLDS_DOCUMENT(&iter)) {
+				bson_set_error(error, MONGOC_ERROR_BSON, MONGOC_ERROR_BSON_INVALID, "$query must be a document");
+				return false;
 			}
+			bson_iter_document(&iter, &len, &data);
+			if (!bson_init_static(&sub, data, len)) {
+				bson_set_error(error, MONGOC_ERROR_BSON, MONGOC_ERROR_BSON_INVALID, "Invalid BSON in $query subdocument");
+				return false;
+			}
+			// As in libmongoc 1.x, the last $query wins.
+			bson_reinit(filter);
+			bson_concat(filter, &sub);
 		} else if (strcmp(key, "$orderby") == 0) {
 			bson_append_iter(opts, "sort", -1, &iter);
 		} else if (strcmp(key, "$showDiskLoc") == 0) {
 			bson_append_iter(opts, "showRecordId", -1, &iter);
 		} else if (strcmp(key, "$explain") == 0 || strcmp(key, "$snapshot") == 0) {
 			// no longer supported by the server
-		} else if (key[0] == '$') {
-			bson_append_iter(opts, key + 1, -1, &iter);
 		} else {
-			bson_append_iter(filter, key, -1, &iter);
+			bson_append_iter(opts, key + 1, -1, &iter);
 		}
 	}
+	return true;
 }
 
 // Convert legacy query flags to find options. Returns true when MONGOC_QUERY_SECONDARY_OK is set.
@@ -88,8 +100,15 @@ static mongoc_cursor_t *_perfect_collection_find(mongoc_collection_t *collection
 	bson_t opts = BSON_INITIALIZER;
 	mongoc_read_prefs_t *prefs = NULL;
 	mongoc_cursor_t *cursor;
+	bson_error_t error;
 
-	_perfect_split_legacy_query(query, &filter, &opts);
+	// libmongoc 2.x can't hand back a cursor that carries this error, so an invalid legacy query
+	// returns NULL (find() returns nil).
+	if (!_perfect_split_legacy_query(query, &filter, &opts, &error)) {
+		bson_destroy(&filter);
+		bson_destroy(&opts);
+		return NULL;
+	}
 	if (_perfect_flags_to_opts(flags, &opts)) {
 		prefs = mongoc_read_prefs_new(MONGOC_READ_SECONDARY_PREFERRED);
 	}
@@ -114,6 +133,11 @@ static mongoc_cursor_t *_perfect_collection_find(mongoc_collection_t *collection
 	return cursor;
 }
 
+// Legacy count on top of count_documents, which runs { $match: filter } in an aggregate.
+// From the legacy query only hint, maxTimeMS, comment and collation carry over; $orderby, $max,
+// $min, $returnKey, $showDiskLoc and the other find-only options are ignored. Because the filter is a $match, it can't use
+// $where, $near or $nearSphere (the server rejects them); use $expr, $geoWithin with $center,
+// or $geoWithin with $centerSphere instead.
 static int64_t _perfect_collection_count(mongoc_collection_t *collection,
 										 mongoc_query_flags_t flags,
 										 const bson_t *query,
@@ -121,23 +145,39 @@ static int64_t _perfect_collection_count(mongoc_collection_t *collection,
 										 int64_t limit,
 										 bson_error_t *error)
 {
+	static const char *const passed_opts[] = { "hint", "maxTimeMS", "comment", "collation" };
 	bson_t filter = BSON_INITIALIZER;
 	bson_t find_opts = BSON_INITIALIZER;
 	bson_t opts = BSON_INITIALIZER;
 	mongoc_read_prefs_t *prefs = NULL;
-	int64_t count;
+	bson_iter_t iter;
+	size_t i;
+	int64_t count = -1;
 
-	_perfect_split_legacy_query(query, &filter, &find_opts);
+	if (!_perfect_split_legacy_query(query, &filter, &find_opts, error)) {
+		goto done;
+	}
 	if (_perfect_flags_to_opts(flags, &find_opts)) {
 		prefs = mongoc_read_prefs_new(MONGOC_READ_SECONDARY_PREFERRED);
+	}
+	for (i = 0; i < sizeof(passed_opts) / sizeof(passed_opts[0]); i++) {
+		if (bson_iter_init_find(&iter, &find_opts, passed_opts[i])) {
+			bson_append_iter(&opts, passed_opts[i], -1, &iter);
+		}
 	}
 	if (skip) {
 		BSON_APPEND_INT64(&opts, "skip", skip);
 	}
+	// The legacy count command treated a negative limit like a positive one.
+	if (limit == INT64_MIN) {
+		bson_set_error(error, MONGOC_ERROR_COMMAND, MONGOC_ERROR_COMMAND_INVALID_ARG, "limit cannot be INT64_MIN");
+		goto done;
+	}
 	if (limit) {
-		BSON_APPEND_INT64(&opts, "limit", limit);
+		BSON_APPEND_INT64(&opts, "limit", llabs(limit));
 	}
 	count = mongoc_collection_count_documents(collection, &filter, &opts, prefs, NULL, error);
+done:
 	if (prefs) {
 		mongoc_read_prefs_destroy(prefs);
 	}
@@ -151,10 +191,12 @@ static mongoc_gridfs_file_list_t *_perfect_gridfs_find(mongoc_gridfs_t *gridfs, 
 {
 	bson_t filter = BSON_INITIALIZER;
 	bson_t opts = BSON_INITIALIZER;
-	mongoc_gridfs_file_list_t *list;
+	mongoc_gridfs_file_list_t *list = NULL;
+	bson_error_t error;
 
-	_perfect_split_legacy_query(query, &filter, &opts);
-	list = mongoc_gridfs_find_with_opts(gridfs, &filter, &opts);
+	if (_perfect_split_legacy_query(query, &filter, &opts, &error)) {
+		list = mongoc_gridfs_find_with_opts(gridfs, &filter, &opts);
+	}
 	bson_destroy(&filter);
 	bson_destroy(&opts);
 	return list;
@@ -185,6 +227,8 @@ static bool _perfect_collection_insert(mongoc_collection_t *collection,
 }
 
 // Legacy update accepted either an update-operator document or a replacement document.
+// A replacement document can only replace one document, so MULTI_UPDATE with one is an error,
+// as the server reported it for the legacy update.
 static bool _perfect_collection_update(mongoc_collection_t *collection,
 									   mongoc_update_flags_t flags,
 									   const bson_t *selector,
@@ -192,15 +236,21 @@ static bool _perfect_collection_update(mongoc_collection_t *collection,
 									   bson_error_t *error)
 {
 	bson_t opts = BSON_INITIALIZER;
+	bool replacement = !_perfect_is_update_document(update);
 	bool ret;
 
+	if (replacement && (flags & MONGOC_UPDATE_MULTI_UPDATE)) {
+		bson_set_error(error, MONGOC_ERROR_COMMAND, MONGOC_ERROR_COMMAND_INVALID_ARG,
+					   "multi update is not supported for replacement-style update");
+		return false;
+	}
 	if (flags & MONGOC_UPDATE_UPSERT) {
 		BSON_APPEND_BOOL(&opts, "upsert", true);
 	}
 	if (flags & MONGOC_UPDATE_NO_VALIDATE) {
 		BSON_APPEND_BOOL(&opts, "validate", false);
 	}
-	if (!_perfect_is_update_document(update)) {
+	if (replacement) {
 		ret = mongoc_collection_replace_one(collection, selector, update, &opts, NULL, error);
 	} else if (flags & MONGOC_UPDATE_MULTI_UPDATE) {
 		ret = mongoc_collection_update_many(collection, selector, update, &opts, NULL, error);

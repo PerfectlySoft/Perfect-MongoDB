@@ -322,7 +322,7 @@ public class MongoCollection {
 	*
 	*  - parameter selector: BSON document with selection criteria
 	*  - parameter update: BSON document to be used to update
-	*  - parameter flag: Optional MongoUpdateFlag defaults to .None
+	*  - parameter flag: Optional MongoUpdateFlag defaults to .None. `.multiUpdate` needs an update-operator document such as `{ $set: ... }`; with a replacement document it returns an error.
 	*
 	*  - returns: Result object with status of update
 	*/
@@ -555,7 +555,7 @@ public class MongoCollection {
      *  - parameter limit:    Optional. return no more than the supplied number of records.
      *  - parameter batchSize:    Optional. Change number of automatically iterated documents.
      *
-     *  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents.
+     *  - returns:	A cursor to the documents that match the query criteria. When the find() method “returns documents,” the method is actually returning a cursor to the documents. nil when a legacy `$query` query is invalid: `$query` isn't a document, or it's mixed with fields that don't start with `$`.
     */
     public func find(query: BSON = BSON(), fields: BSON? = nil, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> MongoCursor? {
 		//	@available(*, deprecated, message: "Use find(filter: BSON, options: BSON?)")
@@ -672,6 +672,8 @@ public class MongoCollection {
      *  - parameter batchSize:    Optional. Change number of automatically iterated documents.
      *
      *  - returns: the count of documents that would match a find() query. The count() method does not perform the find() operation but instead counts and returns the number of results that match a query.
+     *
+     *  The count runs as an aggregate `$match`, so the query can't use `$where`, `$near` or `$nearSphere`; use `$expr`, or `$geoWithin` with `$center` / `$centerSphere`. In a legacy `$query` query, `$hint`, `$maxTimeMS`, `$comment` and `$collation` apply to the count; other modifiers such as `$orderby`, `$max` and `$min` are ignored. A negative `limit` counts like a positive one.
      */
     public func count(query: BSON, flags: MongoQueryFlag = MongoQueryFlag.none, skip: Int = 0, limit: Int = 0, batchSize: Int = 0) -> Result {
         guard let ptr = self.ptr else {
