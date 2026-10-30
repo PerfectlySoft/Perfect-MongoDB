@@ -4,8 +4,6 @@ Status: **Released as 4.0.0 on 2026-09-29.** Phases 1, 2 and 4 are done; the Atl
 
 Decision on 2026-09-27: **target libmongoc 2.x only.** Homebrew's `mongo-c-driver` is now 2.x; 1.x survives only as the deprecated, keg-only `mongo-c-driver@1`, which Homebrew disables on 2027-04-01. Phase 3's 2.x work was therefore folded into Phase 1. The catch: Linux distributions that still ship 1.x (Ubuntu's `libmongoc-dev` is 1.26) need libmongoc 2 built from source until they package it.
 
-The work belongs in [`PerfectlySoft/Perfect-MongoDB`](https://github.com/PerfectlySoft/Perfect-MongoDB) (or a new repo, if you decide that), not in Perfect-CRUD.
-
 ## Current state (as read, not compiled)
 
 **Perfect-MongoDB**: about 2,800 lines of Swift plus about 900 lines of tests. Last real change was March 2019, for `swift-tools-version:4.1`.
@@ -97,27 +95,3 @@ Folded into Phase 1: the package now targets 2.x only. Linux CI builds libmongoc
 - [x] `MongoClientPool(validatingURI:)` throws `MongoError` for a bad URI or rejected options, using `mongoc_client_pool_new_with_error`. `init(uri:)` keeps its non-throwing signature and traps with that error.
 - [x] macOS CI also runs the server-independent Codable tests (12 tests instead of 7).
 - [ ] Not done, and worth doing on request: change streams (`watch`), aggregation into Codable types, transactions/sessions, and an async GridFS.
-
-## Open questions
-
-1. Update `PerfectlySoft/Perfect-MongoDB` in place (preferred) or start a new repo?
-2. Do the community requesters have code on the old API? If so, Phases 1–2 must not break it.
-3. What they use MongoDB for (existing data, Atlas, change streams, GridFS) decides what Phase 4 does first.
-4. Minimum libmongoc: support 1.x only, or require 2.x once Linux distributions ship it?
-
-## Laptop setup
-
-```sh
-# macOS
-brew install mongo-c-driver            # libmongoc + libbson; check which major version it installs
-# Test server
-docker run -d --name mongo -p 27017:27017 mongo:8
-# Swift 6 toolchain: Xcode 16+/26
-git clone https://github.com/PerfectlySoft/Perfect-MongoDB
-cd Perfect-MongoDB && git checkout -b swift6-modernization
-pkg-config --modversion libmongoc-1.0 mongoc2   # see which is installed
-```
-
-### Kickoff prompt for Claude Code
-
-> Read `Documentation/modernization-plan.md`. We're working in Perfect-MongoDB on branch `swift6-modernization`. Start Phase 1: bring the package to Swift 6 tools, move the Perfect-CMongo/Perfect-CBSON module maps in as system-library targets, drop PerfectLib, and keep the public API unchanged. Build and run the tests against the local `mongo` container after each step.
